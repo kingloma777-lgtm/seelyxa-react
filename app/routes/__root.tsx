@@ -46,6 +46,16 @@ function RootComponent() {
         {/* Home and product paint from inline critical CSS; `bootClient` adds the full sheet once
             their first screen has painted. Other routes: the full sheet blocks, as before. */}
         <ThemeStylesheet href={appCssUrl} critical={CRITICAL_CSS} />
+        {/* MorphPill dark mode: `.dark` must land on <html> BEFORE the first
+            paint (no flash), so it is an inline script that mirrors the
+            Twig theme's master.twig snippset — saved choice first
+            (`seelyxa-theme` in localStorage), else the OS preference. The
+            header's toggle flips the same class. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('seelyxa-theme');var d=s?s==='dark':(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+          }}
+        />
         <ThemeHeadContent />
       </head>
       <body suppressHydrationWarning>

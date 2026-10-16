@@ -16,6 +16,7 @@ import { HOME_ROUTE_ID, PRODUCT_ROUTE_ID } from '../../lib/routeIds';
 import { HeaderMainMenu } from './HeaderMainMenu';
 import { HeaderNav } from './HeaderNav';
 import { HeaderTopnav } from './HeaderTopnav';
+import { MorphHeader, useMorphHeaderEnabled } from './MorphHeader';
 
 /** Opens the Salla search modal (the `<SallaSearch />` at the end of the header). */
 const openSearch = () => window.salla?.event?.dispatch('search::open');
@@ -119,6 +120,11 @@ interface HeaderProps {
 export function Header({ navOpen: navOpenProp, onNavOpenChange }: HeaderProps = {}) {
   const { store, theme } = useTwilight();
   const { t } = useTranslation();
+  // MorphPill is its own header (cinematic port of the Twig theme's one) — it
+  // keeps its own pill/overlay/search stack and shares only the URL `Link`.
+  if (useMorphHeaderEnabled()) {
+    return <MorphHeader />;
+  }
   const isDefaultLayout = theme?.settings?.header_layout === 'default';
   const stickyEnabled = theme?.settings?.header_is_sticky !== false;
   const [navOpenState, setNavOpenState] = useState(false);

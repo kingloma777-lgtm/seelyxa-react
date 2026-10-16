@@ -82,5 +82,11 @@
   "pages.order.can_edit_or_delete_your_review_within": "You can edit or delete your review within",
   "pages.order.edit_period_ended": "The period to edit the review has ended",
   "pages.order.delete_period_ended": "The period to delete the review has ended",
-  "pages.order.days_since_added": "days since it was added"
+  "pages.order.days_since_added": "days since it was added",
+  "blocks.header.language": "Language",
+  "blocks.header.shop": "Shop",
+  "blocks.header.account_note": "Free shipping on orders over SAR 900",
+  "blocks.header.theme_dark": "Switch to dark mode",
+  "blocks.header.theme_light": "Switch to light mode",
+  "blocks.header.morph_empty_store": "This store has no sections yet."
 }

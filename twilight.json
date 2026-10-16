@@ -38,7 +38,7 @@
       "format": "dropdown-list",
       "icon": "sicon-layout-01",
       "label": "تخطيط الهيدر",
-      "description": "الافتراضي: شريط علوي (روابط + اللغة والعملة والفروع) وقائمة رئيسية أفقية. المبسّط: لوجو في المنتصف وزر قائمة منسدلة.",
+      "description": "الافتراضي: شريط علوي (روابط + اللغة والعملة والفروع) وقائمة رئيسية أفقية. المبسّط: لوجو في المنتصف وزر قائمة منسدلة. السينمائي (MorphPill): حبة دواء مموهة تتحول عند التمرير مع قائمة كاملة سينمائية.",
       "source": "Manual",
       "required": true,
       "selected": [
@@ -58,6 +58,455 @@
           "label": "الافتراضي (Default)",
           "value": "default",
           "key": "header-layout-default"
+        },
+        {
+          "label": "السينمائي (MorphPill)",
+          "value": "morph",
+          "key": "header-layout-morph"
+        }
+      ]
+    },
+    {
+      "type": "static",
+      "id": "static-label-morph-header",
+      "format": "title",
+      "variant": "h6",
+      "value": "<div class='rounded-lg' style='background-color: #21636d; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'> خيارات الهيدر السينمائي (MorphPill)</h6></div>",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "type": "boolean",
+      "icon": "sicon-arrow-up",
+      "label": "إخفاء الشريط العلوي عند التمرير",
+      "description": "يختفي شريط الأدوات العلوي تلقائياً عند النزول للأسفل (شاشات الكمبيوتر فقط)",
+      "id": "header_topbar_hide",
+      "format": "switch",
+      "required": false,
+      "value": true,
+      "selected": true,
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "id": "header_theme_toggle",
+      "key": "3dbc16fc-5482-4178-8c83-12a87662fad8",
+      "type": "boolean",
+      "format": "switch",
+      "label": "زر الوضع الليلي / النهاري",
+      "description": "إظهار زر تبديل الوضع الليلي في الهيدر بجانب زر البحث. الزائر يقدر يبدّل الوضع بنفسه، والاختيار بيتحفظ في متصفحه",
+      "icon": "sicon-toggle-off",
+      "required": false,
+      "value": true,
+      "selected": true,
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "type": "string",
+      "icon": "sicon-format-color-text",
+      "label": "اللون الأساسي لخلفية الشريط الزجاجي للهيدر",
+      "description": "اللون الأساسي لخلفية الشريط الزجاجي (شفافيته من الخيار التالي)",
+      "id": "header_glass_color",
+      "format": "color",
+      "required": false,
+      "value": "#ffffff",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "icon": "sicon-opacity",
+      "label": "نسبة شفافية خلفية الشريط الزجاجي للهيدر",
+      "description": "كلما زادت القيمة أصبحت الخلفية أغمق وأقل شفافية",
+      "id": "header_glass_opacity",
+      "format": "slider",
+      "required": false,
+      "value": 78,
+      "minimum": 1,
+      "maximum": 100,
+      "step": 5,
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "icon": "sicon-brightness",
+      "label": "درجة ضبابية الخلفية خلف الهيدر أثناء التمرير",
+      "description": "درجة تمويه المحتوى الذي يمر خلف الشريط الزجاجي للهيدر",
+      "id": "header_blur",
+      "format": "slider",
+      "required": false,
+      "value": 18,
+      "minimum": 0,
+      "maximum": 40,
+      "step": 2,
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "type": "string",
+      "icon": "sicon-format-color-text",
+      "label": "لون نصوص الهيدر وأيقوناته وروابط القائمة",
+      "description": "يحدد لون عناوين ونصوص الهيدر وأيقوناته لتنسّق مع ألوان موقعك العام",
+      "id": "header_text_color",
+      "format": "color",
+      "required": false,
+      "value": "#0f172a",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "icon": "sicon-font-size",
+      "label": "حجم خط روابط القائمة الرئيسية في الهيدر",
+      "description": "يحدد الحجم المناسب لخط روابط القائمة الرئيسية داخل الشريط العلوي للهيدر",
+      "id": "header_nav_font_size",
+      "format": "slider",
+      "required": false,
+      "value": 14,
+      "minimum": 1,
+      "maximum": 20,
+      "step": 1,
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "id": "header_nav_weight",
+      "key": "7f3c62b1-99ad-4e8c-b4d0-7f19ae0d2a11",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "وزن خط روابط القائمة الرئيسية (سمك الحروف)",
+      "description": "يحدد سمك خط روابط القائمة الرئيسية مثل عريض أو نحيف لإبراز العناوين",
+      "icon": "sicon-format-bold",
+      "required": false,
+      "selected": [
+        {
+          "label": "عريض (افتراضي)",
+          "value": "700",
+          "key": "c8e4a9d0-11be-47c6-9e52-3a6b70d1f4c2"
+        }
+      ],
+      "options": [
+        {
+          "label": "نحيف",
+          "value": "400",
+          "key": "0f8d3c1e-7c9a-4d2f-b8a5-66e10b93f7d1"
+        },
+        {
+          "label": "متوسط",
+          "value": "500",
+          "key": "539ebd62-19c4-4a81-8d7f-2b4c8e5a6d0e"
+        },
+        {
+          "label": "عريض (افتراضي)",
+          "value": "700",
+          "key": "c8e4a9d0-11be-47c6-9e52-3a6b70d1f4c2"
+        },
+        {
+          "label": "أثقل",
+          "value": "800",
+          "key": "ea7c91f4-8b2e-41d3-9c60-5f8a6d2e71b3"
+        },
+        {
+          "label": "أسود",
+          "value": "900",
+          "key": "42f9b78e-3a6d-4f5b-81c9-7e0a4d2b8a65"
+        }
+      ],
+      "source": "Manual",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "id": "header_icon_menu",
+      "key": "0bba5753-b10b-4925-b58d-c4339adaf988",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "أيقونة زر قائمة الموبايل",
+      "description": "أيقونة زر القائمة (برجر) الذي يفتح الفهرس السينمائي الكامل على الشاشات الصغيرة",
+      "icon": "sicon-menu",
+      "required": false,
+      "selected": [
+        {
+          "label": "التصميم — ثلاثة خطوط",
+          "value": "menu",
+          "key": "44672624-30a8-405d-b9d5-65743f64634f"
+        }
+      ],
+      "options": [
+        {
+          "label": "التصميم — ثلاثة خطوط",
+          "value": "menu",
+          "key": "44672624-30a8-405d-b9d5-65743f64634f"
+        },
+        {
+          "label": "Salla — قائمة",
+          "value": "sicon-menu",
+          "key": "e7cfe599-9a63-4064-92f1-a551be688002"
+        },
+        {
+          "label": "Salla — كيبورد",
+          "value": "sicon-keyboard",
+          "key": "91891bc2-5085-4b9f-8ce0-4f0cafb529a8"
+        }
+      ],
+      "source": "Manual",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "id": "header_icon_account",
+      "key": "b92d9f76-d676-4bbd-9dc2-2651e0694fed",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "أيقونة حسابي",
+      "description": "أيقونة زر حساب العميل (الإشعارات والطلبات والمفضلة) في الهيدر",
+      "icon": "sicon-user",
+      "required": false,
+      "selected": [
+        {
+          "label": "التصميم — مستخدم",
+          "value": "user",
+          "key": "700deef8-a0ed-4b5c-b828-402159ba5e44"
+        }
+      ],
+      "options": [
+        {
+          "label": "التصميم — مستخدم",
+          "value": "user",
+          "key": "700deef8-a0ed-4b5c-b828-402159ba5e44"
+        },
+        {
+          "label": "التصميم — قلب",
+          "value": "heart",
+          "key": "1ba78aac-002e-48ce-832b-d44d47579723"
+        },
+        {
+          "label": "Salla — مستخدم",
+          "value": "sicon-user",
+          "key": "db9e51a9-4341-4077-8957-b7b2a13e67b1"
+        }
+      ],
+      "source": "Manual",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "id": "header_icon_localization",
+      "key": "4601db3e-20f5-41ec-a594-ee7ec86c7f5e",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "أيقونة اللغة والعملة",
+      "description": "أيقونة زر اللغة والعملة في الهيدر، اللي بيفتح نافذة تغيير اللغة أو العملة",
+      "icon": "sicon-location",
+      "required": false,
+      "selected": [
+        {
+          "label": "التصميم — لغة",
+          "value": "languages",
+          "key": "bd04241d-cf38-4386-bd0a-24410f33484f"
+        }
+      ],
+      "options": [
+        {
+          "label": "التصميم — لغة",
+          "value": "languages",
+          "key": "bd04241d-cf38-4386-bd0a-24410f33484f"
+        },
+        {
+          "label": "التصميم — كرة أرض",
+          "value": "globe",
+          "key": "a2cfb493-4660-4af6-8039-092be3a9b0e7"
+        },
+        {
+          "label": "Salla — موقع",
+          "value": "sicon-location",
+          "key": "2b5d73a8-19d5-4bcc-9605-ec3ae9a80092"
+        }
+      ],
+      "source": "Manual",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "id": "header_icon_search",
+      "key": "1e943c67-cf9d-4e60-8d7d-26298fb8b3e8",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "أيقونة زر البحث",
+      "description": "أيقونة زر البحث في الهيدر، وهي التي تتحول لحقل عند الضغط",
+      "icon": "sicon-search",
+      "required": false,
+      "selected": [
+        {
+          "label": "التصميم — عدسة",
+          "value": "search",
+          "key": "4281d682-892d-47c4-a397-506abe8ef752"
+        }
+      ],
+      "options": [
+        {
+          "label": "التصميم — عدسة",
+          "value": "search",
+          "key": "4281d682-892d-47c4-a397-506abe8ef752"
+        },
+        {
+          "label": "Salla — بحث",
+          "value": "sicon-search",
+          "key": "62ded55c-f050-415a-a711-0bfde3f94cbe"
+        }
+      ],
+      "source": "Manual",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "id": "header_icon_cart",
+      "key": "af946b8c-0c7f-464e-8f0e-f0aedff82ac3",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "أيقونة سلة المشتريات",
+      "description": "أيقونة سلة المشتريات في الهيدر",
+      "icon": "sicon-shopping-bag",
+      "required": false,
+      "selected": [
+        {
+          "label": "التصميم — حقيبة",
+          "value": "bag",
+          "key": "d021b798-9105-4f28-851d-3cae1bde1e8f"
+        }
+      ],
+      "options": [
+        {
+          "label": "التصميم — حقيبة",
+          "value": "bag",
+          "key": "d021b798-9105-4f28-851d-3cae1bde1e8f"
+        },
+        {
+          "label": "Salla — حقيبة تسوق",
+          "value": "sicon-shopping-bag",
+          "key": "77ad56f2-c99a-406a-b48f-88f9b24dfda6"
+        },
+        {
+          "label": "Salla — عربة",
+          "value": "sicon-luggage-cart",
+          "key": "d06d9a35-f1b1-421a-aae2-1f9e117dbabe"
+        }
+      ],
+      "source": "Manual",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
+        }
+      ]
+    },
+    {
+      "id": "header_icon_close",
+      "key": "583fe25d-3150-49f7-9ad8-8e6859a3d7ee",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "أيقونة الإغلاق",
+      "description": "أيقونة الإغلاق (×) المستخدمة في البحث والقائمة الكاملة",
+      "icon": "sicon-cancel",
+      "required": false,
+      "selected": [
+        {
+          "label": "التصميم — ×",
+          "value": "x",
+          "key": "19ec4764-1157-4a6f-9a4c-aea53d010dba"
+        }
+      ],
+      "options": [
+        {
+          "label": "التصميم — ×",
+          "value": "x",
+          "key": "19ec4764-1157-4a6f-9a4c-aea53d010dba"
+        },
+        {
+          "label": "Salla — إلغاء",
+          "value": "sicon-cancel",
+          "key": "fb9bbe38-0195-4ab6-8b2c-15165c98623f"
+        },
+        {
+          "label": "Salla — دائرة إلغاء",
+          "value": "sicon-cancel-circle",
+          "key": "64068bbd-9653-405d-be80-e95ba62561c3"
+        }
+      ],
+      "source": "Manual",
+      "conditions": [
+        {
+          "id": "header_layout",
+          "operation": "=",
+          "value": "morph"
         }
       ]
     },

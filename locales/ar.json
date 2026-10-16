@@ -82,5 +82,11 @@
   "pages.order.can_edit_or_delete_your_review_within": "يمكنك تعديل أو حذف تقييمك خلال",
   "pages.order.edit_period_ended": "تم انتهاء المدة المحددة لتعديل التقييم",
   "pages.order.delete_period_ended": "تم انتهاء المدة المحددة لحذف التقييم",
-  "pages.order.days_since_added": "أيام من إضافته"
+  "pages.order.days_since_added": "أيام من إضافته",
+  "blocks.header.language": "اللغة",
+  "blocks.header.shop": "تسوّق",
+  "blocks.header.account_note": "شحن مجاني للطلبات فوق 900 ر.س",
+  "blocks.header.theme_dark": "الوضع الليلي",
+  "blocks.header.theme_light": "الوضع النهاري",
+  "blocks.header.morph_empty_store": "لا توجد أقسام في المتجر بعد."
 }

@@ -1,0 +1,1161 @@
+/* ==========================================================================
+   MorphPill header (seelyxa-react — ported from the Twig theme)
+   --------------------------------------------------------------------------
+   The port of `src/assets/styles/04-components/morph-header.scss`, split in two
+   commits on purpose:
+
+     · this file ships the pill, the utility top bar, the magnetic nav + blob,
+       the expanding search disc, the fullscreen index (the burger's screen),
+       the account takeover (restyled `salla-user-menu`), the dark-mode
+       overrides and the motion guards;
+     · the curtain mega menu's own rules (`.morph-curtain*`, `.morph-node*`,
+       `.morph-spotlight*`, `.morph-featured*`) arrive with the curtain port so
+       they land with the component that needs them and no dead selectors ship
+       in between.
+
+   Invariants carried over from the Twig theme (each one already cost a debug
+   round there — do not "simplify" them away):
+   · the header is `position: sticky` so it keeps its own height in the flow;
+     `--salla-header-h` (set by MorphHeader.tsx) still measures it;
+   · `backdrop-filter` lives on `.morph-pill` only, never on an ancestor of a
+     `position: fixed` descendant (it would become its containing block) — the
+     account takeover below drops the filter while it is open;
+   · everything uses logical properties so RTL is a mirror, not a stylesheet.
+   ========================================================================== */
+
+/* A fullscreen screen scrolls when its rows overflow, but the design has no
+   scrollbar in it. The item still scrolls by wheel / touch / keyboard; only
+   the drawn bar disappears. */
+@mixin morph-hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+.morph-header {
+  --morph-ink: #141413;
+  --morph-paper: #f6f4ef;
+  --morph-accent: #e2543a;
+  --morph-on-ink: #f7f5ef;
+  --morph-line: rgba(15, 23, 42, 0.1);
+  --morph-fg: var(--morph-fg-input, #0f172a);
+
+  /* One type scale for BOTH fullscreen screens (index + account), so a long
+     category title and a short account label are set at the same size. The
+     design's floor dropped from 2.4rem to 1.5rem: 7.5vw of 375px is 28px and a
+     38px row broke Arabic titles into three lines — a phone-sized disaster the
+     merchant proved, so only the FLOOR moves and the curve stays continuous. */
+  --morph-screen-row: clamp(1.5rem, 7.5vw, 5.6rem);
+  /* The glass alpha arrives from the settings as the raw slider percentage, so
+     CSS does the unit maths — no arithmetic anywhere else. */
+  --morph-glass: color-mix(in srgb, var(--morph-glass-color, #ffffff) calc(var(--morph-glass-alpha, 78) * 1%), transparent);
+  --morph-spring: cubic-bezier(0.34, 1.42, 0.64, 1);
+  --morph-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  color: var(--morph-fg);
+  isolation: isolate;
+}
+
+/* ── ① utility top bar (the theme's own `.top-navbar`, restyled by header.scss)
+   Only the scroll behaviour is ours: `header_topbar_hide` collapses the bar on
+   scroll, desktop only, reusing the pill's `is-scrolled` boolean. ──────────── */
+.morph-topbar {
+  color: var(--morph-fg);
+
+  .morph-topbar__switcher-btn {
+    @apply flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition-colors;
+    color: var(--morph-fg);
+
+    &:hover {
+      background: rgba(20, 20, 19, 0.08);
+    }
+  }
+}
+
+.morph-header[data-hide-topbar] .morph-topbar {
+  @apply transition duration-300;
+  max-height: 96px;
+  opacity: 1;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .morph-header[data-hide-topbar].is-scrolled .morph-topbar {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    min-height: 0;
+  }
+}
+
+/* ── ② bar + morphing pill ─────────────────────────────────────────────── */
+.morph-bar {
+  @apply flex justify-center;
+  padding: 8px 12px;
+
+  @media (min-width: 1024px) {
+    padding: 10px 24px;
+  }
+}
+
+.morph-pill {
+  position: relative;
+  @apply flex items-center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 1600px;
+  padding: 12px 16px;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition:
+    max-width 0.6s var(--morph-spring),
+    border-radius 0.55s var(--morph-spring),
+    padding 0.45s var(--morph-ease),
+    background-color 0.35s ease,
+    box-shadow 0.35s ease,
+    backdrop-filter 0.35s ease;
+}
+
+/* the single scrolled state: pill morphs to 880px / 999px / frosted */
+.morph-header.is-scrolled .morph-pill {
+  max-width: 880px;
+  padding-block: 8px;
+  border-radius: 999px;
+  background-color: var(--morph-glass);
+  box-shadow: 0 14px 44px rgba(20, 20, 19, 0.14);
+  backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.6);
+}
+
+/* The hero legibility scrim: only while the FIRST home block opted into
+   "under the header" (`data-morph-lift`, set by MorphHeader.tsx) and the page
+   still sits at the top — the semantic twin of the Twig theme's
+   `html[data-under-header='1']` with the same ::before trick. */
+@media (min-width: 1025px) {
+  html[data-morph-lift='1'] .morph-header:not(.is-scrolled)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(9, 11, 20, 0.45) 0%, rgba(9, 11, 20, 0.18) 55%, transparent 100%);
+  }
+
+  html[data-morph-lift='1'] .morph-header:not(.is-scrolled) {
+    --morph-fg: #ffffff;
+  }
+}
+
+/* ── brand, burger, action buttons ──────────────────────────────────────── */
+.morph-pill__lead {
+  @apply flex items-center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.morph-burger {
+  @apply items-center justify-center;
+  display: none;
+  width: 36px;
+  height: 36px;
+  margin-inline-end: 2px;
+  /* cancel the UA chrome the `<button>` brought — the Twig burger was a link
+     and had none of it, and the look is part of the design */
+  padding: 0;
+  border: 0;
+  background: none;
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 999px;
+  color: var(--morph-fg);
+  font-size: 20px;
+  transition: background-color 0.25s ease;
+
+  &:hover {
+    background: rgba(20, 20, 19, 0.08);
+  }
+
+  @media (max-width: 1024px) {
+    display: grid;
+  }
+}
+
+.morph-brand {
+  @apply items-center;
+  display: flex;
+  min-width: 0;
+
+  img {
+    @apply w-auto;
+    max-height: 40px;
+    max-width: 150px;
+    object-fit: contain;
+  }
+}
+
+.morph-pill__actions {
+  @apply flex items-center;
+  gap: 4px;
+  flex-shrink: 0;
+
+  salla-user-menu,
+  salla-cart-summary {
+    @apply flex items-center;
+  }
+
+  .header-btn__icon {
+    @apply items-center justify-center;
+    width: 40px;
+    height: 40px;
+    color: var(--morph-fg);
+    border-color: var(--morph-line);
+    background: transparent;
+    transition: background-color 0.25s ease, color 0.25s ease;
+
+    &:hover {
+      background: rgba(20, 20, 19, 0.08);
+    }
+  }
+}
+
+.morph-icon-btn {
+  @apply items-center justify-center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--morph-fg);
+  transition: background-color 0.25s ease, color 0.25s ease;
+
+  &:hover {
+    background: rgba(20, 20, 19, 0.08);
+  }
+}
+
+/* the sun/moon toggle. Both glyphs are in the markup; `html.dark` picks which
+   shows — the button has no JS icon state, nothing to go stale (old rule). */
+.morph-theme-btn {
+  &__glyph {
+    display: inline-flex;
+    line-height: 0;
+  }
+
+  &__sun {
+    display: none;
+  }
+}
+
+html.dark .morph-theme-btn {
+  &__sun {
+    display: inline-flex;
+  }
+
+  &__moon {
+    display: none;
+  }
+}
+
+/* the "magic" reveal — the new theme wipes in as a circle growing out of the
+   button. MorphHeader.tsx writes --morph-theme-x/-y/-r on <html> and adds
+   `.theme-transition` for the transition's lifetime; selectors stay scoped to
+   that class so the default flip (unsupported browser, reduced motion) remains
+   instant and nothing else on the page is affected. */
+html.theme-transition {
+  &::view-transition-old(root),
+  &::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+
+  &::view-transition-old(root) {
+    z-index: 1;
+  }
+
+  &::view-transition-new(root) {
+    z-index: 2;
+    animation: morph-theme-reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+@keyframes morph-theme-reveal {
+  from {
+    clip-path: circle(0 at var(--morph-theme-x, 50%) var(--morph-theme-y, 0%));
+  }
+
+  to {
+    clip-path: circle(var(--morph-theme-r, 150vmax) at var(--morph-theme-x, 50%) var(--morph-theme-y, 0%));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+/* ── ③ center nav — magnetic links + one shared blob ───────────────────── */
+.morph-pill__nav {
+  @apply items-center;
+  display: none;
+  position: relative;
+  flex: 1 1 auto;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  padding-block: 2px;
+
+  @media (min-width: 1025px) {
+    display: flex;
+  }
+}
+
+.morph-nav__skel {
+  @apply items-center;
+  display: flex;
+  gap: 18px;
+
+  i {
+    display: block;
+    width: 72px;
+    height: 13px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.08) 50%, rgba(0, 0, 0, 0) 100%);
+    background-size: 200% 100%;
+    animation: morphSkel 1.4s ease-in-out infinite;
+  }
+}
+
+.morph-header.is-ready .morph-nav__skel {
+  display: none;
+}
+
+.morph-nav__empty {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+@keyframes morphSkel {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* The gum: one element, moved (not cloned) between links — the eased
+   transition on transform + width is what stretches it across the gap. */
+.morph-blob {
+  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
+  height: 0;
+  width: 0;
+  border-radius: 999px;
+  background: var(--morph-ink);
+  opacity: 0;
+  pointer-events: none;
+  /* The pill glides on a plain ease-out, never the overshooting spring — a
+     highlight that bounces past its category reads as imprecise. `translate`
+     (the per-frame lean, written by the component) is NOT in this list, so it
+     can track the cursor without fighting the eased slide. */
+  will-change: transform, width;
+  transition:
+    transform 0.5s var(--morph-ease),
+    width 0.5s var(--morph-ease),
+    height 0.4s var(--morph-ease),
+    opacity 0.18s ease;
+
+  &.is-on {
+    opacity: 1;
+  }
+}
+
+.morph-link {
+  position: relative;
+  @apply inline-flex items-center;
+  gap: 5px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: var(--morph-nav-size, 14px);
+  font-weight: var(--morph-nav-weight, 700);
+  line-height: 1.2;
+  color: var(--morph-fg);
+  white-space: nowrap;
+  cursor: pointer;
+  will-change: transform;
+  transition: color 0.22s ease, background-color 0.22s ease;
+
+  &:hover {
+    background: rgba(20, 20, 19, 0.07);
+  }
+
+  &.is-on-blob {
+    color: var(--morph-on-ink);
+    background: transparent;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+
+  &__caret {
+    width: 12px;
+    height: 12px;
+    opacity: 0.55;
+    transition: transform 0.3s var(--morph-ease);
+  }
+
+  &.is-open &__caret {
+    transform: rotate(180deg);
+  }
+}
+
+/* ── icon slots ─────────────────────────────────────────────────────────── */
+/* One wrapper per slot. The design's glyph is what the component renders with
+   no settings at all and an `sicon-*` merchant choice switches the wrapper to
+   the font glyph (MorphIco). Sizing lives HERE, on the wrapper, so it never
+   depends on its contents: SVG and font glyphs land the same optical size. */
+.morph-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+
+  > svg {
+    width: 1.05em;
+    height: 1.05em;
+  }
+
+  /* an `sicon-*` glyph is a font icon — it must not be squashed by the box */
+  &.is-sicon {
+    font-size: 1.15em;
+    line-height: 1;
+  }
+}
+
+.morph-burger .morph-ico > svg {
+  width: 20px;
+  height: 20px;
+}
+
+.morph-search__glyph.morph-ico > svg {
+  width: 17px;
+  height: 17px;
+}
+
+.morph-account-ico.morph-ico > svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* kept readable by assistive tech, invisible on screen — `.morph-sr-only`
+   matches the Twig theme's name; the theme-wide Tailwind `sr-only` (used in
+   the top bar) stays available too. */
+.morph-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── ④ kinetic fullscreen overlay (the burger's index) ─────────────────── */
+.morph-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  background: rgba(9, 9, 10, 0.975);
+  color: #fff;
+  animation: morphFade 0.3s ease both;
+
+  /* React renders state as a class; `hidden` is the Twig parity signal */
+  &[hidden],
+  &.is-hidden {
+    display: none;
+  }
+
+  &__inner {
+    @apply flex flex-col;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 14px 20px;
+
+    @media (min-width: 640px) {
+      padding: 14px 32px;
+    }
+  }
+
+  &__head {
+    @apply flex items-center justify-end;
+    gap: 16px;
+  }
+
+  &__close {
+    @apply flex items-center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #fff;
+    transition: background-color 0.25s ease, color 0.25s ease;
+
+    &:hover {
+      background: #fff;
+      color: #000;
+    }
+
+    .morph-ico {
+      font-size: 13px;
+    }
+  }
+
+  /* masked rows: each row clips its own label which pushes up with a skew.
+     Full-width bands with a hairline between; `stretch` keeps every row
+     edge-to-edge where `center` would shrink them to their content. */
+  &__nav {
+    @apply flex-1;
+    display: flex;
+    flex-direction: column;
+    justify-content: safe center;
+    align-items: stretch;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-y: auto;
+    @include morph-hide-scrollbar;
+  }
+
+  &__empty-row {
+    display: none;
+  }
+
+  &__row {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* the link inside the band (React row = div > Link, unlike the Twig single anchor) */
+  &__row-link {
+    display: block;
+    width: 100%;
+    color: inherit;
+  }
+
+  &__row-inner {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    padding-block: 10px;
+    animation: morphRowIn 0.7s var(--morph-ease) both;
+  }
+
+  &__index {
+    width: 28px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  &__label {
+    display: inline-block;
+    font-size: var(--morph-screen-row);
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    color: rgba(255, 255, 255, 0.9);
+    transition: color 0.3s ease, transform 0.3s ease;
+  }
+
+  &__row:hover &__label {
+    color: #c6ff4a;
+    transform: translateX(16px);
+  }
+
+  [dir='rtl'] &__row:hover &__label {
+    transform: translateX(-16px);
+  }
+
+  &__cta {
+    margin-inline-start: auto;
+    display: none;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0);
+    transition: color 0.3s ease;
+
+    @media (min-width: 640px) {
+      display: block;
+    }
+  }
+
+  &__row:hover &__cta {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  &__foot {
+    @apply flex flex-wrap items-center justify-between;
+    gap: 12px;
+    padding-block: 20px;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+
+    a {
+      color: inherit;
+
+      &:hover {
+        color: #fff;
+      }
+    }
+  }
+
+  &__social {
+    @apply flex;
+    gap: 20px;
+  }
+
+  /* the preview card that chases the cursor */
+  &__preview {
+    position: fixed;
+    top: 0;
+    /* physical left: the card tracks the pointer, not the text direction */
+    left: 0;
+    z-index: 89;
+    pointer-events: none;
+    display: none;
+
+    @media (min-width: 768px) {
+      display: block;
+    }
+
+    &-card {
+      width: 176px;
+      height: 240px;
+      border-radius: 16px;
+      background: #2a2724;
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      transform: scale(0.55) translate(-50%, -50%);
+      transition: opacity 0.35s ease, transform 0.5s var(--morph-spring);
+    }
+
+    &-label {
+      margin-top: 8px;
+      min-height: 12px;
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    &.is-live {
+      .morph-overlay__preview-card {
+        opacity: 1;
+        transform: scale(1) translate(-50%, -50%) rotate(-6deg);
+      }
+    }
+  }
+}
+
+@keyframes morphFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes morphRowIn {
+  from { opacity: 0; transform: translateY(55%) skewY(5deg); }
+  to { opacity: 1; transform: translateY(0) skewY(0); }
+}
+
+/* ── ⑤ the expanding search ────────────────────────────────────────────── */
+.morph-search {
+  @apply flex items-center;
+  position: relative;
+  flex-shrink: 0;
+
+  &__field {
+    width: 40px;
+    overflow: hidden;
+    /* Collapsed, the disc shows OUR glyph only. `salla-search` keeps its own
+       magnifier inside that same 40px, so leaving it visible stacked two icons
+       on top of each other — `opacity: 0` + no pointer events until open. At
+       open the real field (and its icon) fades in and our toggle cross-fades. */
+    opacity: 0;
+    pointer-events: none;
+    transition: width 0.4s var(--morph-spring), opacity 0.25s ease;
+
+    /* the real search stays at natural width so nothing reflows as the
+       container grows out of the disc */
+    > * {
+      min-width: 300px;
+    }
+
+    .s-search-results {
+      z-index: 20;
+    }
+  }
+
+  &.is-open &__field {
+    width: 300px;
+    opacity: 1;
+    pointer-events: auto;
+
+    @media (max-width: 560px) {
+      width: 170px;
+    }
+  }
+
+  &.is-open &__field > * {
+    min-width: 300px;
+
+    @media (max-width: 560px) {
+      min-width: 170px;
+    }
+  }
+
+  &__toggle {
+    @apply grid place-items-center;
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 40px;
+    color: var(--morph-fg);
+    transition: color 0.25s ease, background-color 0.25s ease;
+
+    &:hover {
+      background: rgba(20, 20, 19, 0.07);
+      border-radius: 999px;
+    }
+  }
+
+  &__glyph--close {
+    display: none;
+  }
+
+  &.is-open {
+    .morph-search__glyph--open {
+      display: none;
+    }
+
+    .morph-search__glyph--close {
+      display: block;
+    }
+  }
+}
+
+/* the language button opens the shared switcher — the modal itself is mounted
+   once per document in ThemeLayout (`salla-localization-modal`), so the pill
+   carries no local modal and needs no rule for one. */
+
+/* ── ⑥ account menu — `salla-user-menu` restyled, never re-implemented ─── */
+/* The trigger is the component's own `trigger` slot; every row below is the
+   component's own markup, so notifications / orders / wishlist / wallet /
+   settings / logout all keep working untouched — we only change the look.
+   Class names are the component's real ones. The old theme's rule 4 stands:
+   the slot wrapper is a leftover the component leaves behind, so the boxed
+   36px trigger is `.s-user-menu-trigger-slot`, not `.morph-account-slot`. */
+.morph-pill salla-user-menu {
+  @apply flex items-center;
+
+  /* the slot content the component COPIES: source material, not UI */
+  > .morph-account-slot {
+    display: none;
+  }
+
+  .morph-account-slot .morph-account-ico {
+    display: inline-flex;
+  }
+
+  .s-user-menu-trigger-slot {
+    @apply flex items-center justify-center;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    color: var(--morph-fg);
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+  }
+
+  .s-user-menu-trigger-slot:hover {
+    background: rgba(20, 20, 19, 0.08);
+  }
+
+  .s-user-menu-wrapper {
+    position: relative;
+  }
+
+  /* ── the takeover ──────────────────────────────────────────────────────
+     Not a pop-up: the component's own panel becomes a fullscreen screen with
+     the same shape as `.morph-overlay` (head / centred rows / foot), so the
+     account screen and the category screen are one design.
+     `position: fixed` is the only way out of the bar and it needs the
+     viewport as its containing block — see the note under this block. */
+  .s-user-menu-dropdown {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    /* the real head/foot are separate elements of ours, so this box reserves
+       their bands: 56px clears the brand + close line, 84px the foot */
+    padding: 56px 20px 84px;
+    border: 0;
+    border-radius: 0;
+    background: rgba(9, 9, 10, 0.975);
+    color: #fff;
+    box-shadow: none;
+    z-index: 90;
+    transform: none;
+    transition: opacity 0.3s ease;
+
+    @media (min-width: 640px) {
+      padding: 56px 32px 84px;
+    }
+  }
+
+  /* the platform slides the panel with a transform; a fullscreen screen should
+     simply fade, and a 0.9 scaleY visibly squashes it */
+  .s-user-menu-toggler.opened .s-user-menu-dropdown {
+    transform: none;
+  }
+
+  .s-user-menu-dropdown-header {
+    @apply flex items-center;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0 0 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .s-user-menu-dropdown-header img {
+    height: 44px;
+    width: 44px;
+    margin-inline-end: 12px;
+  }
+
+  .s-user-menu-dropdown-header-content span {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .s-user-menu-dropdown-header-content p {
+    font-size: 1.05rem;
+    line-height: 1.2;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .s-user-menu-dropdown-header-close {
+    /* lifted beside the brand, on the SAME line as the close of the overlay.
+       Offsets are the overlay's own inner padding, so the two screens line up */
+    position: absolute;
+    top: 14px;
+    inset-inline-end: 20px;
+    margin: 0;
+    @apply flex items-center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #fff;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  .s-user-menu-dropdown-header-close:hover {
+    background: #fff;
+    color: #000;
+  }
+
+  .s-user-menu-dropdown-header-close svg {
+    height: 14px;
+    width: 14px;
+    fill: currentColor;
+  }
+
+  /* the close reads `[Close] [X]`; the platform ships the X only and we can't
+     inject a child into their button — `::before` puts the word in front, and
+     the word follows the page language from `data-close-text` (MorphHeader
+     writes it after each render) rather than a hardcoded English default. */
+  .s-user-menu-dropdown-header-close::before {
+    content: attr(data-close-text, 'Close');
+  }
+
+  @media (min-width: 640px) {
+    .s-user-menu-dropdown-header-close {
+      inset-inline-end: 32px;
+    }
+  }
+
+  /* the rows own the screen: a centred stack, exactly `__nav` in the overlay.
+     `safe center` for the same reason: plain `center` clips the FIRST row off
+     the top of the scroll range as soon as the stack is taller than the screen */
+  .s-user-menu-dropdown-list {
+    counter-reset: morph-account;
+    @apply flex items-center;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: safe center;
+    min-height: 0;
+    padding: 0;
+    overflow-y: auto;
+    @include morph-hide-scrollbar;
+  }
+
+  .s-user-menu-dropdown-list > :not([hidden]) ~ :not([hidden]) {
+    margin: 0;
+  }
+
+  .s-user-menu-dropdown-item {
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .s-user-menu-dropdown-item:last-child {
+    border-bottom: 0;
+  }
+
+  .s-user-menu-dropdown-item a {
+    @apply items-baseline;
+    gap: 20px;
+    min-height: 0;
+    padding: 6px 0;
+    border-radius: 0;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgba(255, 255, 255, 0.9);
+    transition: color 0.3s ease, transform 0.3s var(--morph-ease);
+  }
+
+  .s-user-menu-dropdown-item a:hover {
+    background: transparent;
+    color: #c6ff4a;
+    transform: translateX(16px);
+  }
+
+  [dir='rtl'] .s-user-menu-dropdown-item a:hover {
+    transform: translateX(-16px);
+  }
+
+  /* the overlay numbers its rows 01, 02 … with a mono column. The platform
+     rows carry no such node, so the counter draws it — no markup inside a
+     component we only restyle. */
+  .s-user-menu-dropdown-item {
+    counter-increment: morph-account;
+  }
+
+  .s-user-menu-dropdown-item a::before {
+    content: counter(morph-account, decimal-leading-zero);
+    flex: 0 0 auto;
+    width: 28px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .s-user-menu-dropdown-item-prefix {
+    @apply flex items-center justify-center;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+  }
+
+  .s-user-menu-dropdown-item-prefix svg {
+    height: 17px;
+    width: 17px;
+    margin: 0;
+    fill: rgba(255, 255, 255, 0.45);
+    transition: fill 0.3s ease;
+  }
+
+  .s-user-menu-dropdown-item a:hover .s-user-menu-dropdown-item-prefix svg {
+    fill: #c6ff4a;
+  }
+
+  .s-user-menu-dropdown-item-title {
+    @apply flex items-baseline;
+    flex: 0 1 auto;
+    font-size: var(--morph-screen-row);
+    font-weight: 800;
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+
+  .s-user-menu-dropdown-item-balance {
+    margin-inline-start: auto;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    white-space: nowrap;
+    opacity: 0.55;
+  }
+
+  /* the badge is absolutely positioned for a card layout; on a full-width band
+     it belongs back on the flex line */
+  .s-user-menu-dropdown-item-badge {
+    position: static;
+    flex: 0 0 auto;
+    height: 22px;
+    min-width: 22px;
+    width: auto;
+    padding: 0 7px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 22px;
+    letter-spacing: 0;
+  }
+
+  /* logout keeps the platform's forced red, which still reads on ink */
+  .s-user-menu-dropdown-item-logout a {
+    color: #ff443a !important;
+  }
+
+  .s-user-menu-dropdown-item-logout a:hover {
+    color: #ff6b62 !important;
+  }
+
+  .s-user-menu-dropdown-item-logout a svg {
+    fill: #ff443a !important;
+  }
+}
+
+/* `position: fixed` needs the viewport as its containing block, but
+   `.morph-pill` always carries `backdrop-filter: blur(0px)` — not `none` — so
+   it would capture every fixed descendant, the exact bug the file's own layout
+   note warns about. While the account takeover is open the pill is fully
+   covered anyway, so dropping the filter for that state is invisible.
+   Written as `.morph-header .morph-pill:has(…)` to outrank both the pill's own
+   rule and `.morph-header.is-scrolled .morph-pill` whatever the source order.
+   MUST stay outside the `.morph-pill salla-user-menu` block above. */
+.morph-header .morph-pill:has(.s-user-menu-toggler.opened) {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* the hover preview: the overlay's cursor-chasing card, reused verbatim so
+   both screens show one object. `92` clears the takeover's `90` and the
+   foot's `91`. */
+.morph-account-preview {
+  display: none;
+  z-index: 92;
+}
+
+.morph-header .morph-pill:has(.s-user-menu-toggler.opened) .morph-account-preview {
+  display: block;
+}
+
+/* the takeover's foot, pinned to the insets its own inner padding uses, so it
+   lands on the same line as the index screen's foot. `aria-hidden` +
+   `pointer-events: none`: scenery for a screen the reader opened deliberately. */
+.morph-account-foot {
+  display: none;
+  position: fixed;
+  z-index: 91;
+  pointer-events: none;
+  bottom: 0;
+  inset-inline: 0;
+  padding: 20px;
+
+  @media (min-width: 640px) {
+    padding: 20px 32px;
+  }
+}
+
+.morph-header .morph-pill:has(.s-user-menu-toggler.opened) .morph-account-foot {
+  display: flex;
+}
+
+/* ── motion guards ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .morph-nav__skel i {
+    animation: none;
+  }
+
+  .morph-pill,
+  .morph-blob,
+  .morph-search__field,
+  .morph-overlay,
+  .morph-overlay__row-inner,
+  .morph-overlay__preview-card,
+  .morph-pill salla-user-menu .s-user-menu-dropdown-item a {
+    transition-duration: 0.01ms !important;
+    animation: none !important;
+  }
+
+  .morph-link {
+    will-change: auto;
+  }
+}
+
+/* ==========================================================================
+   Dark-mode overrides for the MorphPill header
+   --------------------------------------------------------------------------
+   The header does not read a Tailwind palette: its colours are hardcoded
+   `--morph-*` and three of them arrive INLINE from the settings, so a plain
+   rule loses to the `style` attribute and needs `!important`. The takeovers
+   (index + account) are already ink-dark in both themes, so they stay alone.
+   ========================================================================== */
+html.dark .morph-header {
+  /* inline (from the header settings) — `!important` is the only way past the
+     `style` attribute on `<header>` */
+  --morph-fg: #e8eaf0 !important;
+  --morph-glass-color: #1a1f28 !important;
+  /* not inline, but part of the same contract */
+  --morph-line: rgba(255, 255, 255, 0.14);
+  --morph-ink: #f2f3f5;
+  --morph-on-ink: #14161b;
+}
+
+/* The hero scrim keeps white text over the picture in BOTH themes, so it
+   out-specifies the rule above, which turns `--morph-fg` light-grey. */
+@media (min-width: 1025px) {
+  html.dark[data-morph-lift='1'] .morph-header:not(.is-scrolled) {
+    --morph-fg: #ffffff !important;
+  }
+}
+
+/* hover tints were dark ink — invert to a light wash */
+html.dark .morph-burger:hover,
+html.dark .morph-pill__actions .header-btn__icon:hover,
+html.dark .morph-icon-btn:hover,
+html.dark .morph-link:hover,
+html.dark .morph-search__toggle:hover,
+html.dark .morph-pill salla-user-menu .s-user-menu-trigger-slot:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .morph-nav__empty {
+  color: rgba(255, 255, 255, 0.5);
+}
