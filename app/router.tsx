@@ -11,6 +11,7 @@ import { routeTree } from './routeTree.gen';
 import {
   Brands,
   CustomTestimonials,
+  CinematicHero,
   EnhancedSlider,
   FeaturedProducts,
   featuredProductsConfig,
@@ -63,12 +64,25 @@ registerHomeComponents({
   'fixed-products': FixedProducts,
   'slider-products-with-header': SliderProductsWithHeader,
   'enhanced-square-banners': EnhancedSquareBanners,
+  // Ported from the Twig theme (seelyxa 1041574063) — full-screen cinematic
+  // intro: image / video / 3D background, entrance animation, scroll indicator.
+  'cinematic-hero': CinematicHero,
 });
 
 // Wrapper `<section>` classes for `featured-products` — the engine only styles
 // the literal `styleN` values; this covers the semantic `view_style`s too.
 // `custom-testimonials` gets `s-block--full-bg` so the gray band runs edge-to-edge.
 registerHomeComponentConfig({
+  // Full-screen intro — the wrapper reserves the eventual height so the lazy
+  // mount never shifts the page, and carries the under-header flag (the lift /
+  // header transparency counterpart arrives with the cinematic header port).
+  'cinematic-hero': {
+    height: '100svh',
+    className: (data) =>
+      `s-block s-block--cinematic-hero hero--${data.height_mode || 'full'}${
+        data.under_header ? ' s-block--under-header' : ''
+      }`,
+  },
   'featured-products': featuredProductsConfig,
   'custom-testimonials': {
     className: 's-block s-block--custom-testimonials s-block--full-bg',
