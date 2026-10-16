@@ -7,8 +7,17 @@ import {
   type CSSProperties,
   type ReactNode,
 } from 'react';
-import { Image } from '@salla.sa/twilight-theme-engine/common';
+import { Image, Link } from '@salla.sa/twilight-theme-engine/common';
 import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
+import {
+  asImage,
+  asSelection,
+  asVarUrl,
+  loadModelViewer,
+  modelViewerAttrs,
+  MV,
+  prefersReducedMotion,
+} from '../../lib/cinematicMedia';
 
 /* --------------------------------------------------------------------------
  * Cinematic Hero — ported from the Twig theme (`seelyxa`,
@@ -16,71 +25,6 @@ import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
  * `partials/cinematic-hero.js`). Full-screen intro block: image / video / 3D
  * background, big headline, CTAs, entrance animation and a scroll indicator.
  * ------------------------------------------------------------------------ */
-
-type AnyRecord = Record<string, unknown>;
-
-/** Picker fields arrive as a plain string, `{value}`, or `[{…, value}]`. */
-function asSelection(value: unknown, fallback: string): string {
-  let v = value;
-  if (Array.isArray(v)) v = v[0];
-  if (v && typeof v === 'object') {
-    v = (v as AnyRecord).value;
-    if (Array.isArray(v)) v = v[0];
-  }
-  return typeof v === 'string' && v ? v : fallback;
-}
-
-/** Image field: `{url, small_url, alt}` object or a plain URL string. */
-function asImage(value: unknown): { url?: string; small_url?: string } | undefined {
-  let v = value;
-  if (Array.isArray(v)) v = v[0];
-  if (v && typeof v === 'object') {
-    const o = v as AnyRecord;
-    const url = typeof o.url === 'string' ? o.url : undefined;
-    const small = typeof o.small_url === 'string' ? o.small_url : undefined;
-    if (url || small) return { url, small_url: small };
-    return undefined;
-  }
-  return typeof v === 'string' && v ? { url: v } : undefined;
-}
-
-/** Variable-list (pick-a-link) field: flatten to a plain URL string, same
- * runtime as the old Twig theme (`scalars` over `{value}` / array shapes). */
-function asVarUrl(value: unknown): string {
-  let v = value;
-  if (Array.isArray(v)) v = v[0];
-  if (v && typeof v === 'object') {
-    const o = v as AnyRecord;
-    for (const key of ['value', 'url']) {
-      const inner = o[key];
-      if (typeof inner === 'string' && inner) return inner;
-      if (Array.isArray(inner)) {
-        const first = inner[0] as AnyRecord | undefined;
-        if (first && typeof first.value === 'string' && first.value) return first.value;
-      }
-    }
-    return '';
-  }
-  return typeof v === 'string' ? v : '';
-}
-
-/** `<model-viewer>` is a lazy-loaded custom element, not a React intrinsic.
- * `createElement` keeps it type-safe without touching generated engine types. */
-const MV = 'model-viewer';
-const MODEL_VIEWER_SRC = 'https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js';
-
-let modelViewerRequested = false;
-function loadModelViewer() {
-  if (modelViewerRequested) return;
-  if (typeof window === 'undefined') return;
-  modelViewerRequested = true;
-  if (window.customElements?.get('model-viewer')) return;
-  const script = document.createElement('script');
-  script.type = 'module';
-  script.async = true;
-  script.src = MODEL_VIEWER_SRC;
-  document.head.appendChild(script);
-}
 
 export interface CinematicHeroData {
   background_type?: unknown;
@@ -128,22 +72,21 @@ export const CinematicHero = memo(function CinematicHero({ data }: CinematicHero
   const videoUrl = typeof data.bg_video_url === 'string' ? data.bg_video_url : '';
   const modelSrc = typeof data.model_src === 'string' ? data.model_src : '';
   const overlay = Number(data.overlay_opacity ?? 35) || 0;
-  const textChars = [
-    (typeof data.headline === 'string' ? data.headline : '') || null,
-    (typeof data.subtitle === 'string' ? data.subtitle : '') || null,
-    data.show_ctas && (asVarUrl(data.primary_url) || asVarUrl(data.secondary_url)) ? 'ctas' : null,
-  ].filter(Boolean);
-  const hasContent = Boolean(textChars.length) || Boolean(data.show_scroll_indicator);
+  const primaryUrl = asVarUrl(data.primary_url);
+  const secondaryUrl = asVarUrl(data.secondary_url);
+  const hasContent =
+    Boolean(
+      (typeof data.headline === 'string' && data.headline) ||
+        (typeof data.subtitle === 'string' && data.subtitle) ||
+        (data.show_ctas && (primaryUrl || secondaryUrl))
+    ) || Boolean(data.show_scroll_indicator);
 
   /* ---- entrance animation (runs client-only; SSR keeps content visible) ---- */
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const reveals = Array.from(root.querySelectorAll<HTMLElement>('[data-cinematic-reveal]'));
-    if (!reveals.length) return;
-
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) return;
+    if (!reveals.length || prefersReducedMotion()) return;
 
     // Hide only once JS owns the hero — mirrors the old `hero-cinematic-js`
     // gate, so a no-JS / pre-hydration render never hides the content.
@@ -169,7 +112,7 @@ export const CinematicHero = memo(function CinematicHero({ data }: CinematicHero
 
   /* ---- subtle background parallax, desktop + motion only ---- */
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (prefersReducedMotion()) return;
     if (window.innerWidth < 1024) return;
     const root = rootRef.current;
     const media = root?.querySelector('.cinematic-hero__media') as HTMLElement | null;
@@ -207,8 +150,10 @@ export const CinematicHero = memo(function CinematicHero({ data }: CinematicHero
   const scrollToNext = () => {
     const section = rootRef.current?.closest('section, main');
     const next = section?.nextElementSibling || document.body;
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    next.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
+    next.scrollIntoView({
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      block: 'start',
+    });
   };
 
   /* ---- media ---- */
@@ -226,21 +171,16 @@ export const CinematicHero = memo(function CinematicHero({ data }: CinematicHero
       />
     );
   } else if (backgroundType === '3d' && modelSrc) {
-    const mv: Record<string, unknown> = {
-      class: 'cinematic-hero__media',
-      'data-cinematic-model': '',
-      src: modelSrc,
-      'camera-controls': '',
-      'disable-zoom': '',
-      'touch-action': 'pan-y',
-      exposure: '1',
-      'shadow-intensity': '0',
-      alt: '',
-    };
-    if (modelPoster?.url) mv.poster = modelPoster.url;
-    if (data.model_auto_rotate) mv['auto-rotate'] = '';
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    media = createElement(MV, mv);
+    media = createElement(
+      MV,
+      modelViewerAttrs({
+        className: 'cinematic-hero__media',
+        src: modelSrc,
+        poster: modelPoster?.url,
+        autoRotate: Boolean(data.model_auto_rotate),
+        cameraControls: true,
+      })
+    );
   } else if (bg?.url) {
     media = (
       <Image
@@ -291,15 +231,15 @@ export const CinematicHero = memo(function CinematicHero({ data }: CinematicHero
 
         {data.show_ctas ? (
           <div className="cinematic-hero__actions" data-cinematic-reveal>
-            {typeof data.primary_label === 'string' && data.primary_label && asVarUrl(data.primary_url) ? (
-              <a href={asVarUrl(data.primary_url)} className="hero-btn hero-btn--primary">
+            {data.primary_label && primaryUrl ? (
+              <Link to={primaryUrl} className="hero-btn hero-btn--primary">
                 {data.primary_label}
-              </a>
+              </Link>
             ) : null}
-            {typeof data.secondary_label === 'string' && data.secondary_label && asVarUrl(data.secondary_url) ? (
-              <a href={asVarUrl(data.secondary_url)} className="hero-btn hero-btn--ghost">
+            {data.secondary_label && secondaryUrl ? (
+              <Link to={secondaryUrl} className="hero-btn hero-btn--ghost">
                 {data.secondary_label}
-              </a>
+              </Link>
             ) : null}
           </div>
         ) : null}

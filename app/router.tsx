@@ -12,6 +12,7 @@ import {
   Brands,
   CustomTestimonials,
   CinematicHero,
+  SplitScene,
   EnhancedSlider,
   FeaturedProducts,
   featuredProductsConfig,
@@ -67,6 +68,9 @@ registerHomeComponents({
   // Ported from the Twig theme (seelyxa 1041574063) — full-screen cinematic
   // intro: image / video / 3D background, entrance animation, scroll indicator.
   'cinematic-hero': CinematicHero,
+  // Ported from the Twig theme — storytelling text + media side by side,
+  // direction-aware (RTL safe); reveal animation on scroll.
+  'split-scene': SplitScene,
 });
 
 // Wrapper `<section>` classes for `featured-products` — the engine only styles
@@ -82,6 +86,13 @@ registerHomeComponentConfig({
       `s-block s-block--cinematic-hero hero--${data.height_mode || 'full'}${
         data.under_header ? ' s-block--under-header' : ''
       }`,
+  },
+  'split-scene': {
+    height: '560px',
+    className: (data) =>
+      `s-block s-block--split-scene split--media-${data.media_position || 'right'}${
+        data.media_rounded === false ? ' split--media-square' : ''
+      }${data.under_header ? ' s-block--under-header' : ''}`,
   },
   'featured-products': featuredProductsConfig,
   'custom-testimonials': {
