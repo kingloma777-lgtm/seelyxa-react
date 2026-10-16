@@ -3182,6 +3182,124 @@
           "selected": false
         }
       ]
+    },
+    {
+      "key": "c7812d50-3ae4-41f9-9b2d-8f6a1c4e07d3",
+      "title": {
+        "en": "Living Product Stage",
+        "ar": "مرحلة المنتج الحية"
+      },
+      "icon": "sicon-box-3d",
+      "path": "home.living-product-stage",
+      "image": "https://cdn.salla.network/images/themes/raed/preview-images/slider-products-with-bg.png?v=1.1",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc",
+          "value": "<div style='background-color:#101418;border-radius:12px;padding:14px 16px;color:#ffffff;font-size:14px;line-height:1.7;'><strong>مرحلة المنتج الحية</strong> — منتجك يعيش في فضاء المشهد: يدخل عبر حركة التمرير، يتحرّك ويتغيّر حجمه، ثم تنبثق منه نقطة تفاعل واحدة ولوحة تجارية (السعر + إضافة للسلة). نسخة أولى صغيرة تثبت بصمة حركة الثيم قبل الترقّي إلى مشاهد ثلاثية الأبعاد.</div>"
+        },
+        {
+          "type": "static",
+          "format": "line",
+          "id": "static-line-media"
+        },
+        {
+          "type": "static",
+          "format": "title",
+          "id": "static-title-media",
+          "value": "المنتج",
+          "variant": "h6"
+        },
+        {
+          "id": "single_product",
+          "type": "items",
+          "icon": "sicon-box-3d",
+          "label": "اختر المنتج",
+          "description": "المنتج الذي يظهر في المشهد (صورته، اسمه، سعره وزر الإضافة للسلة تُجلب تلقائياً). اختر منتجاً واحداً وسيُستخدم أوله.",
+          "format": "dropdown-list",
+          "selected": [],
+          "options": [],
+          "required": true,
+          "multichoice": true,
+          "searchable": true,
+          "maxLength": 8,
+          "minLength": 1,
+          "value": [],
+          "source": "products"
+        },
+        {
+          "type": "static",
+          "format": "line",
+          "id": "static-line-content"
+        },
+        {
+          "type": "static",
+          "format": "title",
+          "id": "static-title-content",
+          "value": "المحتوى",
+          "variant": "h6"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-format-text-alt",
+          "label": "تسمية قصيرة (كلمة افتتاحية)",
+          "multilanguage": true,
+          "maxLength": 30,
+          "id": "kicker",
+          "format": "text",
+          "required": false,
+          "placeholder": "مثال: قصة المنتج",
+          "value": "قصة المنتج"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-format-text-alt",
+          "label": "عنوان نقطة التفاعل",
+          "multilanguage": true,
+          "maxLength": 40,
+          "id": "hotspot_label",
+          "format": "text",
+          "required": false,
+          "description": "العنوان الظاهر داخل بطاقة التفاصيل عند فتح نقطة التفاعل فوق المنتج",
+          "value": "تفاصيل المنتج"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-link",
+          "label": "نص رابط صفحة المنتج",
+          "multilanguage": true,
+          "maxLength": 40,
+          "id": "product_link_label",
+          "format": "text",
+          "required": false,
+          "value": "عرض المنتج"
+        },
+        {
+          "type": "static",
+          "format": "line",
+          "id": "static-line-animation"
+        },
+        {
+          "type": "static",
+          "format": "title",
+          "id": "static-title-animation",
+          "value": "الحركة",
+          "variant": "h6"
+        },
+        {
+          "type": "boolean",
+          "icon": "sicon-toggle-off",
+          "label": "الظهور تحت الهيدر",
+          "description": "عند التفعيل يبدأ المكوّن أعلى الصفحة خلف الهيدر الشفاف كمشهد افتتاحي (يعمل فقط لو كان أول بلوك في الصفحة الرئيسية). عند الإطفاء يظل المكوّن عادياً والبقية تحت بعضها بالترتيب الطبيعي.",
+          "id": "under_header",
+          "format": "switch",
+          "required": false,
+          "value": false,
+          "selected": false
+        }
+      ]
     }
   ],
   "support_url": "https://salla.com/",

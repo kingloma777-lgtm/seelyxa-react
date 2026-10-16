@@ -1,0 +1,559 @@
+/*
+  Living Product Stage (home section) — a cinematic scroll journey where the
+  product is alive. Layered depth: dark stage, breathing auras, mirror
+  reflection, counter-parallax brand watermark, floating dust, macro scan
+  reveal (one hotspot), an energy hand-off ring and a commercial panel that
+  emerges from the motion. A bottom journey indicator tracks the phases.
+  Base (no JS / reduced motion): a clean assembled scene, nothing hidden.
+
+  Ported from the Twig theme (seelyxa living-product-stage.scss). The wrapper
+  `<section class="s-block s-block--living-product">` is emitted by the home
+  renderer; here the inner `.living-product` root IS the 320vh scroll runway
+  and `.living-product__inner` is the sticky 100vh viewport.
+*/
+.s-block--living-product {
+  .living-product {
+    position: relative;
+    height: 320vh;
+    overflow: hidden;
+    background: var(--lp-bg, #0b0e14);
+    --lp-ink: #ffffff;
+    --lp-muted: rgb(255 255 255 / 0.62);
+    --lp-line: rgb(255 255 255 / 0.16);
+    --lp-accent: #f2e8d5;
+    --lp-cool: hsl(224 55% 62%);
+    --lp-warm: hsl(30 90% 64%);
+  }
+
+  .living-product__inner {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    isolation: isolate;
+
+    /* cinematic vignette */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 8;
+      background:
+        radial-gradient(125% 100% at 50% 32%, transparent 55%, rgb(0 0 0 / 0.55) 100%),
+        linear-gradient(rgb(0 0 0 / 0.18), transparent 28%, transparent 72%, rgb(0 0 0 / 0.3));
+    }
+  }
+
+  /* ---- ambient auras (cool → warm crossfade) ---- */
+  .living-product__aura {
+    position: absolute;
+    inset: -18%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .living-product__aura--cool,
+  .living-product__aura--warm {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    will-change: opacity;
+  }
+
+  .living-product__aura--cool {
+    background:
+      radial-gradient(52vw 62vh at 34% 42%, color-mix(in srgb, var(--lp-cool) 16%, transparent), transparent 70%),
+      radial-gradient(40vw 50vh at 72% 66%, rgba(120, 180, 255, 0.1), transparent 72%);
+  }
+
+  .living-product__aura--warm {
+    background:
+      radial-gradient(52vw 62vh at 66% 42%, color-mix(in srgb, var(--lp-warm) 16%, transparent), transparent 70%),
+      radial-gradient(42vw 52vh at 28% 68%, rgba(255, 150, 90, 0.1), transparent 72%);
+  }
+
+  /* ---- giant brand watermark (counter-parallax depth) ---- */
+  .living-product__watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 0;
+    max-width: 92vw;
+    color: transparent;
+    background-image: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.03));
+    -webkit-background-clip: text;
+    background-clip: text;
+    font-size: clamp(3.4rem, 13vw, 14rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  /* ---- floating dust (breath particles) ---- */
+  .living-product__dust {
+    position: absolute;
+    top: 62%;
+    width: 3px;
+    height: 3px;
+    border-radius: 999px;
+    z-index: 7;
+    background: rgb(255 255 255 / 0.9);
+    box-shadow: 0 0 8px 1px rgb(255 255 255 / 0.5);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+
+    &:nth-child(3n) { width: 4px; height: 4px; background: var(--lp-cool); box-shadow: 0 0 10px 1px color-mix(in srgb, var(--lp-cool) 60%, transparent); }
+    &:nth-child(5n) { background: var(--lp-warm); box-shadow: 0 0 10px 1px color-mix(in srgb, var(--lp-warm) 60%, transparent); }
+  }
+
+  /* ---- scene: product floats in a 3D perspective stage ---- */
+  .living-product__scene {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    perspective: 1300px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .living-product__halo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(80vw, 640px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle, rgb(255 255 255 / 0.10), rgb(255 255 255 / 0.02) 46%, transparent 62%);
+    box-shadow: inset 0 0 60px rgb(0 0 0 / 0.4);
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+
+  .living-product__product {
+    position: relative;
+    width: min(78vw, 420px);
+    pointer-events: auto;
+    will-change: transform;
+  }
+
+  .living-product__frame {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    border-radius: 1.4rem;
+    background: #161b24;
+    box-shadow:
+      0 46px 90px rgb(0 0 0 / 0.55),
+      0 0 0 1px rgb(255 255 255 / 0.07),
+      0 0 70px rgb(255 255 255 / 0.06);
+    will-change: transform;
+  }
+
+  .living-product__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.92);
+  }
+
+  /* macro scan line — sweeps when the hotspot phase is reached */
+  .living-product__scan {
+    position: absolute;
+    inset-inline: 0;
+    top: -18%;
+    height: 34%;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      rgb(255 255 255 / 0.12) 38%,
+      rgb(255 255 255 / 0.5) 50%,
+      rgb(255 255 255 / 0.12) 62%,
+      transparent
+    );
+    filter: blur(2px);
+  }
+
+  .living-product--hot .living-product__scan {
+    opacity: 1;
+    animation: lp-scan-sweep 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+
+  @keyframes lp-scan-sweep {
+    0%   { transform: translateY(-120%); }
+    100% { transform: translateY(420%); }
+  }
+
+  /* glossy mirror reflection under the product */
+  .living-product__mirror {
+    position: absolute;
+    inset-inline: 5%;
+    top: 101%;
+    opacity: 0;
+    pointer-events: none;
+    will-change: opacity;
+    -webkit-mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.4), transparent 86%);
+    mask-image: linear-gradient(to bottom, rgb(0 0 0 / 0.4), transparent 86%);
+
+    img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 2.5;
+      object-fit: cover;
+      object-position: 50% 8%;
+      transform: scaleY(-1);
+      filter: blur(1px) brightness(0.5) saturate(0.7);
+    }
+  }
+
+  .living-product__floor {
+    position: absolute;
+    left: 50%;
+    top: calc(100% - 6px);
+    width: 138%;
+    height: 52px;
+    transform: translateX(-50%) scaleX(0.78);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+    background: radial-gradient(50% 100% at 50% 0, rgb(0 0 0 / 0.6), transparent 72%);
+    filter: blur(9px);
+  }
+
+  /* ---- hotspot: one interactive point (pulse + popup) ---- */
+  .living-product__hotspot {
+    position: absolute;
+    inset-inline-end: -0.4rem;
+    inset-block-start: -0.4rem;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .living-product__hotspot-dot {
+    position: absolute;
+    inset: 9px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--lp-ink);
+    box-shadow: 0 0 0 3px rgb(0 0 0 / 0.35), 0 0 18px 2px rgb(255 255 255 / 0.45);
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: -9px;
+      border-radius: 999px;
+      border: 1px solid var(--lp-ink);
+      opacity: 0;
+      animation: lp-ping 2.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+    }
+
+    &::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--lp-bg, #0d1016);
+    }
+  }
+
+  @keyframes lp-ping {
+    0%   { transform: scale(0.6); opacity: 0.75; }
+    75%  { transform: scale(1.35); opacity: 0; }
+    100% { transform: scale(1.35); opacity: 0; }
+  }
+
+  .living-product__popup {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: calc(100% + 14px);
+    width: min(72vw, 290px);
+    display: none;
+    z-index: 3;
+    color: var(--lp-ink);
+    text-align: start;
+    background: rgb(16 20 27 / 0.92);
+    border: 1px solid var(--lp-line);
+    border-radius: 1rem;
+    padding: 1.05rem 1.2rem;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 26px 64px rgb(0 0 0 / 0.5);
+  }
+
+  .living-product--popup-open .living-product__popup {
+    display: block;
+    animation: lp-pop-in 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes lp-pop-in {
+    from { opacity: 0; transform: translateY(10px) scale(0.96); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .living-product__popup-label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-block-end: 0.35rem;
+  }
+
+  .living-product__popup-name {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin-block-end: 0.3rem;
+  }
+
+  .living-product__popup-text {
+    font-size: 0.88rem;
+    line-height: 1.7;
+    opacity: 0.72;
+    margin: 0 0 0.7rem;
+  }
+
+  .living-product__popup-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--lp-ink);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+
+    &:hover { opacity: 0.8; }
+  }
+
+  /* ---- energy hand-off ring (product → panel) ---- */
+  .living-product__ring {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(70vw, 560px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid var(--lp-line);
+    box-shadow: 0 0 60px rgb(255 255 255 / 0.12), inset 0 0 60px rgb(255 255 255 / 0.06);
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  /* ---- panel: commercial end-state, emerges from the motion ---- */
+  .living-product__panel {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    z-index: 4;
+    will-change: transform, opacity;
+    pointer-events: none;
+  }
+
+  .living-product__panel-card {
+    width: min(84vw, 470px);
+    color: var(--lp-ink);
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .living-product__kicker {
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.66;
+    margin-block-end: 0.8rem;
+  }
+
+  .living-product__title {
+    font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.16;
+    margin: 0 0 0.7rem;
+  }
+
+  .living-product__text {
+    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+    line-height: 1.9;
+    opacity: var(--lp-muted);
+    margin: 0 0 1.5rem;
+  }
+
+  .living-product__prices {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-block-end: 1.4rem;
+  }
+
+  .living-product__price {
+    font-size: clamp(1.4rem, 2.8vw, 2.1rem);
+    font-weight: 800;
+    color: var(--lp-accent, #ffffff);
+    text-shadow: 0 0 24px rgb(255 255 255 / 0.25);
+  }
+
+  .living-product__old {
+    font-size: 1rem;
+    opacity: 0.5;
+    text-decoration: line-through;
+  }
+
+  .living-product__cta {
+    align-self: flex-start;
+    margin-block-end: 1.15rem;
+  }
+
+  .living-product__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--lp-ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--lp-line);
+
+    &:hover { border-color: currentColor; }
+
+    i { font-size: 0.8rem; }
+  }
+
+  /* ---- journey indicator (story phases + progress) ---- */
+  .living-product__pointer {
+    position: absolute;
+    inset-inline: 0;
+    bottom: clamp(1.25rem, 4vh, 2.75rem);
+    display: grid;
+    place-items: center;
+    gap: 0.6rem;
+    z-index: 6;
+    pointer-events: none;
+  }
+
+  .living-product__pointer-track {
+    width: min(430px, 72vw);
+    height: 2px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.14);
+    overflow: hidden;
+  }
+
+  .living-product__pointer-fill {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--lp-cool), var(--lp-warm));
+    box-shadow: 0 0 12px color-mix(in srgb, var(--lp-warm) 70%, transparent);
+  }
+
+  .living-product__pointer-labels {
+    display: flex;
+    gap: clamp(0.8rem, 2.5vw, 1.6rem);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+
+    span {
+      opacity: 0.42;
+      transition: opacity 0.4s ease, color 0.4s ease;
+
+      &.is-on {
+        opacity: 1;
+        font-weight: 800;
+        color: var(--lp-accent);
+      }
+    }
+  }
+
+  /* ---- empty state (no product chosen yet) ---- */
+  .living-product__empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    gap: 0.4rem;
+    text-align: center;
+    color: var(--lp-ink);
+    z-index: 5;
+
+    strong { font-size: 1.4rem; }
+    p { margin: 0; opacity: 0.6; }
+  }
+
+  /* ---- responsive ---- */
+  @media (min-width: 900px) {
+    .living-product__product { width: min(40vw, 470px); }
+    .living-product__panel-card { width: min(38vw, 460px); }
+  }
+
+  /* ---- JS-driven motions (never hidden without JS) ---- */
+  .living-product--js {
+    .living-product__aura--cool,
+    .living-product__aura--warm { opacity: 0; }
+
+    .living-product__hotspot {
+      opacity: 0;
+      transform: scale(0.5);
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    &.living-product--hot .living-product__hotspot {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .living-product__panel-card > * {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+      transition-delay: 0s;
+    }
+
+    &.living-product--settled .living-product__panel-card > * {
+      opacity: 1;
+      transform: none;
+    }
+
+    &.living-product--settled .living-product__panel-card > *:nth-child(1) { transition-delay: 70ms; }
+    &.living-product--settled .living-product__panel-card > *:nth-child(2) { transition-delay: 140ms; }
+    &.living-product--settled .living-product__panel-card > *:nth-child(3) { transition-delay: 210ms; }
+    &.living-product--settled .living-product__panel-card > *:nth-child(4) { transition-delay: 280ms; }
+    &.living-product--settled .living-product__panel-card > *:nth-child(5) { transition-delay: 350ms; }
+    &.living-product--settled .living-product__panel-card > *:nth-child(6) { transition-delay: 420ms; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .living-product__hotspot-dot::after,
+    .living-product__scan { animation: none; }
+
+    .living-product__scan { display: none; }
+
+    .living-product--js {
+      .living-product__hotspot { opacity: 1; transform: none; transition: none; }
+      .living-product__panel-card > * { opacity: 1; transform: none; transition: none; }
+    }
+  }
+}

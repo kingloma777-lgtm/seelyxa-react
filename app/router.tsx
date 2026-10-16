@@ -14,6 +14,7 @@ import {
   CinematicHero,
   SplitScene,
   Chapter,
+  LivingProductStage,
   EnhancedSlider,
   FeaturedProducts,
   featuredProductsConfig,
@@ -75,6 +76,8 @@ registerHomeComponents({
   // Ported from the Twig theme — full-bleed scene divider with parallax bg,
   // scene heights and one-shot reveal.
   'chapter': Chapter,
+  // Ported from the Twig theme — 320vh sticky cinematic product journey.
+  'living-product-stage': LivingProductStage,
 });
 
 // Wrapper `<section>` classes for `featured-products` — the engine only styles
@@ -102,6 +105,12 @@ registerHomeComponentConfig({
     height: '480px', // .chapter--medium min-height (the default)
     className: (data) =>
       `s-block s-block--chapter${data.under_header ? ' s-block--under-header' : ''}`,
+  },
+  // 320vh scroll runway (the sticky journey inner is 100vh).
+  'living-product-stage': {
+    height: '320vh',
+    className: (data) =>
+      `s-block s-block--living-product${data.under_header ? ' s-block--under-header' : ''}`,
   },
   'featured-products': featuredProductsConfig,
   'custom-testimonials': {
