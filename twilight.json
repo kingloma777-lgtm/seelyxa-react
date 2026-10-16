@@ -2628,6 +2628,560 @@
           "selected": false
         }
       ]
+    },
+    {
+      "key": "2a1547b7-9cc3-491a-ab76-ffc2948003ab",
+      "title": {
+        "en": "Chapter (Cinematic Scene)",
+        "ar": "فصل سينمائي (مشهد)"
+      },
+      "icon": "sicon-movie",
+      "path": "home.chapter",
+      "image": "https://cdn.salla.network/images/themes/raed/preview-images/parallax-background.png?v=1.1",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc",
+          "value": "<div style='background-color:#101418;border-radius:12px;padding:14px 16px;color:#ffffff;font-size:14px;line-height:1.7;'><strong>فصل سينمائي</strong> — مشهد بعرض كامل بخلفية كبيرة (صورة / فيديو / 3D) مع تسمية فصل وعنوان ووصف وأزرار، لتقسيم قصة متجرك إلى فصول سردية.</div>"
+        },
+        {
+          "type": "static",
+          "format": "line",
+          "id": "static-line-bg"
+        },
+        {
+          "type": "static",
+          "format": "title",
+          "id": "static-title-bg",
+          "value": "الخلفية",
+          "variant": "h6"
+        },
+        {
+          "id": "bg_type",
+          "key": "f7ebcb9f-5e07-4e1c-89cc-384a614e660a",
+          "type": "items",
+          "format": "dropdown-list",
+          "label": "نوع الخلفية",
+          "icon": "sicon-expand",
+          "required": true,
+          "selected": [
+            {
+              "label": "صورة",
+              "value": "image",
+              "key": "c463e0cd-84d4-4c21-9478-adbe7027f972"
+            }
+          ],
+          "options": [
+            {
+              "label": "صورة",
+              "value": "image",
+              "key": "c463e0cd-84d4-4c21-9478-adbe7027f972"
+            },
+            {
+              "label": "فيديو",
+              "value": "video",
+              "key": "6b0a7d51-bf2f-4282-8727-2a0b92d880c9"
+            },
+            {
+              "label": "نموذج ثلاثي الأبعاد",
+              "value": "3d",
+              "key": "03586250-38ee-4da3-b129-e066a10ee4f3"
+            }
+          ],
+          "source": "Manual"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-image",
+          "value": "https://cdn.salla.sa/ZrBEO/3gOhYSaIhaHxhH2IHWxJYDl9JHwxP6dGKiZFSq4K.jpg",
+          "label": "صورة الخلفية",
+          "id": "bg_image",
+          "format": "image",
+          "required": true,
+          "settings": {
+            "width": 1920,
+            "height": 1080
+          },
+          "conditions": [
+            {
+              "id": "bg_type",
+              "operation": "=",
+              "value": "image"
+            }
+          ],
+          "description": "* المقاس المناسب 1920×1080 بكسل"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-file-video",
+          "value": null,
+          "label": "رابط الفيديو (MP4)",
+          "id": "bg_video_url",
+          "format": "url",
+          "required": true,
+          "placeholder": "https://example.com/scene.mp4",
+          "conditions": [
+            {
+              "id": "bg_type",
+              "operation": "=",
+              "value": "video"
+            }
+          ],
+          "description": "يبدأ تلقائياً بدون صوت وبحلقة مستمرة"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-image",
+          "value": null,
+          "label": "صورة غلاف الفيديو",
+          "id": "bg_video_poster",
+          "format": "image",
+          "required": false,
+          "conditions": [
+            {
+              "id": "bg_type",
+              "operation": "=",
+              "value": "video"
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "icon": "sicon-box-3d",
+          "value": null,
+          "label": "رابط النموذج ثلاثي الأبعاد",
+          "id": "model_src",
+          "format": "url",
+          "required": true,
+          "placeholder": "https://example.com/model.glb",
+          "conditions": [
+            {
+              "id": "bg_type",
+              "operation": "=",
+              "value": "3d"
+            }
+          ],
+          "description": "ارفع ملف النموذج (GLB / GLTF) واستخدم الرابط المباشر له"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-image",
+          "value": null,
+          "label": "صورة غلاف النموذج",
+          "id": "model_poster",
+          "format": "image",
+          "required": false,
+          "conditions": [
+            {
+              "id": "bg_type",
+              "operation": "=",
+              "value": "3d"
+            }
+          ]
+        },
+        {
+          "type": "boolean",
+          "icon": "sicon-toggle-off",
+          "label": "تدوير النموذج تلقائياً",
+          "id": "model_auto_rotate",
+          "format": "switch",
+          "required": false,
+          "value": true,
+          "selected": true,
+          "conditions": [
+            {
+              "id": "bg_type",
+              "operation": "=",
+              "value": "3d"
+            }
+          ]
+        },
+        {
+          "type": "number",
+          "icon": "sicon-tonality",
+          "label": "تعتم الخلفية",
+          "id": "overlay_opacity",
+          "format": "slider",
+          "required": false,
+          "value": 45,
+          "minimum": 0,
+          "maximum": 90,
+          "step": 5,
+          "description": "سواد شفاف فوق الخلفية يساعد على إبراز النصوص"
+        },
+        {
+          "type": "static",
+          "format": "line",
+          "id": "static-line-scene"
+        },
+        {
+          "type": "static",
+          "format": "title",
+          "id": "static-title-scene",
+          "value": "المشهد",
+          "variant": "h6"
+        },
+        {
+          "id": "height_mode",
+          "key": "71cef2f7-a95e-4bd1-815c-7b2919223dfb",
+          "type": "items",
+          "format": "dropdown-list",
+          "label": "ارتفاع المشهد",
+          "icon": "sicon-crop",
+          "required": true,
+          "selected": [
+            {
+              "label": "متوسط (480)",
+              "value": "medium",
+              "key": "b428d613-21ac-467b-b4c6-1b015ae57ac8"
+            }
+          ],
+          "options": [
+            {
+              "label": "قصير (360)",
+              "value": "short",
+              "key": "a7098701-e8c0-4b88-8920-120d4ec44f9e"
+            },
+            {
+              "label": "متوسط (480)",
+              "value": "medium",
+              "key": "b428d613-21ac-467b-b4c6-1b015ae57ac8"
+            },
+            {
+              "label": "طويل (640)",
+              "value": "tall",
+              "key": "281f404f-52f3-480c-98dd-672290ba7115"
+            }
+          ],
+          "source": "Manual"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-format-text-alt",
+          "label": "تسمية الفصل",
+          "multilanguage": true,
+          "maxLength": 30,
+          "id": "chapter_label",
+          "format": "text",
+          "required": false,
+          "placeholder": "مثال: الفصل الأول",
+          "value": "الفصل الأول"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-format-text-alt",
+          "label": "العنوان الكبير",
+          "multilanguage": true,
+          "maxLength": 60,
+          "id": "headline",
+          "format": "text",
+          "required": false,
+          "placeholder": "عنوان يلخّص مشهد الفصل...",
+          "value": "كل مشهد يحكي فصلاً"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-typography",
+          "label": "نص الوصف",
+          "multilanguage": true,
+          "maxLength": 300,
+          "id": "subtitle",
+          "format": "textarea",
+          "required": false,
+          "placeholder": "اكتب سطراً سردياً يقدّم فكرة هذا الفصل...",
+          "value": null
+        },
+        {
+          "id": "content_align",
+          "key": "81d49f93-b15a-450c-826d-5d8d48878968",
+          "type": "items",
+          "format": "dropdown-list",
+          "label": "محاذاة النص",
+          "icon": "sicon-format-align-center",
+          "required": true,
+          "selected": [
+            {
+              "label": "المنتصف",
+              "value": "center",
+              "key": "e29d2fe1-6156-44da-898d-1a6007763674"
+            }
+          ],
+          "options": [
+            {
+              "label": "المنتصف",
+              "value": "center",
+              "key": "e29d2fe1-6156-44da-898d-1a6007763674"
+            },
+            {
+              "label": "بداية الصفحة (يمين في العربية)",
+              "value": "start",
+              "key": "4e666a78-7147-4c8c-90a1-9335a63edb29"
+            }
+          ],
+          "source": "Manual"
+        },
+        {
+          "type": "string",
+          "icon": "sicon-format-color-text",
+          "label": "لون النصوص",
+          "id": "text_color",
+          "format": "color",
+          "required": false,
+          "value": "#ffffff"
+        },
+        {
+          "type": "static",
+          "format": "line",
+          "id": "static-line-ctas"
+        },
+        {
+          "type": "static",
+          "format": "title",
+          "id": "static-title-ctas",
+          "value": "أزرار الإجراء",
+          "variant": "h6"
+        },
+        {
+          "type": "boolean",
+          "icon": "sicon-toggle-off",
+          "label": "إظهار الأزرار",
+          "id": "show_ctas",
+          "format": "switch",
+          "required": false,
+          "value": true,
+          "selected": true
+        },
+        {
+          "type": "string",
+          "icon": "sicon-format-text-alt",
+          "label": "نص الزر الأساسي",
+          "multilanguage": true,
+          "maxLength": 40,
+          "id": "primary_label",
+          "format": "text",
+          "required": false,
+          "value": "اكتشف المزيد"
+        },
+        {
+          "type": "items",
+          "icon": "sicon-link",
+          "label": "رابط الزر الأساسي",
+          "id": "primary_url",
+          "value": null,
+          "description": null,
+          "required": false,
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "sources": [
+            {
+              "label": "منتج",
+              "key": "products",
+              "value": "products"
+            },
+            {
+              "label": "منتجات مع وسم",
+              "key": "products_tags",
+              "value": "products_tags"
+            },
+            {
+              "label": "تصنيف",
+              "key": "categories",
+              "value": "categories"
+            },
+            {
+              "label": "ماركة تجارية",
+              "key": "brands",
+              "value": "brands"
+            },
+            {
+              "label": "صفحة تعريفية",
+              "key": "pages",
+              "value": "pages"
+            },
+            {
+              "label": "مقالة",
+              "key": "blog_articles",
+              "value": "blog_articles"
+            },
+            {
+              "label": "تصنيف ضمن المدونة",
+              "key": "blog_categories",
+              "value": "blog_categories"
+            },
+            {
+              "label": "التخفيضات",
+              "key": "offers_link",
+              "value": "offers_link"
+            },
+            {
+              "label": "الماركات التجارية",
+              "key": "brands_link",
+              "value": "brands_link"
+            },
+            {
+              "label": "المدونة",
+              "key": "blog_link",
+              "value": "blog_link"
+            },
+            {
+              "label": "رابط خارجي",
+              "key": "custom",
+              "value": "custom"
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "icon": "sicon-format-text-alt",
+          "label": "نص زر ثانوي (اختياري)",
+          "multilanguage": true,
+          "maxLength": 40,
+          "id": "secondary_label",
+          "format": "text",
+          "required": false,
+          "value": null
+        },
+        {
+          "type": "items",
+          "icon": "sicon-link",
+          "label": "رابط الزر الثانوي",
+          "id": "secondary_url",
+          "value": null,
+          "description": null,
+          "required": false,
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "sources": [
+            {
+              "label": "منتج",
+              "key": "products",
+              "value": "products"
+            },
+            {
+              "label": "منتجات مع وسم",
+              "key": "products_tags",
+              "value": "products_tags"
+            },
+            {
+              "label": "تصنيف",
+              "key": "categories",
+              "value": "categories"
+            },
+            {
+              "label": "ماركة تجارية",
+              "key": "brands",
+              "value": "brands"
+            },
+            {
+              "label": "صفحة تعريفية",
+              "key": "pages",
+              "value": "pages"
+            },
+            {
+              "label": "مقالة",
+              "key": "blog_articles",
+              "value": "blog_articles"
+            },
+            {
+              "label": "تصنيف ضمن المدونة",
+              "key": "blog_categories",
+              "value": "blog_categories"
+            },
+            {
+              "label": "التخفيضات",
+              "key": "offers_link",
+              "value": "offers_link"
+            },
+            {
+              "label": "الماركات التجارية",
+              "key": "brands_link",
+              "value": "brands_link"
+            },
+            {
+              "label": "المدونة",
+              "key": "blog_link",
+              "value": "blog_link"
+            },
+            {
+              "label": "رابط خارجي",
+              "key": "custom",
+              "value": "custom"
+            }
+          ]
+        },
+        {
+          "type": "static",
+          "format": "line",
+          "id": "static-line-animation"
+        },
+        {
+          "type": "static",
+          "format": "title",
+          "id": "static-title-animation",
+          "value": "الحركة",
+          "variant": "h6"
+        },
+        {
+          "id": "reveal_animation",
+          "key": "2dee03f5-e471-444d-8a8f-594f4bf108a4",
+          "type": "items",
+          "format": "dropdown-list",
+          "label": "ظهور النصوص عند التمرير",
+          "icon": "sicon-motion-photos-on",
+          "required": true,
+          "selected": [
+            {
+              "label": "صعود ناعم",
+              "value": "fade-up",
+              "key": "de738326-0922-4e38-82b3-bc0fab960abc"
+            }
+          ],
+          "options": [
+            {
+              "label": "صعود ناعم",
+              "value": "fade-up",
+              "key": "de738326-0922-4e38-82b3-bc0fab960abc"
+            },
+            {
+              "label": "ظهور تدريجي",
+              "value": "fade",
+              "key": "bdd01565-30cb-4c80-b985-7330d2e93d65"
+            },
+            {
+              "label": "بدون حركة",
+              "value": "none",
+              "key": "146981cc-b5fa-4d76-93c6-73049b0ab212"
+            }
+          ],
+          "source": "Manual"
+        },
+        {
+          "type": "boolean",
+          "icon": "sicon-toggle-off",
+          "label": "حركة الخلفية مع التمرير (Parallax)",
+          "id": "parallax",
+          "format": "switch",
+          "required": false,
+          "value": false,
+          "selected": false,
+          "description": "تتحرك الخلفية بسرعة أقل من النص لإحساس عمق سينمائي"
+        },
+        {
+          "type": "boolean",
+          "icon": "sicon-toggle-off",
+          "label": "الظهور تحت الهيدر",
+          "description": "عند التفعيل يبدأ المكوّن أعلى الصفحة خلف الهيدر الشفاف كمشهد افتتاحي (يعمل فقط لو كان أول بلوك في الصفحة الرئيسية). عند الإطفاء يظل المكوّن عادياً والبقية تحت بعضها بالترتيب الطبيعي.",
+          "id": "under_header",
+          "format": "switch",
+          "required": false,
+          "value": false,
+          "selected": false
+        }
+      ]
     }
   ],
   "support_url": "https://salla.com/",

@@ -2,6 +2,7 @@ export { Brands } from './Brands';
 export { CustomTestimonials } from './CustomTestimonials';
 export { CinematicHero } from './CinematicHero';
 export { SplitScene } from './SplitScene';
+export { Chapter } from './Chapter';
 export { EnhancedSlider } from './EnhancedSlider';
 export { FeaturedProducts, featuredProductsConfig } from './FeaturedProducts';
 export { FixedProducts } from './FixedProducts';

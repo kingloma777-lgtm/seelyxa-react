@@ -13,6 +13,7 @@ import {
   CustomTestimonials,
   CinematicHero,
   SplitScene,
+  Chapter,
   EnhancedSlider,
   FeaturedProducts,
   featuredProductsConfig,
@@ -71,6 +72,9 @@ registerHomeComponents({
   // Ported from the Twig theme — storytelling text + media side by side,
   // direction-aware (RTL safe); reveal animation on scroll.
   'split-scene': SplitScene,
+  // Ported from the Twig theme — full-bleed scene divider with parallax bg,
+  // scene heights and one-shot reveal.
+  'chapter': Chapter,
 });
 
 // Wrapper `<section>` classes for `featured-products` — the engine only styles
@@ -93,6 +97,11 @@ registerHomeComponentConfig({
       `s-block s-block--split-scene split--media-${data.media_position || 'right'}${
         data.media_rounded === false ? ' split--media-square' : ''
       }${data.under_header ? ' s-block--under-header' : ''}`,
+  },
+  'chapter': {
+    height: '480px', // .chapter--medium min-height (the default)
+    className: (data) =>
+      `s-block s-block--chapter${data.under_header ? ' s-block--under-header' : ''}`,
   },
   'featured-products': featuredProductsConfig,
   'custom-testimonials': {
