@@ -511,6 +511,122 @@
       ]
     },
     {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-hf-curtain",
+      "value": "خانات الميجا منيو (الدائرة الثالثة)",
+      "variant": "h6"
+    },
+    {
+      "type": "static",
+      "format": "description",
+      "id": "static-desc-hf-curtain",
+      "value": "سلة تدعم مستويين من التصنيفات فقط، لذلك الدائرة الثالثة لا تُبنى من التصنيفات. اربط كل خانة بتصنيف، وستظهر تلقائياً في الميجا منيو عند التمرير على ذلك التصنيف أو على أحد فروعه. الخانة إما منتج مميز أو صورة."
+    },
+    {
+      "id": "curtain_slots",
+      "key": "6f1c9a42-8d3b-4e57-9b0a-2c7e5d4f1a83",
+      "type": "collection",
+      "format": "collection",
+      "required": false,
+      "minLength": 0,
+      "maxLength": 12,
+      "label": "خانات مميزة",
+      "item_label": "خانة مميزة",
+      "value": [],
+      "fields": [
+        {
+          "id": "curtain_slots.category",
+          "type": "items",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "label": "التصنيف",
+          "icon": "sicon-categories",
+          "required": true,
+          "value": null,
+          "description": "التصنيف الذي تظهر عنده هذه الخانة. يقبل التصنيف الرئيسي أو أي تصنيف فرعي.",
+          "sources": [
+            {
+              "label": "تصنيف",
+              "key": "categories",
+              "value": "categories"
+            }
+          ]
+        },
+        {
+          "id": "curtain_slots.type",
+          "type": "items",
+          "format": "dropdown-list",
+          "label": "نوع الخانة",
+          "icon": "sicon-list",
+          "required": true,
+          "selected": [
+            {
+              "label": "منتج مميز",
+              "value": "product",
+              "key": "ac95b47d-f001-4c71-a6ad-2d4dd4303b57"
+            }
+          ],
+          "options": [
+            {
+              "label": "منتج مميز",
+              "value": "product",
+              "key": "ac95b47d-f001-4c71-a6ad-2d4dd4303b57"
+            },
+            {
+              "label": "صورة",
+              "value": "image",
+              "key": "4c2ad549-4122-4398-b1a6-65ba5548358c"
+            }
+          ],
+          "source": "Manual"
+        },
+        {
+          "id": "curtain_slots.product",
+          "type": "items",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "label": "المنتج المميز",
+          "icon": "sicon-product",
+          "required": false,
+          "value": null,
+          "description": "يُستخدم عندما يكون النوع «منتج مميز».",
+          "sources": [
+            {
+              "label": "منتج",
+              "key": "products",
+              "value": "products"
+            }
+          ]
+        },
+        {
+          "id": "curtain_slots.image",
+          "type": "string",
+          "format": "image",
+          "label": "صورة الخانة",
+          "icon": "sicon-image",
+          "required": false,
+          "value": null,
+          "description": "تُستخدم عندما يكون النوع «صورة»."
+        },
+        {
+          "id": "curtain_slots.title",
+          "type": "string",
+          "format": "text",
+          "label": "عنوان الخانة (للصور فقط)",
+          "icon": "sicon-typography",
+          "required": false,
+          "value": null,
+          "minLength": 0,
+          "maxLength": 60,
+          "placeholder": "مثال: الأكثر مبيعاً",
+          "description": "يظهر أسفل الصورة. عند اختيار نوع «منتج مميز» يتجاهل هذا الحقل ويعرض اسم المنتج نفسه."
+        }
+      ]
+    },
+    {
       "type": "boolean",
       "icon": "sicon-toggle-off",
       "label": "عرض القائمة الرئيسية في سطر واحد مع قائمة «المزيد»",

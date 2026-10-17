@@ -1,5 +1,6 @@
 import {
   Fragment,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -24,6 +25,8 @@ import { openStoreSwitcher } from '../../lib/storeSwitchers';
 import { useHydrated } from '../../hooks/useHydrated';
 import { resolveMorphIcon } from '../../lib/morphIcons';
 import { pruneUntitled } from '../../lib/menuOverflow';
+import { MorphCurtain, type CurtainLabels, type CurtainMenu } from './MorphCurtain';
+import { readSlots } from '../../lib/curtainSlots';
 import { LanguagesIcon } from '../icons';
 
 /* ==========================================================================
@@ -338,6 +341,8 @@ interface MorphSettings {
   header_icon_cart?: unknown;
   header_icon_close?: unknown;
   important_links?: unknown;
+  /* the curtain mega menu's merchant slots (the theme's only collection) */
+  curtain_slots?: unknown;
 }
 
 /**
@@ -540,7 +545,18 @@ export function MorphHeader() {
       const link = target?.closest<HTMLAnchorElement>('.morph-link');
       if (!link) return;
       moveBlob(link);
-      // curtain positions now — reserved for the Curtain commit
+      /* Hovering ANY category opens the curtain — the design's one panel, and
+         a childless category still shows its empty state; hover is not a
+         navigation gesture (old rule 9). Opening one screen closes the others
+         (the old showPanel ran closeSearch + closeOverlay). */
+      const at = linksRef.current.indexOf(link);
+      if (curtainIndexRef.current !== at) {
+        curtainIndexRef.current = at;
+        setCurtainIndex(at);
+        setCurtainFocusId(null);
+        setSearchOpen(false);
+        setOverlayOpen(false);
+      }
       linksRef.current.forEach((item) => item.classList.toggle('is-open', item === link));
       if (link.dataset.morphHas === '1') link.setAttribute('aria-expanded', 'true');
     };
@@ -574,6 +590,41 @@ export function MorphHeader() {
       moveBlob(null);
     };
   }, [ready]);
+
+  /* ── the curtain (old §3): one panel, hovered nav category owns it ── */
+  const [curtainIndex, setCurtainIndex] = useState<number | null>(null);
+  const [curtainFocusId, setCurtainFocusId] = useState<string | null>(null);
+  const curtainIndexRef = useRef<number | null>(null);
+
+  /** `closePanel` of the old file: hide, clear the focus, drop every link's
+      open state — a panel never lingers behind its own trigger. */
+  const closeCurtain = useCallback(() => {
+    if (curtainIndexRef.current == null) return;
+    curtainIndexRef.current = null;
+    setCurtainIndex(null);
+    setCurtainFocusId(null);
+    linksRef.current.forEach((item) => {
+      item.classList.remove('is-open');
+      if (item.getAttribute('aria-expanded')) item.setAttribute('aria-expanded', 'false');
+    });
+  }, []);
+
+  /* Leaning the header entirely (pill or curtain) closes the panel — the
+     curtain never covers the page, so there is nothing to keep it open for.
+     The old root `mouseleave` ran closePanel + the same blob/lean reset the
+     nav's own mouseleave does; the pointer can leave through either half. */
+  const onHeaderLeave = useCallback(() => {
+    closeCurtain();
+    moveBlob(null);
+    linksRef.current.forEach((link) => {
+      const memo = link as unknown as { _mx: number; _my: number };
+      link.style.transform = '';
+      memo._mx = 0;
+      memo._my = 0;
+    });
+    if (blobRef.current) blobRef.current.style.translate = '';
+    pointerRef.current = null;
+  }, [closeCurtain]);
 
   /* ── expanding search (old §6) ── */
   const [searchOpen, setSearchOpen] = useState(false);
@@ -617,7 +668,7 @@ export function MorphHeader() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [overlayOpen]);
+   }, [overlayOpen]);
 
   /* ── light / dark with the View Transition reveal (old §0) ── */
   const themeBtnRef = useRef<HTMLButtonElement>(null);
@@ -661,17 +712,18 @@ export function MorphHeader() {
     );
   };
 
-  /* ── escape cascade: overlay → search → account (old §7) ── */
+  /* ── escape cascade: overlay → search → curtain → account (old §7) ── */
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       if (overlayOpen) setOverlayOpen(false);
       else if (searchOpen) setSearchOpen(false);
+      else if (curtainIndexRef.current != null) closeCurtain();
       else closeAccount();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [overlayOpen, searchOpen]);
+  }, [overlayOpen, searchOpen, closeCurtain]);
 
   /* ── labels ── */
   const labels = {
@@ -686,6 +738,30 @@ export function MorphHeader() {
     lightMode: loc('blocks.header.theme_light', 'الوضع النهاري'),
     emptyStore: loc('blocks.header.morph_empty_store', 'لا توجد أقسام في المتجر بعد.'),
   };
+
+  /* the curtain's own labels — same fallback rule as the block above */
+  const curtainLabels: CurtainLabels = {
+    noSubs: loc('blocks.header.curtain_no_subs', 'لا توجد أقسام فرعية في هذا القسم.'),
+    noSlot: loc('blocks.header.curtain_no_slot', 'لم تُضبط خانة لهذا القسم بعد.'),
+    noSlotHere: loc('blocks.header.curtain_no_slot_here', 'الخانة مربوطة بقسم آخر.'),
+    slotHint: loc('blocks.header.curtain_slot_hint', 'اجعل خانة «مميزة» تخص هذا القسم من تخصيص التصميم.'),
+    noSlotMissing: loc(
+      'blocks.header.curtain_no_slot_missing',
+      'الثيم لم يستلم أي قيمة لخانات «مميزة» — هذه مشكلة في الثيم، وإعادة حفظ النموذج لن تحلها.'
+    ),
+    slotMissingHint: loc(
+      'blocks.header.curtain_slot_missing_hint',
+      'السطر بالأسفل فيه شكل البيانات اللي وصلنا — ابعته لمطوّر الثيم.'
+    ),
+    featured: loc('blocks.home.featured_products', 'مميزة'),
+    categoryProducts: loc('blocks.header.curtain_category_products', 'منتجات'),
+    emptyFeatured: loc(
+      'blocks.header.curtain_empty_featured',
+      'لا توجد منتجات مميزة في هذا القسم بعد.'
+    ),
+  };
+  const piecesLabel = (n: number) => `${n} ${loc('blocks.header.curtain_piece', 'منتج')}`;
+
   const closeLabelRef = useRef(labels.close);
   closeLabelRef.current = labels.close;
 
@@ -821,6 +897,14 @@ export function MorphHeader() {
     [menus]
   );
 
+  /* the merchant's curtain slots — `curtain_slots` normalised once per save;
+     the map is keyed under every candidate shape (see lib/curtainSlots) */
+  const slotsMap = useMemo(() => readSlots(s.curtain_slots), [s.curtain_slots]);
+  const curtainMenu: CurtainMenu | null =
+    curtainIndex != null
+      ? ((menus[curtainIndex] as CurtainMenu | undefined) ?? null)
+      : null;
+
   const searchToggle = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     setSearchOpen((open) => !open);
@@ -841,6 +925,7 @@ export function MorphHeader() {
       className={`morph-header${scrolled ? ' is-scrolled' : ''}${ready ? ' is-ready' : ''}`}
       style={headerStyle}
       {...(hideTopbarOn ? { 'data-hide-topbar': '' } : {})}
+      onMouseLeave={onHeaderLeave}
       suppressHydrationWarning
     >
       {/* ① utility top bar */}
@@ -857,7 +942,11 @@ export function MorphHeader() {
               aria-controls="morph-overlay"
               aria-expanded={overlayOpen}
               aria-label={labels.menu}
-              onClick={() => setOverlayOpen(true)}
+              onClick={() => {
+                setOverlayOpen(true);
+                // opening one screen closes the others (the old opening set)
+                closeCurtain();
+              }}
             >
               <MorphIco setting={icons.menu} legacy="menu" />
             </button>
@@ -1043,6 +1132,21 @@ export function MorphHeader() {
           </div>
         </div>
       </div>
+
+      {/* ③ the curtain mega menu — the hovered nav category's own panel.
+          Inside the header element: its `top:100%` hair needs a hover bridge
+          to exist (old rule 10), and being a child both the panel and the
+          pointer state survive moving down through the gap. */}
+      <MorphCurtain
+        open={curtainMenu != null}
+        menu={curtainMenu}
+        focusId={curtainFocusId}
+        slots={slotsMap}
+        slotsRaw={s.curtain_slots}
+        labels={curtainLabels}
+        pieces={piecesLabel}
+        onDrill={(node) => setCurtainFocusId(String(node.id))}
+      />
 
       {/* ④ fullscreen index (burger) */}
       <MorphOverlay

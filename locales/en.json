@@ -88,5 +88,15 @@
   "blocks.header.account_note": "Free shipping on orders over SAR 900",
   "blocks.header.theme_dark": "Switch to dark mode",
   "blocks.header.theme_light": "Switch to light mode",
-  "blocks.header.morph_empty_store": "This store has no sections yet."
+  "blocks.header.morph_empty_store": "This store has no sections yet.",
+  "blocks.header.curtain_no_subs": "No subcategories in this section.",
+  "blocks.header.curtain_no_slot": "No slot has been set for this section yet.",
+  "blocks.header.curtain_no_slot_here": "This slot is bound to another section.",
+  "blocks.header.curtain_slot_hint": "Make a “Featured slot” belong to this section from the theme customiser.",
+  "blocks.header.curtain_no_slot_missing": "The theme received no value at all for the Featured slots — this is a theme defect; re-saving the form will not fix it.",
+  "blocks.header.curtain_slot_missing_hint": "The line below shows the exact shape of what arrived — send it to the theme developer.",
+  "blocks.header.curtain_category_products": "Products",
+  "blocks.header.curtain_piece": "items",
+  "blocks.header.curtain_empty_featured": "No featured products in this section yet.",
+  "blocks.home.featured_products": "Featured"
 }

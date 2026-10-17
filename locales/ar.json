@@ -88,5 +88,15 @@
   "blocks.header.account_note": "شحن مجاني للطلبات فوق 900 ر.س",
   "blocks.header.theme_dark": "الوضع الليلي",
   "blocks.header.theme_light": "الوضع النهاري",
-  "blocks.header.morph_empty_store": "لا توجد أقسام في المتجر بعد."
+  "blocks.header.morph_empty_store": "لا توجد أقسام في المتجر بعد.",
+  "blocks.header.curtain_no_subs": "لا توجد أقسام فرعية في هذا القسم.",
+  "blocks.header.curtain_no_slot": "لم تُضبط خانة لهذا القسم بعد.",
+  "blocks.header.curtain_no_slot_here": "الخانة مربوطة بقسم آخر.",
+  "blocks.header.curtain_slot_hint": "اجعل خانة «مميزة» تخص هذا القسم من تخصيص التصميم.",
+  "blocks.header.curtain_no_slot_missing": "الثيم لم يستلم أي قيمة لخانات «مميزة» — هذه مشكلة في الثيم، وإعادة حفظ النموذج لن تحلها.",
+  "blocks.header.curtain_slot_missing_hint": "السطر بالأسفل فيه شكل البيانات اللي وصلنا — ابعته لمطوّر الثيم.",
+  "blocks.header.curtain_category_products": "منتجات",
+  "blocks.header.curtain_piece": "منتج",
+  "blocks.header.curtain_empty_featured": "لا توجد منتجات مميزة في هذا القسم بعد.",
+  "blocks.home.featured_products": "مميزة"
 }

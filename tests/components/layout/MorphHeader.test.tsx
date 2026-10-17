@@ -81,6 +81,11 @@ vi.mock('@salla.sa/twilight-components-react/cart-summary', () => ({
     <salla-cart-summary>{children}</salla-cart-summary>
   ),
 }));
+/* the curtain imports these through the index barrel — stub the native list */
+vi.mock('@salla.sa/twilight-components-react', () => ({
+  SallaProductsList: () => <div data-testid="curtain-items" />,
+  ProductsListSkeleton: () => <div data-testid="curtain-skeleton" />,
+}));
 
 /* The engine Header (the non-morph branch) is mocked at its own seams: the
    heavy sub-components and the hook slot it renders. */

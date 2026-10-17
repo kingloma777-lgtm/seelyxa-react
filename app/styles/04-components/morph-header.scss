@@ -4,14 +4,14 @@
    The port of `src/assets/styles/04-components/morph-header.scss`, split in two
    commits on purpose:
 
-     · this file ships the pill, the utility top bar, the magnetic nav + blob,
-       the expanding search disc, the fullscreen index (the burger's screen),
-       the account takeover (restyled `salla-user-menu`), the dark-mode
-       overrides and the motion guards;
-     · the curtain mega menu's own rules (`.morph-curtain*`, `.morph-node*`,
-       `.morph-spotlight*`, `.morph-featured*`) arrive with the curtain port so
-       they land with the component that needs them and no dead selectors ship
-       in between.
+     · the pill, the utility top bar, the magnetic nav + blob, the expanding
+       search disc, the fullscreen index (the burger's screen), the account
+       takeover (restyled `salla-user-menu`), the dark-mode overrides and the
+       motion guards shipped with the header commit;
+     · the curtain mega menu (`.morph-curtain*`, `.morph-node*`,
+       `.morph-spotlight*`, `.morph-featured*`) landed with the curtain port,
+       so they arrive with the component that needs them and no dead selectors
+       ship in between.
 
    Invariants carried over from the Twig theme (each one already cost a debug
    round there — do not "simplify" them away):
@@ -470,6 +470,486 @@ html.theme-transition {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
+}
+
+/* ── the curtain mega menu (hover a nav category) ────────────────────────── */
+.morph-curtain {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  @apply flex justify-center;
+  padding: 8px 12px 0;
+  pointer-events: none;
+  z-index: 5;
+
+  /* Visibility is owned solely by the `hidden` attribute — React renders it
+     from the hovered-menu state. Never hide this container by breakpoint: the
+     nav that triggers it only exists at >=1025px, so hiding it there makes the
+     mega menu unreachable at every width (old rule 10). */
+  &[hidden] {
+    display: none;
+  }
+
+  /* Hover bridge. The curtain starts 8px BELOW the header (`top: 100%`) and the
+     top 8px of its own box is the transparent padding above the panel — and this
+     container is `pointer-events: none`, so that strip is not hit-testable. Moving
+     the pointer down from a nav link therefore landed on the page content
+     *underneath* the header, which is outside the header element, which fired
+     `mouseleave` and closed the curtain: the panel flashed and vanished before
+     the pointer could ever reach it. A click never crosses the gap, which is
+     exactly why clicking worked and hovering did not. This pseudo-element
+     re-enables hit-testing across the gap (a child may set `pointer-events:
+     auto` even when its parent is `none`) and is full-width, so it adds no
+     horizontal overhang. Without it, hover is unusable. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: -10px;
+    height: 20px;
+    pointer-events: auto;
+  }
+}
+
+.morph-curtain__panel {
+  pointer-events: auto;
+  width: 100%;
+  /* NEAR FULL WIDTH, and the ceiling is the viewport rather than a rem value:
+     `56rem → 66rem` was never "wider", it was a nudge. The merchant asked for
+     the panel to open up across the screen, so the cap is `100vw - 24px` with a
+     generous rem ceiling for ultra-wide (rule 25). */
+  max-width: min(104rem, calc(100vw - 24px));
+  padding: 18px;
+  /* The panel hangs below the pill, so on a short viewport its bottom used to
+     run off the screen with no way to reach it. Capping it to what is left
+     under the header and letting it scroll guarantees "the screen never cuts
+     it" (rule 24). */
+  max-height: calc(100vh - 96px);
+  overflow-y: auto;
+  /* The panel edge is one of the merchant's "الحدود"; a flat hex on a
+     `#fff`-tinted frost all but disappeared, so it is a warm TRANSLUCENT ink
+     that holds against the frost AND whatever page colour is blurred behind it. */
+  border: 1px solid rgba(112, 96, 72, 0.3);
+  border-radius: 26px;
+  /* Frosted: `backdrop-filter` blurs what is BEHIND the element, so an opaque
+     `#fff` would leave the columns blurring solid white. The surface must let
+     the page through for the glass read at all. */
+  background: color-mix(in srgb, #fff 58%, transparent);
+  -webkit-backdrop-filter: blur(26px) saturate(1.35);
+  backdrop-filter: blur(26px) saturate(1.35);
+  box-shadow: 0 30px 60px -24px rgba(30, 25, 18, 0.4);
+  animation: morphCurtainIn 0.3s var(--morph-ease) both;
+
+  @media (min-width: 640px) {
+    padding: 20px 24px;
+  }
+}
+
+@keyframes morphCurtainIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.morph-curtain__layers {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+
+  @media (min-width: 768px) {
+    /* TWO tracks, and the count is a contract. The SPLIT is the merchant's:
+       **two thirds to the subcategories, one third to the rest.** The discs are
+       a 54px circle in an 84px minimum cell — they need room to breathe —
+       while the slot is a single card that can never use more than it has
+       (rule 13). */
+    grid-template-columns: 2fr 1fr;
+    gap: 22px;
+  }
+}
+
+.morph-layer {
+  min-width: 0;
+
+  /* A flex column so the slot layer's content can be centred in the space below
+     its label with auto block margins. It is NOT what centres anything by
+     itself; `justify-content: center` would drag the label down too. */
+  display: flex;
+  flex-direction: column;
+
+  /* Each column is its own glass plate over the panel's blur. The padding is
+     SYMMETRIC, and the tint stays translucent so the panel's already-blurred
+     surface reads through it (rule 14). */
+  padding-inline: 14px;
+  background: color-mix(in srgb, #fff 24%, transparent);
+  border-radius: 16px;
+
+  /* Every layer carries its OWN border, all the way round. The old `+ &`
+     divider is GONE rather than restyled: a heavier line on the touching side
+     only would make one edge of each plate darker than the other. The layers
+     must still be siblings — that is a grid requirement (rule 18), not a
+     separator one. */
+  border: 1px solid rgba(112, 96, 72, 0.26);
+
+  @media (min-width: 768px) {
+    padding-inline: 20px;
+  }
+
+  &__label {
+    margin-bottom: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(0, 0, 0, 0.4);
+  }
+
+  &__empty {
+    font-size: 12px;
+    line-height: 1.7;
+    color: rgba(0, 0, 0, 0.35);
+
+    /* the merchant-instruction paragraph under the honest empty states */
+    &--hint {
+      margin-top: 6px;
+      font-size: 11px;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 14px 8px;
+  }
+
+  /* Vertical centring, and the SLOT LAYER ONLY — scoped by the
+     `data-morph-dyn` attribute because `__grid` and `__empty` are shared by
+     BOTH columns. It is `margin-block: auto`, not `justify-content: center`,
+     because the label is the first child and must not move (rule 15). */
+  &[data-morph-dyn='slot'] > *:not(.morph-layer__label) {
+    margin-block: auto;
+  }
+}
+
+/* Every node is a gradient/category disc with its name beneath it. The only
+   ones left are subcategories — see `.morph-node--2` below (rule 21). */
+.morph-node {
+  @apply flex flex-col items-center;
+  position: relative;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: center;
+  cursor: pointer;
+
+  &__media {
+    @apply relative;
+    display: block;
+  }
+
+  &__disc {
+    @apply relative;
+    display: block;
+    border-radius: 999px;
+    /* Clips the picture to the circle. Without it the <img> is a square sitting
+       on a round frame, and the bug is invisible in the markup. */
+    overflow: hidden;
+    /* What DISC_FALLBACK used to emit from JS: what shows while the picture
+       loads and when there is none at all — the same role, one layer down. */
+    background: linear-gradient(140deg, #e6ded2, #c9b9a3);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s var(--morph-ease), box-shadow 0.3s ease;
+
+    /* Softened to 0.3: at full strength it washes out the top-left of every
+       merchant photo over the pale fallback gradient. */
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(120% 120% at 30% 18%, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 55%);
+    }
+  }
+
+  &__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover &__disc,
+  &.is-active &__disc {
+    transform: scale(1.08);
+    box-shadow: 0 10px 22px rgba(30, 25, 18, 0.18);
+  }
+
+  &.is-active &__disc {
+    outline: 2px solid var(--morph-ink);
+    outline-offset: 2px;
+  }
+
+  &__badge {
+    position: absolute;
+    top: -2px;
+    inset-inline-end: -2px;
+    @apply grid place-items-center;
+    min-width: 18px;
+    height: 18px;
+    padding-inline: 4px;
+    border-radius: 999px;
+    background: var(--morph-ink);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  &__name {
+    font-size: 12px;
+    line-height: 1.3;
+    color: rgba(0, 0, 0, 0.55);
+    transition: color 0.2s ease;
+  }
+
+  &:hover &__name {
+    color: var(--morph-ink);
+  }
+
+  &.is-active &__name {
+    color: var(--morph-ink);
+    font-weight: 600;
+  }
+}
+
+/* The only discs left are subcategory discs at the 54px size. `.morph-node--1`
+   is deliberately NOT left behind: a rule nothing can ever match is an
+   invitation to build a second column against it and assume it still works. */
+.morph-node--2 .morph-node__disc { width: 54px; height: 54px; }
+
+.morph-node--2 .morph-node__name { font-size: 11px; }
+
+/* ── second column: a merchant SLOT, not a taxonomy level ────────────────── */
+.morph-spotlight {
+  /* ONE rectangle, and the caption is on the picture (rule 27). */
+  position: relative;
+  display: block;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+  /* The picture fills the card, and the card keeps the slot's portrait shape
+     so the column has a defined height. `overflow: hidden` clips the picture
+     (and its hover zoom) to the rounded corners. */
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 14px;
+  background: linear-gradient(140deg, #e6ded2, #c9b9a3);
+
+  &__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    /* `cover`, so the picture fills the one rectangle the merchant asked for;
+       `contain` would letterbox it against the gradient and read as a second
+       frame inside the card. */
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  &:hover &__img { transform: scale(1.03); }
+
+  &__title {
+    /* Overlaid ON the picture, anchoring to the block end with its own scrim so
+       the caption reads over any photo instead of trusting it to be dark. */
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 30px 14px 12px;
+    font-size: 12px;
+    line-height: 1.45;
+    text-align: start;
+    background: linear-gradient(to top, rgba(22, 16, 9, 0.72), rgba(22, 16, 9, 0.3) 46%, transparent);
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+    /* Two lines, then ellipsis: the merchant wrote a sentence as the title. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &--product {
+    /* A product slot keeps its own box: the platform card owns its image
+       height, so it must NOT inherit the image card's aspect box (rule 23's
+       slot half). It stays a clamped, centred card. */
+    aspect-ratio: auto;
+    max-width: 180px;
+    margin-inline: auto;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* NOTE: the old `[dir='rtl'] .morph-spotlight__title { text-align: right }`
+   mirror is NOT ported. That was compensation for the Twig build resolving
+   logical properties to PHYSICAL LTR ones; this build ships real logical CSS,
+   so `text-align: start` already flips to the right in Arabic on its own. */
+
+.morph-spotlight--product .s-products-list-wrapper {
+  display: block;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .morph-spotlight__img { transition: none; }
+  .morph-spotlight:hover .morph-spotlight__img { transform: none; }
+}
+
+/* ── featured rectangle — follows the hovered node ───────────────────────── */
+.morph-featured {
+  margin-top: 12px;
+  padding: 12px 14px;
+  /* Same ink as the panel edge and the two column plates — "الحدود واضحة"
+     means all of them (rule 22). */
+  border: 1px solid rgba(112, 96, 72, 0.26);
+  border-radius: 18px;
+  background: #faf7f0;
+  animation: morphCurtainIn 0.4s var(--morph-ease) both;
+
+  &__head {
+    @apply flex items-end justify-between;
+    margin-bottom: 8px;
+
+    p {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.4);
+    }
+
+    span {
+      font-size: 11px;
+      color: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  &__empty {
+    font-size: 12px;
+    line-height: 1.7;
+    color: rgba(0, 0, 0, 0.35);
+  }
+
+  /* The four products lay out as the ONE row of Salla's 4-column grid — five
+     wrapped to a second row and pushed the panel past the fold (rule 23's
+     featured half). The platform list ships here without its grid, so the
+     theme states the row itself. */
+  .morph-featured__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+}
+
+/* The panel is near full width, but the platform product card has NO fixed
+   image height: a vertical card's picture is as tall as its column is wide. So
+   widening the panel made the four cards TALLER — the exact opposite of
+   "wider AND shorter". The card is therefore decoupled from its `1fr` track:
+   clamped to a compact size, centred, and given a SQUARE picture, so the four
+   tracks spread the row across the width while each card has a deterministic
+   short height (rule 26). Restyling is scoped to `.morph-featured` — no other
+   product list on the site is touched. */
+.morph-featured .s-products-list-wrapper {
+  /* The list ships with a bottom margin, which inside the rectangle is dead
+     space that only makes the panel taller. */
+  margin-bottom: 0;
+}
+
+.morph-featured .s-product-card-vertical {
+  width: 100%;
+  max-width: 190px;
+  justify-self: center;
+
+  .s-product-card-entry {
+    flex-direction: column;
+    height: 100%;
+    border-radius: 14px;
+    background: #fff;
+    border: 1px solid rgba(112, 96, 72, 0.16);
+    box-shadow: 0 8px 20px -18px rgba(43, 45, 52, 0.5);
+    transition: transform 0.25s var(--morph-ease), box-shadow 0.25s var(--morph-ease),
+      border-color 0.25s var(--morph-ease);
+  }
+
+  &:hover .s-product-card-entry {
+    transform: translateY(-3px);
+    border-color: rgba(112, 96, 72, 0.3);
+    box-shadow: 0 18px 34px -22px rgba(43, 45, 52, 0.55);
+  }
+
+  /* Square, deterministic picture: row height no longer follows the panel
+     width, and `cover` gives every card the same crisp, matted look. */
+  .s-product-card-image {
+    flex: none;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    border-radius: 0;
+    background: linear-gradient(140deg, #efe9df, #ddd2c1);
+    overflow: hidden;
+  }
+
+  .s-product-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  &:hover .s-product-card-image img {
+    transform: scale(1.05);
+  }
+
+  .s-product-card-content {
+    padding: 9px 11px 12px;
+    text-align: start;
+  }
+
+  .s-product-card-content-title {
+    margin-bottom: 4px;
+  }
+
+  .s-product-card-content-title a {
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.45;
+    color: #2c2620;
+    -webkit-line-clamp: 2;
+  }
+
+  .s-product-card-content-title a:hover {
+    color: var(--color-primary);
+  }
+
+  .s-product-card-price,
+  .s-product-card-sale-price h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  .s-product-card-sale-price span {
+    font-size: 11px;
+    color: rgba(0, 0, 0, 0.35);
+  }
+
+  .s-product-card-content-subtitle {
+    display: none;
+  }
 }
 
 /* ── ④ kinetic fullscreen overlay (the burger's index) ─────────────────── */
@@ -1158,4 +1638,54 @@ html.dark .morph-pill salla-user-menu .s-user-menu-trigger-slot:hover {
 
 html.dark .morph-nav__empty {
   color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── the curtain in dark mode ────────────────────────────────────────────── */
+html.dark .morph-nav__empty,
+html.dark .morph-layer__label,
+html.dark .morph-layer__empty,
+html.dark .morph-featured__head p,
+html.dark .morph-featured__head span,
+html.dark .morph-featured__empty,
+html.dark .morph-node__name {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+html.dark .morph-node__badge {
+  color: #14161b;
+}
+
+html.dark .morph-curtain__panel {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: color-mix(in srgb, #14181f 92%, transparent);
+  box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.75);
+}
+
+html.dark .morph-layer {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+}
+
+html.dark .morph-featured {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #191e26;
+}
+
+html.dark .morph-spotlight--product {
+  background: #191e26;
+}
+
+html.dark .morph-featured .s-product-card-vertical {
+  .s-product-card-entry {
+    background: #20262f;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &:hover .s-product-card-entry {
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .s-product-card-content-title a {
+    color: #e9ebef;
+  }
 }
