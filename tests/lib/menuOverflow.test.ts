@@ -3,6 +3,7 @@ import type { MenuItem } from '@salla.sa/twilight-theme-engine/types';
 import {
   MORE_MENU_ID,
   fitCount,
+  menuKey,
   menuProductIds,
   panelColumns,
   pruneUntitled,
@@ -54,6 +55,26 @@ describe('pruneUntitled', () => {
     ]);
     expect(pruned.map((entry) => entry.id)).toEqual([1]);
     expect(pruned[0].children?.map((entry) => entry.id)).toEqual([11]);
+  });
+});
+
+describe('menuKey', () => {
+  it('is stable for the same menu, whatever the order it was built', () => {
+    const items = [item(1), item(2, { children: [item(21)] })];
+    expect(menuKey(items)).toBe(menuKey([...items]));
+  });
+
+  it('changes when a title, a child, or the length changes', () => {
+    const base = menuKey([item(1), item(2)]);
+    expect(menuKey([item(1)])).not.toBe(base);
+    expect(menuKey([item(1), item(3)])).not.toBe(base);
+    expect(menuKey([item(1), item(2, { children: [item(21)] })])).not.toBe(base);
+  });
+
+  it('treats a re-created menu with the same content as the same menu', () => {
+    expect(menuKey([item(1, { title: 'الإلكترونيات' })])).toBe(
+      menuKey([{ id: 1, title: 'الإلكترونيات', url: '/x' } as MenuItem])
+    );
   });
 });
 

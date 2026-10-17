@@ -185,3 +185,25 @@ describe('curtain mega menu invariants (ported from the Twig theme)', () => {
     expect(entry['background']).toBe('#20262f');
   });
 });
+
+describe('one-line nav fit invariants («المزيد» keeps links off the brand/actions)', () => {
+  it('hides the measurement probe invisibly but layable', async () => {
+    const root = await compile('morph-header.scss');
+
+    const probe = declarations(root, '.morph-nav__probe');
+    expect(probe['position']).toBe('absolute');
+    expect(probe['visibility']).toBe('hidden');
+    expect(probe['pointer-events']).toBe('none');
+    expect(probe['display']).toBe('flex');
+  });
+
+  it('keeps the nav one-line-safe: the row can shrink, centered, tiny gap', async () => {
+    const root = await compile('morph-header.scss');
+
+    const nav = declarations(root, '.morph-pill__nav');
+    expect(nav['flex']).toContain('1 1 auto');
+    expect(nav['min-width']).toBe('0');
+    expect(nav['justify-content']).toBe('center');
+    expect(nav['gap']).toBe('2px');
+  });
+});

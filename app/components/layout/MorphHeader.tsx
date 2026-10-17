@@ -20,11 +20,17 @@ import { SallaContacts } from '@salla.sa/twilight-components-react/contacts';
 import { SallaSocial } from '@salla.sa/twilight-components-react/social';
 import { SallaUserMenu } from '@salla.sa/twilight-components-react/user-menu';
 import { SallaCartSummary } from '@salla.sa/twilight-components-react/cart-summary';
-import type { MenuItem } from '@salla.sa/twilight-theme-engine/types';
+import {
+  MORE_MENU_ID,
+  fitCount,
+  menuKey,
+  pruneUntitled,
+  splitMenu,
+} from '../../lib/menuOverflow';
+import { type MenuItem } from '@salla.sa/twilight-theme-engine/types';
 import { openStoreSwitcher } from '../../lib/storeSwitchers';
 import { useHydrated } from '../../hooks/useHydrated';
 import { resolveMorphIcon } from '../../lib/morphIcons';
-import { pruneUntitled } from '../../lib/menuOverflow';
 import { MorphCurtain, type CurtainLabels, type CurtainMenu } from './MorphCurtain';
 import { readSlots } from '../../lib/curtainSlots';
 import { LanguagesIcon } from '../icons';
@@ -737,6 +743,7 @@ export function MorphHeader() {
     darkMode: loc('blocks.header.theme_dark', 'الوضع الليلي'),
     lightMode: loc('blocks.header.theme_light', 'الوضع النهاري'),
     emptyStore: loc('blocks.header.morph_empty_store', 'لا توجد أقسام في المتجر بعد.'),
+    more: loc('common.titles.more', 'المزيد'),
   };
 
   /* the curtain's own labels — same fallback rule as the block above */
@@ -900,9 +907,93 @@ export function MorphHeader() {
   /* the merchant's curtain slots — `curtain_slots` normalised once per save;
      the map is keyed under every candidate shape (see lib/curtainSlots) */
   const slotsMap = useMemo(() => readSlots(s.curtain_slots), [s.curtain_slots]);
+
+  /* ── the nav stays on one line: items that don't fit move under a last
+     «المزيد» item, exactly like the default header's one-line menu. That is
+     what keeps the links off the brand and off the action icons at narrow
+     desktop widths — the previously unguarded pill let its overflow paint
+     over both. Hovering «المزيد» opens the SAME curtain, with the
+     overflowing links as its subcategory discs (one panel, old rule 9). ── */
+  const navKey = useMemo(() => menuKey(menus), [menus]);
+  const moreProbeRef = useRef<HTMLSpanElement>(null);
+  const [navMeasured, setNavMeasured] = useState<{
+    key: string;
+    widths: number[];
+    more: number;
+    gap: number;
+  } | null>(null);
+  const [navAvailable, setNavAvailable] = useState(0);
+
+  const navCurrent = navMeasured?.key === navKey ? navMeasured : null;
+  const navFit = navCurrent
+    ? fitCount(navCurrent.widths, navAvailable, navCurrent.more, navCurrent.gap)
+    : menus.length;
+  const shownMenus = useMemo(
+    () => (navCurrent ? splitMenu(menus, navFit, labels.more) : menus),
+    [navCurrent, menus, navFit, labels.more]
+  );
+
+  /* Measure the full menu before it paints (the render below shows every link
+     while `navCurrent` is null). Below 1025px the nav is `display: none` so
+     everything measures 0 — the resize observer re-runs this once it has a
+     width. */
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (navCurrent || !nav || !menus.length) return;
+    const width = nav.clientWidth;
+    setNavAvailable(width);
+    if (width === 0) return;
+    const links = nav.querySelectorAll<HTMLElement>(':scope > .morph-link');
+    setNavMeasured({
+      key: navKey,
+      widths: Array.from(links, (link) => link.getBoundingClientRect().width),
+      more: moreProbeRef.current?.getBoundingClientRect().width ?? 0,
+      gap: parseFloat(getComputedStyle(nav).columnGap) || 0,
+    });
+  }, [navCurrent, menus, navKey, navAvailable, ready]);
+
+  // The width the nav has to fill (also fires when the pill morphs 1600→880).
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => setNavAvailable(nav.clientWidth));
+    observer.observe(nav);
+    return () => observer.disconnect();
+  }, []);
+
+  // Text measured before the web font loaded is narrower than it will be.
+  useEffect(() => {
+    if (typeof document === 'undefined' || !document.fonts || document.fonts.status === 'loaded') {
+      return;
+    }
+    let active = true;
+    document.fonts.ready.then(() => {
+      if (active) setNavMeasured(null);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  /* The helper list must mirror the LIVE DOM in order (old rule 11: one index
+     space). Splitting unsplitting the row re-keys and swaps link elements; a
+     push-only ref callback left stale entries behind, which shifted every
+     `linksRef.indexOf` off by the removed row. Rebuild it from the nav, and
+     drop a hover reference the DOM no longer holds. */
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    linksRef.current = Array.from(
+      nav.querySelectorAll<HTMLAnchorElement>(':scope > .morph-link')
+    );
+    if (hoverLinkRef.current && !linksRef.current.includes(hoverLinkRef.current)) {
+      moveBlob(null);
+    }
+  }, [shownMenus, ready]);
+
   const curtainMenu: CurtainMenu | null =
     curtainIndex != null
-      ? ((menus[curtainIndex] as CurtainMenu | undefined) ?? null)
+      ? ((shownMenus[curtainIndex] as CurtainMenu | undefined) ?? null)
       : null;
 
   const searchToggle = (event: ReactMouseEvent<HTMLButtonElement>) => {
@@ -975,8 +1066,29 @@ export function MorphHeader() {
               </span>
             )}
             {ready && !menus.length && <p className="morph-nav__empty">{labels.emptyStore}</p>}
-            {menus.map((item) => {
+            {shownMenus.map((item) => {
               const hasKids = (item.children?.length ?? 0) > 0;
+              /* «المزيد» is synthetic — it opens nowhere; hovering it shows the
+                 overflowing links in the curtain (its children), so a plain
+                 anchor that refuses the jump. */
+              if (item.id === MORE_MENU_ID) {
+                return (
+                  <a
+                    key={MORE_MENU_ID}
+                    href="#"
+                    className="morph-link"
+                    data-morph-more="1"
+                    data-morph-has="1"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                    data-testid="morph-more"
+                    onClick={(event) => event.preventDefault()}
+                  >
+                    <span>{item.title}</span>
+                    {CARET}
+                  </a>
+                );
+              }
               return (
                 <Link
                   key={`${String(item.id)}-${item.url}`}
@@ -985,17 +1097,22 @@ export function MorphHeader() {
                   data-morph-has={hasKids ? '1' : undefined}
                   aria-haspopup={hasKids || undefined}
                   aria-expanded={hasKids ? 'false' : undefined}
-                  ref={(el) => {
-                    if (!el) return;
-                    // keep the helper list in DOM order (ref is called after mount)
-                    if (!linksRef.current.includes(el)) linksRef.current.push(el);
-                  }}
                 >
                   <span>{item.title}</span>
                   {hasKids && CARET}
                 </Link>
               );
             })}
+            {/* Sizes «المزيد» before it exists; styled like a real link and
+                hidden (visibility, not display) so the widths stay honest. */}
+            {navCurrent == null && ready && menus.length > 0 && (
+              <span className="morph-nav__probe" aria-hidden="true">
+                <span ref={moreProbeRef} className="morph-link" data-morph-has="1">
+                  <span>{labels.more}</span>
+                  {CARET}
+                </span>
+              </span>
+            )}
             <span ref={blobRef} className="morph-blob" data-testid="morph-blob" aria-hidden="true" />
           </nav>
 

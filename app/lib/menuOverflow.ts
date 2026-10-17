@@ -7,6 +7,21 @@ export const MORE_MENU_ATTR = 'data-more-menu';
 export const MORE_MENU_ID = 'more-menu';
 
 /**
+ * A short, stable key for what decides a menu's root items' widths: each one's
+ * id, title, and whether it has children (which adds a caret). Used by every
+ * fit-to-one-line nav (the default header and the MorphPill) to know whether a
+ * measurement is still about the same menu.
+ */
+export function menuKey(items: MenuItem[]): string {
+  const text = items
+    .map((item) => `${String(item.id)}:${item.title ?? ''}:${item.children?.length ? 1 : 0}`)
+    .join('|');
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) | 0;
+  return `${items.length}-${(hash >>> 0).toString(36)}`;
+}
+
+/**
  * Drop items with no title (the API returns e.g. the `brands` link as
  * `title: null`), recursively, so menus only ever see renderable rows.
  */

@@ -19,6 +19,7 @@ import {
   MORE_MENU_ATTR,
   MORE_MENU_ID,
   fitCount,
+  menuKey,
   menuProductIds,
   panelColumns,
   pruneUntitled,
@@ -37,19 +38,6 @@ interface Measured {
   widths: number[];
   more: number;
   gap: number;
-}
-
-/**
- * A short, stable key for what decides the root items' widths: each one's id,
- * title, and whether it has children (which adds a caret).
- */
-function menuKey(items: MenuItem[]): string {
-  const text = items
-    .map((item) => `${String(item.id)}:${item.title ?? ''}:${item.children?.length ? 1 : 0}`)
-    .join('|');
-  let hash = 0;
-  for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) | 0;
-  return `${items.length}-${(hash >>> 0).toString(36)}`;
 }
 
 /** The "More" link only opens its dropdown (on hover / focus); it goes nowhere. */

@@ -337,6 +337,18 @@ html.theme-transition {
   }
 }
 
+/* Sizes «المزيد» for the one-line fit before the real item exists. Absolute
+   (never a nav flex item), visibility instead of display so the widths stay
+   honest, and pointer-events none so it can never be hovered. */
+.morph-nav__probe {
+  position: absolute;
+  inset-inline-start: 0;
+  display: flex;
+  gap: 2px;
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .morph-header.is-ready .morph-nav__skel {
   display: none;
 }

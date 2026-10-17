@@ -20,6 +20,7 @@ const state = {
   theme: { settings: {} as Record<string, unknown> },
   isHome: false,
   routeIds: [] as string[],
+  menus: null as Record<string, unknown>[] | null,
 };
 
 type RouterStateStub = {
@@ -37,7 +38,7 @@ vi.mock('@tanstack/react-router', () => ({
 
 /* `useQuery` is stubbed to resolve instantly with the fixture payload. */
 vi.mock('@tanstack/react-query', () => ({
-  useQuery: () => ({ data: MENUS, isLoading: false }),
+  useQuery: () => ({ data: state.menus ?? MENUS, isLoading: false }),
 }));
 
 vi.mock('@salla.sa/twilight-theme-engine/api/menu', () => ({
@@ -110,6 +111,7 @@ beforeEach(() => {
   state.theme = { settings: {} };
   state.isHome = false;
   state.routeIds = [];
+  state.menus = null;
   document.documentElement.className = '';
   document.documentElement.removeAttribute('data-morph-lift');
   window.localStorage.clear();
@@ -155,13 +157,71 @@ describe('MorphHeader', () => {
     expect(getByTestId('morph-header-burger')).toBeTruthy();
     expect(getByTestId('morph-header-topbar')).toBeTruthy();
 
-    // nav from the menu query — one link per untitled-pruned category
-    const links = container.querySelectorAll('.morph-link');
+    // nav from the menu query — one link per untitled-pruned category. The
+    // selector is scoped to the nav's direct children so the hidden
+    // «المزيد» measuring probe (also .morph-link) never inflates the count.
+    const links = container.querySelectorAll('.morph-pill__nav > .morph-link');
     expect(links).toHaveLength(2);
     // only the parent with kids carries the flag (rule 9 triage data)
     expect(links[0].getAttribute('data-morph-has')).toBe('1');
     expect(links[1].getAttribute('data-morph-has')).toBeNull();
     expect(container.querySelector('[data-testid="morph-blob"]')).toBeTruthy();
+  });
+
+  it('moves overflowing links under «المزيد» when they do not fit the row', () => {
+    /* geometry: a 606px nav; every .morph-link is 40px + 11px per letter, so
+       only the first three (تخفيضات، المدونة، اكسسورات) fit beside «المزيد». */
+    const titles = ['تخفيضات', 'المدونة', 'اكسسورات', 'أجهزة منزلية', 'الإلكترونيات', 'الأرائك والكراسي', 'المنزل', 'صفحة الماركات'];
+    const eight = titles.map((title, i) => ({
+      id: i + 1,
+      title,
+      url: `/ar/cat-${i + 1}`,
+      children: [{ id: (i + 1) * 10, title: `قسم ${title}`, url: `/ar/cat-${i + 1}/sub` }],
+    }));
+    state.menus = eight as unknown as Record<string, unknown>[];
+    const widths = new Map(eight.map((m) => [m.title, m.title.length * 11 + 40]));
+    const bcrSpy = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const text = (this.textContent ?? '').trim();
+        const w = widths.get(text) ?? text.length * 11 + 40;
+        return {
+          x: 0, y: 0, left: 0, top: 0,
+          width: w, height: 40, right: w, bottom: 40, toJSON: () => ({}),
+        } as DOMRect;
+      });
+    const cw = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth');
+    Object.defineProperty(Element.prototype, 'clientWidth', {
+      configurable: true,
+      get: () => 606,
+    });
+
+    try {
+      const { container } = render(<MorphHeader />);
+      const nav = container.querySelector<HTMLElement>('.morph-pill__nav')!;
+
+      // the split applied: exactly the three that fit, then «المزيد»
+      const direct = Array.from(nav.querySelectorAll(':scope > .morph-link'));
+      expect(direct.map((l) => l.textContent?.trim())).toEqual([
+        'تخفيضات', 'المدونة', 'اكسسورات', 'المزيد',
+      ]);
+      expect(nav.querySelector('[data-testid="morph-more"]')).toBeTruthy();
+      // the measuring probe is gone once the split is known
+      expect(nav.querySelector('.morph-nav__probe')).toBeNull();
+
+      // hovering «المزيد» opens the curtain that carries the overflowed links
+      act(() => {
+        direct[3].dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      });
+      const curtain = container.querySelector<HTMLElement>('[data-testid="morph-curtain"]')!;
+      expect(curtain.hidden).toBe(false);
+      // the curtain's discs are the overflowed links themselves
+      eight.slice(3).forEach((m) => expect(curtain.textContent).toContain(m.title));
+    } finally {
+      bcrSpy.mockRestore();
+      if (cw) Object.defineProperty(Element.prototype, 'clientWidth', cw);
+    }
+    state.menus = null;
   });
 
   it('writes the merchant settings as inline custom properties', () => {

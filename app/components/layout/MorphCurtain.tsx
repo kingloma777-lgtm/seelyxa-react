@@ -373,7 +373,11 @@ export function MorphCurtain({
           </div>
         </div>
         {menu && (
-          <div data-morph-dyn="featured">
+          /* keyed on the focused node: the old rebuild replaced the dynamic
+             region's innerHTML on every category change, which replayed the
+             entrances (morphCurtainIn on the featured rectangle) — React keeps
+             the wrapper, so a remount is what replays the same transition. */
+          <div data-morph-dyn="featured" key={String((focus ?? menu).id)}>
             <FeaturedRow node={focus ?? menu} labels={labels} pieces={pieces} />
           </div>
         )}
