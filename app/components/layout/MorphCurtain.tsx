@@ -6,8 +6,11 @@ import { product, type ProductsListSource } from '@salla.sa/twilight-theme-engin
 import { ProductCard } from '../product/ProductCard';
 import { SallaProductsList, ProductsListSkeleton } from '@salla.sa/twilight-components-react';
 import type { CurtainSlot } from '../../lib/curtainSlots';
+import { menuProductIds } from '../../lib/menuProducts';
+import { builtInMenuKind } from '../../lib/menuItemKind';
 import {
   activeSlot,
+  categoryIdFromUrl,
   fallbackSlot,
   imgSrc,
   productIdFromUrl,
@@ -51,9 +54,13 @@ export interface CurtainLabels {
 }
 
 /** The store menu node the curtain reads, plus the featured products the
- * menu builder can attach (`products` are ids, not items). */
+ * menu builder can attach (`products` are ids, not items).
+ *
+ * `unknown` on purpose: the API answers an array ONLY when the merchant picked
+ * featured products and the empty string `""` for every other node, so the
+ * field is normalised with `menuProductIds` — never read as an array here. */
 export interface CurtainMenu extends MenuItem {
-  products?: (string | number)[];
+  products?: unknown;
   children?: CurtainMenu[];
 }
 
@@ -236,14 +243,28 @@ function FeaturedRow({
   labels: CurtainLabels;
   pieces: (n: number) => string;
 }) {
-  const ids = (node.products ?? []).filter(Boolean).map(Number);
+  const ids = menuProductIds(node.products);
   const hasFeatured = ids.length > 0;
-  const catId =
-    node.id !== undefined && node.id !== null && node.id !== '' ? node.id : null;
-  const value = hasFeatured ? ids : catId !== null ? [Number(catId)] : [];
-  const source: ProductsListSource = hasFeatured ? 'selected' : 'categories';
+  /* The fallback needs a REAL category id, and a node's own `id` is a menu-ROW
+     id: sent as `source_value` it answers 422 and the rectangle stays empty for
+     every category without featured picks (the majority of them). The real id
+     travels in the node's url (`categoryIdFromUrl`), the built-in offers page
+     has a source of its own, and anything else gets the honest empty state
+     instead of a request that cannot succeed. */
+  const categoryId = categoryIdFromUrl(node.url);
+  const offers = !hasFeatured && !categoryId && builtInMenuKind(node) === 'offers';
+  const source: ProductsListSource = hasFeatured
+    ? 'selected'
+    : categoryId
+      ? 'categories'
+      : 'offers';
+  const value: number[] = hasFeatured ? ids : categoryId ? [Number(categoryId)] : [];
+  /* `offers` needs no value, so the empty state keys on "can any source fill
+     this?", not on `value.length` alone. */
+  const canFill = hasFeatured || !!categoryId || offers;
 
   const loader = useCallback(
+    // only ever called by the list below, i.e. when `canFill`
     () => product.list({ source, sourceValue: value, perPage: 4 }),
     [source, value.join(',')] // eslint-disable-line react-hooks/exhaustive-deps
   );
@@ -256,7 +277,7 @@ function FeaturedRow({
         </p>
         {hasFeatured && <span>{pieces(ids.length)}</span>}
       </div>
-      {!value.length ? (
+      {!canFill ? (
         <p className="morph-featured__empty">{labels.emptyFeatured}</p>
       ) : (
         <Suspense fallback={<ProductsListSkeleton />}>

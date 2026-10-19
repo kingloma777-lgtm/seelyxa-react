@@ -3,23 +3,32 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, act } from '@testing-library/react';
 import { MorphCurtain, type CurtainLabels } from '../../../app/components/layout/MorphCurtain';
 import { readSlots } from '../../../app/lib/curtainSlots';
+import { product } from '@salla.sa/twilight-theme-engine/api/product';
 
 /* The mock `SallaProductsList` fakes the RESOLVED loader payload: the curtain's
-   own slot/featured loaders return instantly with these fixture items. */
+   own slot/featured loaders return instantly with these fixture items. It also
+   hands the loader back so a test can call it and read the request the curtain
+   would have made. */
 let ITEMS: Record<string, unknown>[] = [];
+let mockLoader: (() => unknown) | null = null;
 
 vi.mock('@salla.sa/twilight-components-react', () => ({
   SallaProductsList: ({
     children,
     itemsClassName,
+    loader,
   }: {
     children?: (items: unknown[]) => React.ReactNode;
     itemsClassName?: string;
-  }) => (
-    <div className={itemsClassName} data-testid="curtain-items">
-      {children ? children(ITEMS) : null}
-    </div>
-  ),
+    loader?: unknown;
+  }) => {
+    mockLoader = (loader as (() => unknown) | undefined) ?? null;
+    return (
+      <div className={itemsClassName} data-testid="curtain-items">
+        {children ? children(ITEMS) : null}
+      </div>
+    );
+  },
   ProductsListSkeleton: () => <div data-testid="curtain-skeleton" />,
 }));
 
@@ -30,11 +39,7 @@ vi.mock('../../../app/components/product/ProductCard', () => ({
 }));
 
 vi.mock('@salla.sa/twilight-theme-engine/api/product', () => ({
-  product: {
-    list: vi.fn(() => {
-      throw new Error('not called in these tests');
-    }),
-  },
+  product: { list: vi.fn(() => Promise.resolve({ data: [] })) },
 }));
 
 vi.mock('@salla.sa/twilight-theme-engine/common', () => ({
@@ -63,21 +68,24 @@ const LABELS: CurtainLabels = {
 };
 const pieces = (n: number) => `${n} منتج`;
 
-/* The hovered category: two subcategories, winners/featured picks. */
+/* The hovered category: two subcategories, winners/featured picks. The urls
+   carry REAL category ids (`/c<id>`), which is the only place the products API
+   accepts one from — a node's own `id` is a menu-row id. */
 const MENU = {
   id: 1,
   title: 'الأثاث',
-  url: '/ar/furniture',
+  url: '/ar/furniture/c1',
   children: [
-    { id: 11, title: 'كراسي', url: '/ar/furniture/chairs' },
-    { id: 12, title: 'طاولات', url: '/ar/furniture/tables' },
+    { id: 11, title: 'كراسي', url: '/ar/furniture/c11' },
+    { id: 12, title: 'طاولات', url: '/ar/furniture/c12' },
   ],
 };
 const CHILDLESS = { id: 2, title: 'الإضاءة', url: '/ar/lighting', children: [] };
+const OFFERS = { id: 3, title: 'تخفيضات', url: '/ar/offers', children: [] };
 
 const slotsFixtureImage = [
   {
-    category: [{ value: '/ar/furniture/chairs' }],
+    category: [{ value: '/ar/furniture/c11' }],
     type: [{ value: 'image' }],
     image: 'chairs.png',
     title: 'الكراسي الأول',
@@ -85,7 +93,7 @@ const slotsFixtureImage = [
 ];
 const slotsFixtureProduct = [
   {
-    category: [{ value: '/ar/furniture/chairs' }],
+    category: [{ value: '/ar/furniture/c11' }],
     type: [{ value: 'product' }],
     product: [{ value: 'https://store.sa/p555' }],
   },
@@ -104,6 +112,8 @@ const base = (over: Partial<Parameters<typeof MorphCurtain>[0]> = {}) => ({
 });
 
 beforeEach(() => {
+  vi.clearAllMocks();
+  mockLoader = null;
   ITEMS = [{ id: 101 }, { id: 102 }, { id: 103 }, { id: 104 }, { id: 105 }];
 });
 
@@ -182,7 +192,7 @@ describe('MorphCurtain', () => {
       const spotlight = container.querySelector('.morph-spotlight') as HTMLElement;
       expect(spotlight).toBeTruthy();
       expect(spotlight.getAttribute('data-morph-slot')).toBe('image');
-      expect(spotlight.getAttribute('href')).toBe('/ar/furniture/chairs');
+      expect(spotlight.getAttribute('href')).toBe('/ar/furniture/c11');
       expect(spotlight.querySelector('img')?.getAttribute('src')).toBe('chairs.png');
       expect(spotlight.querySelector('.morph-spotlight__title')?.textContent).toBe('الكراسي الأول');
     });
@@ -190,7 +200,7 @@ describe('MorphCurtain', () => {
     it('an untitled image slot borrows the hovered category name — never the word "مميزة" (rule 28)', () => {
       const fixture = [
         {
-          category: [{ value: '/ar/furniture/chairs' }],
+          category: [{ value: '/ar/furniture/c11' }],
           type: [{ value: 'image' }],
           image: 'x.png',
           title: '',
@@ -204,7 +214,7 @@ describe('MorphCurtain', () => {
 
     it('an image slot with no source stays honest (the row is not renderable)', () => {
       const lan = [
-        { category: [{ value: '/ar/furniture/chairs' }], type: [{ value: 'image' }], image: '' },
+        { category: [{ value: '/ar/furniture/c11' }], type: [{ value: 'image' }], image: '' },
       ];
       const { container } = render(
         <MorphCurtain {...base({ focusId: '11', slots: readSlots(lan), slotsRaw: lan })} />
@@ -239,6 +249,18 @@ describe('MorphCurtain', () => {
       expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
     });
 
+    it('an EMPTY-STRING products field is no picks, not a crash (demo-store shape)', () => {
+      // 19 of 20 nodes come back as `products: ""`; `.filter` on that threw and
+      // the error boundary blanked the storefront
+      const { container } = render(
+        <MorphCurtain {...base({ menu: { ...MENU, products: '' } as never })} />
+      );
+      expect(container.querySelector('.morph-featured__head p')?.textContent).toContain(
+        LABELS.categoryProducts
+      );
+      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
+    });
+
     it('a focused sub swaps the rectangle to the focus node', () => {
       const { container } = render(
         <MorphCurtain {...base({ menu: { ...MENU, products: [9] } as never, focusId: '12' })} />
@@ -254,16 +276,40 @@ describe('MorphCurtain', () => {
       expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
     });
 
-    it('a node with no id and no picks → the honest empty text', () => {
-      const { container } = render(
-        <MorphCurtain
-          {...base({ menu: { id: undefined, title: 'الإضاءة', url: '/ar/lighting', children: [] } as never })}
-        />
+    it('sends the REAL category id — read from the url, never the menu-row id', () => {
+      render(<MorphCurtain {...base()} />);
+      mockLoader?.();
+      expect(product.list).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'categories', sourceValue: [1], perPage: 4 })
       );
+    });
+
+    it('the focused subcategory falls back to its OWN category id', () => {
+      render(<MorphCurtain {...base({ focusId: '12' })} />);
+      mockLoader?.();
+      expect(product.list).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'categories', sourceValue: [12] })
+      );
+    });
+
+    it('the built-in offers page uses the offers source, which needs no value', () => {
+      const { container } = render(<MorphCurtain {...base({ menu: OFFERS as never })} />);
+      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
+      mockLoader?.();
+      expect(product.list).toHaveBeenCalledWith(
+        expect.objectContaining({ source: 'offers', sourceValue: [] })
+      );
+    });
+
+    it('a node that is not a category page → the honest empty text, no doomed request', () => {
+      // its menu-row id would answer 422; the empty state is the honest answer
+      const { container } = render(<MorphCurtain {...base({ menu: CHILDLESS as never })} />);
       expect(container.querySelector('.morph-featured__empty')?.textContent).toBe(
         LABELS.emptyFeatured
       );
       expect(container.querySelector('[data-testid="curtain-items"]')).toBeNull();
+      expect(mockLoader).toBeNull();
+      expect(product.list).not.toHaveBeenCalled();
     });
   });
 });

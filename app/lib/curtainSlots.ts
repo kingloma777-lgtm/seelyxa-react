@@ -249,3 +249,18 @@ export const productIdFromUrl = (url: unknown): string => {
   const match = /\/p(\d+)(?:[\/?#]|$)/.exec(String(url ?? ''));
   return match ? match[1] : '';
 };
+
+/** The REAL category id of a menu node, read from its url's `/c<digits>` run.
+ *
+ * A menu node's OWN `id` is a menu-ROW id, not a category id: sending it as
+ * `source_value` to the products API answers **422** and the curtain's featured
+ * rectangle stays empty for every category without merchant picks. Measured
+ * against the live store (`store-identifier: dev-vgckq3fssfhjewwi`):
+ * `source=categories` with the row id `1060795665` → 422, with the
+ * `c1265994686` carried in the node's url → 200. The url is therefore the only
+ * trustworthy carrier, and a node that is not a category page at all (no
+ * `/c<digits>`) has no id to fall back to. */
+export const categoryIdFromUrl = (url: unknown): string => {
+  const match = /\/c(\d+)(?:[\/?#]|$)/.exec(String(url ?? ''));
+  return match ? match[1] : '';
+};

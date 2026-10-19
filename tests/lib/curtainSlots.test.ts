@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   activeSlot,
+  categoryIdFromUrl,
   fallbackSlot,
   idFromUrl,
   imgSrc,
@@ -265,5 +266,28 @@ describe('productIdFromUrl', () => {
     expect(productIdFromUrl('https://store.sa/p12345')).toBe('12345');
     expect(productIdFromUrl('store.sa/ar/big-product-160')).toBe('');
     expect(productIdFromUrl('')).toBe('');
+  });
+});
+
+/* A menu node's own `id` is a menu-row id; the products API answers 422 for it
+   as a category id, so the real one comes out of the url's /c<digits> run. */
+describe('categoryIdFromUrl', () => {
+  it('reads the /c<digits> run out of the store url shapes', () => {
+    expect(categoryIdFromUrl('https://demostore.salla.sa/ar/dev-x/-/c1265994686')).toBe(
+      '1265994686'
+    );
+    expect(categoryIdFromUrl('/ar/furniture/c11')).toBe('11');
+    expect(categoryIdFromUrl('/ar/furniture/c11?page=2')).toBe('11');
+    expect(categoryIdFromUrl('/ar/furniture/c11/')).toBe('11');
+  });
+
+  it('is empty for anything that is not a category page', () => {
+    expect(categoryIdFromUrl('/ar/offers')).toBe('');
+    expect(categoryIdFromUrl('/ar/furniture')).toBe('');
+    // a product url carries a p-run, not a c-run
+    expect(categoryIdFromUrl('https://store.sa/-/p1416906154')).toBe('');
+    expect(categoryIdFromUrl('/ar/brand-1038607388')).toBe('');
+    expect(categoryIdFromUrl(undefined)).toBe('');
+    expect(categoryIdFromUrl(null)).toBe('');
   });
 });
