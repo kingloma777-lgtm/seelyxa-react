@@ -15,8 +15,6 @@ import { Link, Image } from '@salla.sa/twilight-theme-engine/common';
 import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
 import { useTwilight, useIsHome } from '@salla.sa/twilight-theme-engine/providers';
 import { menu } from '@salla.sa/twilight-theme-engine/api/menu';
-import { SallaMenu } from '@salla.sa/twilight-components-react/menu';
-import { SallaContacts } from '@salla.sa/twilight-components-react/contacts';
 import { SallaSocial } from '@salla.sa/twilight-components-react/social';
 import { SallaUserMenu } from '@salla.sa/twilight-components-react/user-menu';
 import { SallaCartSummary } from '@salla.sa/twilight-components-react/cart-summary';
@@ -33,7 +31,6 @@ import { useHydrated } from '../../hooks/useHydrated';
 import { resolveMorphIcon } from '../../lib/morphIcons';
 import { MorphCurtain, type CurtainLabels, type CurtainMenu } from './MorphCurtain';
 import { readSlots } from '../../lib/curtainSlots';
-import { LanguagesIcon } from '../icons';
 
 /* ==========================================================================
  * MorphPill — the cinematic store header, ported from the Twig theme
@@ -48,9 +45,11 @@ import { LanguagesIcon } from '../icons';
  *     push up skewed and a preview card chases the cursor (desktop pointers);
  *  4. an expanding search: the real live search stays mounted and is clipped
  *     to a 40px disc until its toggle opens it.
- * Plus the light/dark toggle with the View Transition "magic reveal", the
- * utility top bar above the pill, and the "under-header" lift the cinematic
- * home blocks opt into (`s-block--under-header`).
+ * Plus the light/dark toggle with the View Transition "magic reveal", and the
+ * "under-header" lift the cinematic home blocks opt into (`s-block--under-header`).
+ * The old utility topbar above the pill was deleted (2026-10-20): the merchant
+ * wants nothing above the header and the language/currency already live in the
+ * pill's localization button.
  *
  * The curtain mega menu (desktop) arrives with its own component/commit and
  * keys off `menuIndex` below; the nav wiring is already ordered for it.
@@ -148,60 +147,6 @@ export function useStoreMenus() {
   return { menus, ready: menus.length > 0 || (data?.length ?? 0) > 0 };
 }
 
-/** Utility bar above the pill — the old theme's own top bar, kept as-is. */
-function MorphTopbar({
-  scrolled,
-  showImportantLinks,
-}: {
-  scrolled: boolean;
-  showImportantLinks: boolean;
-}) {
-  const { store } = useTwilight();
-  const { t, languageName } = useTranslation();
-  const multilingual = Boolean(store?.settings?.is_multilingual || store?.settings?.currencies_enabled);
-  return (
-    <div
-      className={`morph-topbar${scrolled ? ' is-scrolled' : ''}`}
-      data-testid="morph-header-topbar"
-    >
-      <div className="container flex justify-between">
-        <div className="flex-1 flex items-center gap-2">
-          {showImportantLinks && (
-            <SallaMenu source="footer" topnav className="morph-topbar__menu" suppressHydrationWarning />
-          )}
-          {multilingual && (
-            <div className="header-buttons morph-topbar__switcher">
-              <button
-                type="button"
-                className="morph-topbar__switcher-btn"
-                onClick={() => openStoreSwitcher('language')}
-                aria-label={languageName || t('blocks.header.language', 'Language')}
-              >
-                <LanguagesIcon aria-hidden="true" />
-                <span className="hidden sm:inline">{languageName}</span>
-              </button>
-            </div>
-          )}
-          <div className="hidden lg:block">
-            <salla-bullet-delivery-tag />
-          </div>
-          {store?.scope && (
-            <button
-              type="button"
-              className="btn--rounded-gray"
-              onClick={() => openStoreSwitcher('branch')}
-            >
-              <i className="sicon-location rtl:ml-1 ltr:mr-1" aria-hidden="true" />
-              {store.scope.name}
-            </button>
-          )}
-        </div>
-        <SallaContacts contacts={store?.contacts} contactsTitle="N/A" isHeader />
-        <span className="sr-only">{t('common.titles.contacts', 'Contacts')}</span>
-      </div>
-    </div>
-  );
-}
 
 /* The fullscreen resource (Mobile menu) index */
 interface OverlayRow {
@@ -338,7 +283,6 @@ interface MorphSettings {
   header_text_color?: unknown;
   header_nav_font_size?: unknown;
   header_nav_weight?: unknown;
-  header_topbar_hide?: unknown;
   header_theme_toggle?: unknown;
   header_icon_menu?: unknown;
   header_icon_search?: unknown;
@@ -346,7 +290,6 @@ interface MorphSettings {
   header_icon_localization?: unknown;
   header_icon_cart?: unknown;
   header_icon_close?: unknown;
-  important_links?: unknown;
   /* the curtain mega menu's merchant slots (the theme's only collection) */
   curtain_slots?: unknown;
 }
@@ -394,11 +337,9 @@ export function MorphHeader() {
     close: s.header_icon_close,
   };
 
-  /* `header_topbar_hide` default ON = the bar collapses when the pill morphs:
-     the attribute owns that state in the SCSS (desktop media query only). */
-  const hideTopbarOn = s.header_topbar_hide !== false && scalarSetting(s.header_topbar_hide) !== 'false';
+  /* `header_topbar_hide` cleared with the topbar itself (2026-10-20): the bar is
+     gone, so its setting has nothing to own. `themeToggleOn` survives. */
   const themeToggleOn = s.header_theme_toggle !== false && scalarSetting(s.header_theme_toggle) !== 'false';
-  const topbarImportantLinks = s.important_links !== false && scalarSetting(s.important_links) !== 'false';
 
   /* ── store menu (shared lists) ── */
   const { menus, ready } = useStoreMenus();
@@ -483,12 +424,18 @@ export function MorphHeader() {
     // Position on the LAYOUT box (magnetic lean already included in the rect).
     const mx = (link as unknown as { _mx?: number })._mx || 0;
     const my = (link as unknown as { _my?: number })._my || 0;
-    const dx = r.left - mx - navRect.left - blob.offsetLeft;
-    const dy = r.top - my - navRect.top - blob.offsetTop;
     const appearing = !blob.classList.contains('is-on');
     if (appearing) blob.style.transition = 'none';
+    // WIDTH FIRST, then read the layout origin. The anchor (`inset-inline-start:0`)
+    // is the RIGHT edge under RTL, so `blob.offsetLeft` is `parentWidth - width` —
+    // reading it before the width write measured the OLD width and landed the
+    // pill `(oldW − newW)` beside every category the pointer moved to. Measured
+    // live: a 60px link landed the 83px pill +30px off (blob 808..891 vs link
+    // 778..861). Same order the Twig file shipped; the RTL store is what proves it.
     blob.style.width = `${r.width}px`;
     blob.style.height = `${r.height}px`;
+    const dx = r.left - mx - navRect.left - blob.offsetLeft;
+    const dy = r.top - my - navRect.top - blob.offsetTop;
     blob.style.transform = `translate3d(${dx}px,${dy}px,0)`;
     blob.style.translate = `${mx}px ${my}px`;
     blob.classList.add('is-on');
@@ -1015,14 +962,12 @@ export function MorphHeader() {
       data-testid="morph-header"
       className={`morph-header${scrolled ? ' is-scrolled' : ''}${ready ? ' is-ready' : ''}`}
       style={headerStyle}
-      {...(hideTopbarOn ? { 'data-hide-topbar': '' } : {})}
       onMouseLeave={onHeaderLeave}
       suppressHydrationWarning
     >
-      {/* ① utility top bar */}
-      <MorphTopbar scrolled={scrolled} showImportantLinks={topbarImportantLinks} />
-
-      {/* ② the pill */}
+      {/* ① the pill — the topbar that used to sit above it was deleted
+          (2026-10-20): language/currency live in the pill's own
+          localization button, and nothing renders above the header. */}
       <div className="morph-bar">
         <div className={`morph-pill${searchOpen ? ' morph-pill--search-open' : ''}`} data-testid="morph-pill">
           <div className="morph-pill__lead">
@@ -1128,7 +1073,11 @@ export function MorphHeader() {
               <MorphIco setting={icons.localization} legacy="languages" />
             </button>
 
-            <div className="hidden 2xl:block">
+            {/* the bullet-delivery tag rides the actions row on ultra-wide
+                screens; `flex items-center` keeps it on the SAME line and
+                centred with the icons — as a plain block child it used to sit
+                on its own line above them. */}
+            <div className="hidden 2xl:flex items-center">
               <salla-bullet-delivery-tag />
             </div>
 

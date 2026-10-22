@@ -81,24 +81,6 @@
       ]
     },
     {
-      "type": "boolean",
-      "icon": "sicon-arrow-up",
-      "label": "إخفاء الشريط العلوي عند التمرير",
-      "description": "يختفي شريط الأدوات العلوي تلقائياً عند النزول للأسفل (شاشات الكمبيوتر فقط)",
-      "id": "header_topbar_hide",
-      "format": "switch",
-      "required": false,
-      "value": true,
-      "selected": true,
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
-    },
-    {
       "id": "header_theme_toggle",
       "key": "3dbc16fc-5482-4178-8c83-12a87662fad8",
       "type": "boolean",
@@ -706,17 +688,6 @@
       "required": false,
       "value": true,
       "selected": false
-    },
-    {
-      "type": "boolean",
-      "icon": "sicon-toggle-off",
-      "label": "عرض روابط الصفحات الهامة في الشريط العلوي",
-      "description": "مثل صفحة الهبوط ، المدونة ،الصفحات التعريفية",
-      "id": "important_links",
-      "format": "switch",
-      "required": false,
-      "value": true,
-      "selected": true
     },
     {
       "type": "static",

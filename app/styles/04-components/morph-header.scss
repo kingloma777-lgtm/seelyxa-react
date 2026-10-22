@@ -64,39 +64,6 @@
   isolation: isolate;
 }
 
-/* ── ① utility top bar (the theme's own `.top-navbar`, restyled by header.scss)
-   Only the scroll behaviour is ours: `header_topbar_hide` collapses the bar on
-   scroll, desktop only, reusing the pill's `is-scrolled` boolean. ──────────── */
-.morph-topbar {
-  color: var(--morph-fg);
-
-  .morph-topbar__switcher-btn {
-    @apply flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition-colors;
-    color: var(--morph-fg);
-
-    &:hover {
-      background: rgba(20, 20, 19, 0.08);
-    }
-  }
-}
-
-.morph-header[data-hide-topbar] .morph-topbar {
-  @apply transition duration-300;
-  max-height: 96px;
-  opacity: 1;
-  overflow: hidden;
-}
-
-@media (min-width: 1024px) {
-  .morph-header[data-hide-topbar].is-scrolled .morph-topbar {
-    max-height: 0;
-    opacity: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    min-height: 0;
-  }
-}
-
 /* ── ② bar + morphing pill ─────────────────────────────────────────────── */
 .morph-bar {
   @apply flex justify-center;
@@ -216,6 +183,36 @@
     @apply flex items-center;
   }
 
+  /* the cart's own count badge: the platform ships it, and wherever the base
+     stylesheet drops it, this pins it to the design position — ABOVE the
+     icon's outer edge (RTL: right, LTR: left), never below it. Relative host
+     because the badge is absolutely positioned against it. */
+  salla-cart-summary {
+    position: relative;
+
+    .s-cart-summary-count {
+      position: absolute;
+      top: -2px;
+      [dir='ltr'] & {
+        left: -6px;
+      }
+      [dir='rtl'] & {
+        right: -6px;
+      }
+      height: 18px;
+      min-width: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: #991b1b;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 18px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+  }
+
   .header-btn__icon {
     @apply items-center justify-center;
     width: 40px;
@@ -245,26 +242,27 @@
 }
 
 /* the sun/moon toggle. Both glyphs are in the markup; `html.dark` picks which
-   shows — the button has no JS icon state, nothing to go stale (old rule). */
+   shows — the button has no JS icon state, nothing to go stale (old rule).
+   `span.` (0,1,1) is required, not vanity: `.morph-theme-btn__glyph` and
+   `.morph-ico` both compile to single-class rules and `.morph-ico` lands LATER
+   in the output, so a tie here loses the tie — which is exactly how BOTH
+   glyphs once shipped visible in light mode, one -4px high of centre. */
 .morph-theme-btn {
   &__glyph {
-    display: inline-flex;
     line-height: 0;
-  }
-
-  &__sun {
-    display: none;
   }
 }
 
-html.dark .morph-theme-btn {
-  &__sun {
-    display: inline-flex;
-  }
+span.morph-theme-btn__sun {
+  display: none;
+}
 
-  &__moon {
-    display: none;
-  }
+html.dark span.morph-theme-btn__sun {
+  display: inline-flex;
+}
+
+html.dark .morph-theme-btn__moon {
+  display: none;
 }
 
 /* the "magic" reveal — the new theme wipes in as a circle growing out of the
@@ -368,7 +366,18 @@ html.theme-transition {
 .morph-blob {
   position: absolute;
   top: 0;
-  inset-inline-start: 0;
+  /* PHYSICAL `left`, not `inset-inline-start`. moveBlob places the blob with
+     `dx = … - blob.offsetLeft`, and offsetLeft is only width-independent while
+     the blob's left edge is the anchor. Right-anchored (what the logical
+     property becomes in RTL) means offsetLeft = navWidth − width, so every
+     width change — including the width transition itself — slides the layout
+     origin under the transform, and the highlight lands offset by the width
+     difference between the two categories. The Twig build the port must match
+     compiled the logical property to physical `left` (see the compensated
+     mirrors note on `.morph-spotlight__title`), which is why the old theme
+     was exact in RTL. Same story one way or the other: physical anchor here,
+     physical rects in the JS. */
+  left: 0;
   height: 0;
   width: 0;
   border-radius: 999px;
@@ -1188,6 +1197,11 @@ html.theme-transition {
   @apply flex items-center;
   position: relative;
   flex-shrink: 0;
+  /* The collapsed field is empty (salla-search mounts post-hydration), so the
+     container used to be 0px tall and the toggle's glyph sat ~9px BELOW the
+     other action icons' midline. 40px = the cart disc's height; every action
+     then shares one line and one centre. */
+  height: 40px;
 
   &__field {
     width: 40px;

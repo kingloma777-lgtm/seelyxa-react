@@ -152,10 +152,13 @@ describe('MorphHeader', () => {
   });
 
   it('renders the pill: brand, burger, nav categories, actions', () => {
-    const { container, getByTestId } = render(<MorphHeader />);
+    const { container, getByTestId, queryByTestId } = render(<MorphHeader />);
     expect(getByTestId('morph-pill')).toBeTruthy();
     expect(getByTestId('morph-header-burger')).toBeTruthy();
-    expect(getByTestId('morph-header-topbar')).toBeTruthy();
+    /* the utility topbar was deleted (2026-10-20): nothing renders above the
+       header, and its old test id must not come back */
+    expect(queryByTestId('morph-header-topbar')).toBeNull();
+    expect(container.querySelector('.morph-topbar')).toBeNull();
 
     // nav from the menu query — one link per untitled-pruned category. The
     // selector is scoped to the nav's direct children so the hidden
@@ -338,11 +341,12 @@ describe('MorphHeader', () => {
     document.body.innerHTML = '<div id="main-content"><div class="s-block"></div></div>';
   });
 
-  it('the top bar keeps its collapse attribute by default and drops it when disabled', () => {
-    const { rerender } = render(<MorphHeader />);
-    expect(screen.getByTestId('morph-header').hasAttribute('data-hide-topbar')).toBe(true);
-    state.theme = { settings: { header_layout: 'morph', header_topbar_hide: false } };
-    rerender(<MorphHeader />);
+  it('no topbar renders above the header, whatever the settings say', () => {
+    state.theme = { settings: { header_layout: 'morph', header_topbar_hide: false, important_links: true } };
+    const { queryByTestId } = render(<MorphHeader />);
+    /* the bar was deleted with its attribute and both settings: the merchant
+       asked for nothing above the header and the language in the pill */
+    expect(queryByTestId('morph-header-topbar')).toBeNull();
     expect(screen.getByTestId('morph-header').hasAttribute('data-hide-topbar')).toBe(false);
   });
 });

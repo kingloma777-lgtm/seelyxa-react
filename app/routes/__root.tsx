@@ -48,12 +48,15 @@ function RootComponent() {
         <ThemeStylesheet href={appCssUrl} critical={CRITICAL_CSS} />
         {/* MorphPill dark mode: `.dark` must land on <html> BEFORE the first
             paint (no flash), so it is an inline script that mirrors the
-            Twig theme's master.twig snippset — saved choice first
-            (`seelyxa-theme` in localStorage), else the OS preference. The
-            header's toggle flips the same class. */}
+            Twig theme's master.twig snippet. Light is the DEFAULT: the OS
+            preference used to flip the store dark, and ever since, the
+            storefront body has stayed light while the header flipped to the
+            dark palette — the merchant reported the header as "بايظ" on the
+            very first load. Only an explicit saved choice (`seelyxa-theme` in
+            localStorage) enables dark; the header's toggle keeps writing it. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('seelyxa-theme');var d=s?s==='dark':(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+            __html: `(function(){try{var s=localStorage.getItem('seelyxa-theme');if(s==='dark')document.documentElement.classList.add('dark');}catch(e){}})();`,
           }}
         />
         <ThemeHeadContent />
