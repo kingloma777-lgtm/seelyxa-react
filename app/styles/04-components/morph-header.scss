@@ -332,7 +332,10 @@
 }
 
 .morph-icon-btn {
-  @apply items-center justify-center;
+  /* flex, not just alignment utilities: `items-center justify-center`
+     without a display does nothing and the glyph rode the button's text
+     baseline instead of its geometric centre (measured 4.5px high). */
+  @apply flex items-center justify-center;
   width: 44px;
   height: 44px;
   border-radius: 999px;
@@ -364,13 +367,16 @@ html.dark .morph-pill__actions {
   --morph-chip-ink: #ffffff;
 }
 
-/* the action glyphs go 20px per the spec (sun draws 20×20 at stroke 1.5).
-   span.morph-ico's own svg rule ties any bare `svg` selector and lands
-   later in the output, so these are scoped element+class on purpose. */
+/* the action glyphs ride 22px — the icon-to-target ratio the guides agree
+   on (Material keeps 24dp inside a 48dp button; 22px is ratio-true in our
+   44px chips, which already meet the WCAG 2.5.5 / Apple HIG 44px minimum)
+   with stroke 1.5. span.morph-ico's own svg rule ties any bare `svg`
+   selector and lands later in the output, so these are scoped
+   element+class on purpose. */
 button.morph-icon-btn svg,
 button.morph-search__toggle svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   stroke-width: 1.5;
 }
 
@@ -409,12 +415,21 @@ button.morph-search__toggle svg {
   }
 
   /* the globe leads the trigger (merchant order: globe → العربية → riyal);
-     16px keeps it a notch above the 14px text without becoming an
-     icon-only chip. span+class beats the later-landing `.morph-ico > svg`
-     em sizing (0,1,1) tie. */
+     18px against the 14px text keeps the ~1.28 leading ratio the same one
+     the 22px glyphs hold inside the 44px discs (best-practice icon scale),
+     without turning the chip icon-only. span+class beats the
+     later-landing `.morph-ico > svg` em sizing (0,1,1) tie. */
   span.morph-loco-btn__globe svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
+  }
+
+  /* the riyal's inline line-box rode 1px high of the chip's centre (font
+     ascent against a 14px line) — a flex wrapper centres it geometrically
+     like every other glyph in the row. */
+  span.morph-loco-btn__currency {
+    display: flex;
+    align-items: center;
   }
 
   &__separator {
@@ -654,13 +669,13 @@ html.theme-transition {
    sourceSlot icons ride the same scale so any state that reveals them
    matches the chips. */
 .morph-search__glyph.morph-ico > svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
 .morph-account-ico.morph-ico > svg {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
 }
 
 /* kept readable by assistive tech, invisible on screen — `.morph-sr-only`
@@ -1519,8 +1534,8 @@ html.theme-transition {
   }
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     stroke-width: 1.5;
   }
 
@@ -1537,14 +1552,21 @@ html.theme-transition {
 
     .s-user-menu-login-btn {
       @apply flex items-center justify-center;
-      width: 100%;
-      height: 100%;
+      /* the disc is the HOST (44px, 1px glass border → 42px content box —
+         the same anatomy every other chip has). The engine ships its own
+         2.5rem + ring on the fallback, which left 2px of dead inset; a
+         percentage fill matches the siblings' content box exactly, with
+         flex:none so no shrink squeezes it asymmetric (measured 42×44!). */
+      width: 100% !important;
+      height: 100% !important;
+      flex: none;
+      border: 0 !important;
       color: inherit;
       cursor: pointer;
 
       svg {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
         fill: currentColor;
         clip-path: none;
         position: static;
