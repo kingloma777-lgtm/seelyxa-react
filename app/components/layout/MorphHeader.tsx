@@ -13,8 +13,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouterState } from '@tanstack/react-router';
 import { Link, Image, CurrencySymbol } from '@salla.sa/twilight-theme-engine/common';
 import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
-import { useTwilight, useIsHome } from '@salla.sa/twilight-theme-engine/providers';
+import { useTwilight, useIsHome, useNavigate } from '@salla.sa/twilight-theme-engine/providers';
 import { menu } from '@salla.sa/twilight-theme-engine/api/menu';
+import { product } from '@salla.sa/twilight-theme-engine/api/product';
+import { useMoney } from '@salla.sa/twilight-theme-engine/hooks/useMoney';
 import { SallaSocial } from '@salla.sa/twilight-components-react/social';
 import { SallaUserMenu } from '@salla.sa/twilight-components-react/user-menu';
 import { SallaCartSummary } from '@salla.sa/twilight-components-react/cart-summary';
@@ -136,6 +138,30 @@ const CARET = (
     <polyline points="6 9 12 15 18 9" />
   </svg>
 );
+
+/* ── the stock search's "recent searches", kept client-side like the
+   platform widget does — last 6 terms, deduped, newest first ── */
+const SEARCH_RECENT_KEY = 'morph_recent_searches';
+function readRecentSearches(): string[] {
+  try {
+    const raw: unknown = JSON.parse(localStorage.getItem(SEARCH_RECENT_KEY) || '[]');
+    if (!Array.isArray(raw)) return [];
+    return raw.filter((s): s is string => typeof s === 'string' && !!s.trim()).slice(0, 6);
+  } catch {
+    return [];
+  }
+}
+function saveRecentSearch(term: string): string[] {
+  const next = [term.trim(), ...readRecentSearches().map((s) => s.trim()).filter((s) => s !== term.trim())]
+    .filter(Boolean)
+    .slice(0, 6);
+  try {
+    localStorage.setItem(SEARCH_RECENT_KEY, JSON.stringify(next));
+  } catch {
+    /* storage may be unavailable — the chip simply stays without history */
+  }
+  return next;
+}
 
 /* The store menu, filtered once at the source: one list, one index space —
    everything (nav, curtain, overlay numbering) reads this same array (old
@@ -577,23 +603,45 @@ export function MorphHeader() {
   }, [closeCurtain]);
 
   /* ── expanding search (old §6) ── */
+  /* THE primary search: the expanding chip itself is the live search. The
+     platform's `salla-search` in its `inline` mode only renders a
+     read-only input that opens the engine's own modal ("typing still
+     happens in the modal's own input" — docs), so it can never type in
+     the field; the merchant asked the expanding field to be the search
+     itself with no blur pop-up. We own the input and fetch live results
+     through the platform's product API (the same list the engine's
+     search page loads), so behaviour stays platform-native. */
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  /* live results need the *settled* keyword: 350ms after the last keystroke,
+     like the platform widget's own pause */
+  const [searchSettled, setSearchSettled] = useState('');
   const searchRef = useRef<HTMLDivElement>(null);
   const searchFieldRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  const { format: formatMoney } = useMoney();
+  /* history chips are re-read every open so a term saved in another tab
+     shows up too (localStorage is the single source) */
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
-  /* mount the platform's inline search widget post-hydration — see the JSX */
   useEffect(() => {
-    const field = searchFieldRef.current;
-    if (!field || field.firstElementChild) return;
-    const search = document.createElement('salla-search');
-    search.setAttribute('inline', '');
-    search.setAttribute('oval', '');
-    search.setAttribute('height', '36');
-    field.appendChild(search);
-    return () => {
-      field.replaceChildren();
-    };
-  }, []);
+    const settle = window.setTimeout(() => setSearchSettled(searchTerm.trim()), 350);
+    return () => window.clearTimeout(settle);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    setRecentSearches(readRecentSearches());
+  }, [searchOpen]);
+
+  const rememberSearchTerm = (term: string) => setRecentSearches(saveRecentSearch(term));
+
+  const searchResults = useQuery({
+    ...product.queries.list({ source: 'search', keyword: searchSettled, perPage: 6 }),
+    enabled: searchOpen && searchSettled.length >= 2,
+  });
+  const searchFound = searchResults.data?.items ?? [];
+  const searchTyped = searchTerm.trim();
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -679,6 +727,12 @@ export function MorphHeader() {
   const labels = {
     menu: loc('blocks.header.main_menu', 'القائمة'),
     search: loc('blocks.header.search', 'بحث'),
+    searchPlaceholder: loc('blocks.header.search_placeholder', 'ابحث عن منتج…'),
+    searchLoading: loc('blocks.header.search_loading', 'جاري البحث…'),
+    searchNoResults: loc('blocks.header.search_no_results', 'لا توجد نتائج مطابقة'),
+    searchAll: loc('blocks.header.search_all', 'شاهد كل النتائج'),
+    searchRecent: loc('blocks.header.search_recent', 'بحث مؤخراً'),
+    searchHint: loc('blocks.header.search_hint', 'اكتب حرفين على الأقل لعرض المنتجات'),
     account: loc('common.titles.account', 'حسابي'),
     language: loc('blocks.header.language', 'اللغة'),
     close: loc('blocks.header.close', 'إغلاق'),
@@ -942,6 +996,11 @@ export function MorphHeader() {
 
   const searchToggle = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    // closing wipes the keyword too — reopening starts a fresh search
+    if (searchOpen) {
+      setSearchTerm('');
+      setSearchSettled('');
+    }
     setSearchOpen((open) => !open);
   };
 
@@ -1096,16 +1155,31 @@ export function MorphHeader() {
               <salla-bullet-delivery-tag />
             </div>
 
-            {/* the disc: live search clipped, our glyph covering it until open */}
+            {/* the expanding chip IS the primary search: a real input owned by
+                us + live results from the platform's product API. The engine's
+                `salla-search` was removed — its `inline` mode is a read-only
+                input that only opens the engine's blur modal, so typing could
+                never happen in the expanding field. */}
             <div ref={searchRef} className={`morph-search${searchOpen ? ' is-open' : ''}`} data-testid="morph-search">
               <div className="morph-search__field" ref={searchFieldRef}>
-              {/* `salla-search` mounts AFTER hydration (the engine does the same
-                  for its heavy stencil widgets in ThemeLayout): the platform's
-                  own runtime upgrades the element before React hydrates, and a
-                  JSX-rendered `<salla-search>` then fails hydration against the
-                  upgraded DOM — server keeps the field empty and the disc's
-                  glyph covers it, so nothing flashes. */}
-            </div>
+                <input
+                  type="search"
+                  className="morph-search__input"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' && searchTerm.trim()) {
+                      event.preventDefault();
+                      rememberSearchTerm(searchTerm);
+                      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+                      setSearchOpen(false);
+                    }
+                  }}
+                  placeholder={labels.searchPlaceholder}
+                  aria-label={labels.search}
+                  data-testid="morph-search-input"
+                />
+              </div>
               <button
                 type="button"
                 className={`morph-search__toggle${searchOpen ? ' is-active' : ''}`}
@@ -1124,6 +1198,87 @@ export function MorphHeader() {
                   className={`morph-search__glyph morph-search__glyph--close${searchOpen ? '' : ' morph-search__glyph--hidden'}`}
                 />
               </button>
+              {/* live results — a sibling panel so the field's clip can't cut
+                  it off. Idle (empty field) shows the stock search's recent
+                  searches as one-tap chips, plus a hint while the term is
+                  shorter than the platform's own two-character minimum. */}
+              {searchOpen && (
+                <div className="morph-search__panel" data-testid="morph-search-panel">
+                  {searchTyped.length === 0 && recentSearches.length > 0 && (
+                    <div className="morph-search__recent">
+                      <span className="morph-search__recent-label">{labels.searchRecent}</span>
+                      <div className="morph-search__recent-list">
+                        {recentSearches.map((recent) => (
+                          <button
+                            key={recent}
+                            type="button"
+                            className="morph-search__recent-item"
+                            onClick={() => setSearchTerm(recent)}
+                          >
+                            {recent}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {searchTyped.length < 2 && (
+                    <p className="morph-search__note">{labels.searchHint}</p>
+                  )}
+                  {searchTyped.length >= 2 && searchResults.isFetching && searchFound.length === 0 && (
+                    <p className="morph-search__note">{labels.searchLoading}</p>
+                  )}
+                  {searchTyped.length >= 2 && !searchResults.isFetching && searchFound.length === 0 && (
+                    <p className="morph-search__note">{labels.searchNoResults}</p>
+                  )}
+                  {searchTyped.length >= 2 && searchFound.length > 0 && (
+                    <ul className="morph-search__list">
+                      {searchFound.map((item) => (
+                        <li key={String(item.id)}>
+                          <Link
+                            to={item.url || '#'}
+                            className="morph-search__result"
+                            onClick={() => {
+                              rememberSearchTerm(searchTyped);
+                              setSearchOpen(false);
+                            }}
+                          >
+                            {item.image?.url ? (
+                              <Image
+                                src={item.image.url}
+                                alt={item.name}
+                                width={40}
+                                height={40}
+                                noWrapper
+                                className="morph-search__thumb"
+                              />
+                            ) : (
+                              <span className="morph-search__thumb" aria-hidden="true" />
+                            )}
+                            <span className="morph-search__result-name">{item.name}</span>
+                            <span className="morph-search__result-price">
+                              {item.is_on_sale && item.sale_price != null
+                                ? formatMoney(item.sale_price)
+                                : formatMoney(item.price ?? '')}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {searchTyped.length >= 2 && searchFound.length > 0 && (
+                    <Link
+                      to={`/search?q=${encodeURIComponent(searchTyped)}`}
+                      className="morph-search__all"
+                      onClick={() => {
+                        rememberSearchTerm(searchTyped);
+                        setSearchOpen(false);
+                      }}
+                    >
+                      {labels.searchAll}
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
 
             {themeToggleOn && (
