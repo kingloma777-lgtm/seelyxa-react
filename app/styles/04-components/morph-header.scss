@@ -264,14 +264,16 @@
     }
 
     /* the cart chip: per the spec the glass surface rides the wrapper LINK
-       (the host stays bare), 44 tall, 16px side paddings, 8px gap between
-       icon and total. */
+       (the host stays bare), and it carries the SAME anatomy the language
+       trigger ships — 44 tall, 112px min-width, 8/15px paddings, 9px gap,
+       tabular numerals at weight 650, the five-property 0.3s glass
+       transition with the same spring. */
     .s-cart-summary-wrapper {
       @apply flex items-center justify-center;
-      gap: 8px;
+      gap: 9px;
       height: 44px;
-      min-width: 44px;
-      padding: 0 16px;
+      min-width: 112px;
+      padding: 8px 15px;
       border-radius: 999px;
       color: var(--morph-chip-ink);
       background: var(--morph-chip-bg);
@@ -279,8 +281,12 @@
       box-shadow: var(--morph-chip-shadow);
       backdrop-filter: blur(12px) saturate(1.8);
       -webkit-backdrop-filter: blur(12px) saturate(1.8);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      cursor: pointer;
       transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-        border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s ease;
+        border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+        box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
       &:hover {
         background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
