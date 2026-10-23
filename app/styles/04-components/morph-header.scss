@@ -192,11 +192,15 @@
   }
 
   /* the chip recipe, taken verbatim from the spec's glass buttons: the
-     translucent 15% dark surface, the 10% white hairline, real
-     blur+saturate and the two-layer shadow — all modes. Ink stays the
-     pill's palette below; only it adapts. */
-  --morph-chip-ink: var(--morph-fg);
-  --morph-chip-bg: rgba(20, 20, 30, 0.15);
+     10% white hairline, real blur+saturate and the two-layer shadow. The
+     ink is WHITE in BOTH modes — white-on-dark-glass is the capture's own
+     look, and a dark glyph on the washed 15% glass read "gray icons on a
+     white pill" at the top of the light page (the merchant flagged it).
+     So in LIGHT mode the wash deepens just enough that the dark glass
+     still reads over the white header bar; in dark mode the surface
+     stays captured at 15% (the bar itself is dark). */
+  --morph-chip-ink: #ffffff;
+  --morph-chip-bg: rgba(20, 20, 30, 0.65);
   --morph-chip-line: rgba(255, 255, 255, 0.1);
   --morph-chip-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
 
@@ -289,7 +293,7 @@
         box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
       &:hover {
-        background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
+        background: color-mix(in srgb, var(--morph-chip-ink) 10%, transparent);
       }
 
       /* the count line: the spec lays icon and price on one flex row with
@@ -357,7 +361,7 @@
     box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
   &:hover {
-    background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
+    background: color-mix(in srgb, var(--morph-chip-ink) 10%, transparent);
   }
 }
 
@@ -371,7 +375,8 @@
    mode. The tokens ride `.morph-pill__actions`, so every rule here can
    stay unscoped. */
 html.dark .morph-pill__actions {
-  --morph-chip-ink: #ffffff;
+  /* over the dark bar 15% lands exactly as the capture shows it */
+  --morph-chip-bg: rgba(20, 20, 30, 0.15);
 }
 
 /* the action glyphs ride 22px — the icon-to-target ratio the guides agree
@@ -1468,7 +1473,7 @@ html.theme-transition {
       box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
     &:hover {
-      background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
+      background: color-mix(in srgb, var(--morph-chip-ink) 10%, transparent);
       border-radius: 999px;
     }
   }
@@ -1537,7 +1542,7 @@ html.theme-transition {
   }
 
   .s-user-menu-trigger-slot:hover {
-    background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
+    background: color-mix(in srgb, var(--morph-chip-ink) 10%, transparent);
   }
 
   svg {
