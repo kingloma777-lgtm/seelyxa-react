@@ -1002,6 +1002,13 @@ export function MorphHeader() {
 
           {/* center nav ≥1025px, magnetic + blob */}
           <nav ref={navRef} className="morph-pill__nav" aria-label={labels.menu} data-testid="morph-nav">
+            {/* The gum is the nav's FIRST child — the Twig reference builds it
+                first (`blobHtml + links`) so the positioned links always paint
+                above it. Rendered last it stacked OVER them: the dark gum
+                covered the black category name and the hover read as
+                "black on black" until measured (blob sits at paint-order
+                depth, not z-index). */}
+            <span ref={blobRef} className="morph-blob" data-testid="morph-blob" aria-hidden="true" />
             {!ready && (
               <span className="morph-nav__skel" aria-hidden="true">
                 <i />
@@ -1058,7 +1065,6 @@ export function MorphHeader() {
                 </span>
               </span>
             )}
-            <span ref={blobRef} className="morph-blob" data-testid="morph-blob" aria-hidden="true" />
           </nav>
 
           {/* actions */}
