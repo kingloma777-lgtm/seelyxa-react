@@ -21,7 +21,20 @@ $main-text-color: var(--main-text-color);
   --bg-gray: #c6c7ce1a;
   --color-grey: #f5f7f9;
   --color-light-grey: #eeeeee;
-  
+
+  /* ── theme surfaces — the semantic palette the site-wide dark mode flips.
+     Light values here; `html.dark` overrides them below in one place, so
+     components keep ONE token each instead of if-dark overrides. */
+  --bg-page: #ffffff;   /* the page canvas */
+  --surface-1: #ffffff; /* cards / panels / the classic white boxes */
+  --surface-2: #f5f7f9; /* inputs, soft fills, page-mute zones */
+  --surface-3: #eceff3; /* stronger fills, chips over surfaces */
+  --ink-1: #231f1e;     /* primary text */
+  --ink-2: #465058;     /* secondary text */
+  --ink-3: #7c8082;     /* muted text */
+  --line-1: rgba(20, 20, 30, 0.08);  /* hairline borders */
+  --line-2: rgba(20, 20, 30, 0.16);  /* emphasized borders */
+
   /* font-size */
   --font-sm: 0.8685714286rem;
   
@@ -40,4 +53,33 @@ $main-text-color: var(--main-text-color);
      which body padding doesn't move, use `--safe-*`. */
   --flow-safe-top: max(0px, env(safe-area-inset-top, 0px) - var(--app-safe-area-top, 0px));
   --flow-safe-bottom: max(0px, env(safe-area-inset-bottom, 0px) - var(--app-safe-area-bottom, 0px));
+}
+
+/* ── the site-wide dark theme ───────────────────────────────────────────────
+   The header's moon/sun toggle drives `html.dark` (the engine only ever adds
+   `color-mode-*` to <body> from the merchant's dashboard choices — it owns no
+   night mode of its own; the styling guide is explicit that dark mode "is
+   your choice" and points at Tailwind's `darkMode: 'class'`). Flipping the
+   palette HERE, once on the tokens, is what makes the theme cover the whole
+   site instead of only the morph header. */
+html.dark {
+  color-scheme: dark;
+
+  --bg-page: #0b0e14;
+  --surface-1: #141923;
+  --surface-2: #1b212c;
+  --surface-3: #242b37;
+  --ink-1: #f2f3f5;
+  --ink-2: #b7bfca;
+  --ink-3: #8d95a2;
+  --line-1: rgba(255, 255, 255, 0.09);
+  --line-2: rgba(255, 255, 255, 0.18);
+
+  /* engine token aliases drop onto the same palette so engine markup and our
+     own components share one surface */
+  --main-text-color: var(--ink-1);
+  --color-text: var(--ink-2);
+  --bg-gray: rgba(255, 255, 255, 0.07);
+  --color-grey: var(--surface-2);
+  --color-light-grey: var(--surface-3);
 }

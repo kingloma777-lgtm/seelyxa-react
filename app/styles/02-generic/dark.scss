@@ -1,0 +1,117 @@
+/* ── site-wide dark theme — the generic layer ──────────────────────────────
+   The palette lives on `html.dark` (01-settings/global.scss). This layer
+   paints the page scaffold and remaps the shared utility classes the engine
+   and our markup use for light surfaces, so existing components go dark with
+   no per-component rewrite. Anything the morph header or a block styles with
+   its own `html.dark` rules later in the cascade still wins by order.
+   `!important` is deliberate and bounded: these classes are just token
+   aliases for the customer-facing night mode, not layout rules. */
+
+html.dark {
+  body {
+    background: var(--bg-page);
+    color: var(--ink-1);
+  }
+
+  /* soft block backgrounds become transparent — the page canvas carries them */
+  .s-block,
+  [class^='s-block__'] {
+    background: transparent;
+  }
+
+  /* the classic white boxes */
+  .s-product-card,
+  .s-account,
+  .s-cart,
+  .s-checkout,
+  .s-order-summary {
+    background: var(--surface-1);
+    color: var(--ink-1);
+  }
+
+  /* the engine's `s-button` icon buttons (slider arrows, wishlist hearts…)
+     paint their own white — the token alias classes never reach them */
+  s-button .s-button-element {
+    background: var(--surface-2);
+    color: var(--ink-1);
+    border-color: var(--line-1);
+  }
+
+  /* forms */
+  input:not([type='button']):not([type='submit']),
+  select,
+  textarea {
+    background-color: var(--surface-2);
+    border-color: var(--line-1);
+    color: var(--ink-1);
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--ink-3);
+  }
+
+  /* ── utility-class remap — engine markup paints with Tailwind's fixed
+     light palette; in night mode those classes are aliases of our tokens.
+     Elements belonging to components with their OWN dark rules keep
+     winning later in the cascade (morph header writes vars, not classes). */
+  .bg-white {
+    background-color: var(--surface-1) !important;
+  }
+  .bg-gray-50,
+  .bg-gray-100 {
+    background-color: var(--surface-2) !important;
+  }
+  .bg-gray-200 {
+    background-color: var(--surface-3) !important;
+  }
+  .bg-gray-300 {
+    background-color: var(--surface-3) !important;
+  }
+
+  .bg-black,
+  .bg-gray-900,
+  .bg-gray-800 {
+    /* genuinely-black art (hero stage, dark cards) stays black in both modes
+       and only gets a softer outline treatment, the ink of its surroundings
+       matches the page so it blends in instead of floating */
+    background-color: var(--surface-2) !important;
+  }
+
+  .text-black,
+  .text-gray-900,
+  .text-gray-800 {
+    color: var(--ink-1) !important;
+  }
+  .text-gray-700,
+  .text-gray-600 {
+    color: var(--ink-2) !important;
+  }
+  .text-gray-500,
+  .text-gray-400,
+  .text-gray-300 {
+    color: var(--ink-3) !important;
+  }
+  /* `text-white` is NOT remapped: genuinely dark art needs legitimately white
+     text in both directions (hero stage, dark buttons). */
+
+  .border-gray-100,
+  .border-gray-200 {
+    border-color: var(--line-1) !important;
+  }
+  .border-gray-300 {
+    border-color: var(--line-2) !important;
+  }
+
+  .shadow,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  /* selection + focus colours follow the night surface too */
+  ::selection {
+    background: color-mix(in srgb, var(--color-primary) 55%, transparent);
+    color: var(--ink-1);
+  }
+}

@@ -517,7 +517,9 @@ html.theme-transition {
 
   &::view-transition-new(root) {
     z-index: 2;
-    animation: morph-theme-reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    /* 0.9s + a curve that holds back the start: the circle sweep is meant to
+       be SEEN — the merchant asked for a perceivable reveal, not a 0.55s flash. */
+    animation: morph-theme-reveal 0.9s cubic-bezier(0.45, 0.05, 0.25, 1);
   }
 }
 
@@ -1443,30 +1445,42 @@ html.theme-transition {
 
   &__field {
     width: 44px;
+    height: 100%;
     overflow: hidden;
-    /* Collapsed, the disc shows OUR glyph only. `salla-search` keeps its own
-       magnifier inside that same 40px, so leaving it visible stacked two icons
-       on top of each other — `opacity: 0` + no pointer events until open. At
-       open the real field (and its icon) fades in and our toggle cross-fades. */
+    /* Collapsed, the 44px disc of the toggle covers our empty field, so the
+       field paints NOTHING until open — stacking two translucent glasses
+       would double the alpha and make the disc darker than its neighbours
+       (0.92→~0.99 in light, 0.15→0.28 in dark). At open the field itself
+       becomes the glass pill: it carries the chip surface and the input
+       sits inside it. */
     opacity: 0;
     pointer-events: none;
-    transition: width 0.4s var(--morph-spring), opacity 0.25s ease;
-
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 999px;
     /* the real search stays at natural width so nothing reflows as the
        container grows out of the disc */
     > * {
-      min-width: 300px;
+      min-width: 340px;
     }
-
-    .s-search-results {
-      z-index: 20;
-    }
+    transition: width 0.4s var(--morph-spring), opacity 0.25s ease,
+      background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   &.is-open &__field {
-    width: 300px;
+    width: 340px;
     opacity: 1;
     pointer-events: auto;
+    color: var(--morph-chip-ink);
+    background: var(--morph-chip-bg);
+    border-color: var(--morph-chip-line);
+    box-shadow: var(--morph-chip-shadow);
+    backdrop-filter: blur(12px) saturate(1.8);
+    -webkit-backdrop-filter: blur(12px) saturate(1.8);
 
     @media (max-width: 560px) {
       width: 170px;
@@ -1474,10 +1488,186 @@ html.theme-transition {
   }
 
   &.is-open &__field > * {
-    min-width: 300px;
+    min-width: 340px;
 
     @media (max-width: 560px) {
       min-width: 170px;
+    }
+  }
+
+  &__input {
+    height: 100%;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--morph-chip-ink);
+    font-size: 14px;
+    font-weight: 500;
+    /* clears the toggle disc pinned to the field's inline-start edge */
+    padding-inline-start: 54px;
+    padding-inline-end: 16px;
+    outline: none;
+    font-family: inherit;
+
+    &::placeholder {
+      color: color-mix(in srgb, var(--morph-chip-glyph) 75%, transparent);
+    }
+
+    /* the pill's own disc-button is the cancel affordance; the native ✕
+       would sit on top of it */
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-decoration {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+  }
+
+  /* ── live results: a sibling panel of the (clipped) field ── */
+  &__panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    inset-inline-start: 0;
+    width: 100%;
+    min-width: 320px;
+    max-height: 380px;
+    overflow: auto;
+    z-index: 70;
+    padding: 8px;
+    border-radius: 20px;
+    /* an OPAQUE surface: this panel is text-heavy and floats over the page,
+       the chips' translucent glass would fight the content underneath */
+    background: #ffffff;
+    color: var(--morph-fg);
+    border: 1px solid rgba(20, 20, 30, 0.08);
+    box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.12);
+    animation: morphFade 0.22s ease;
+
+    html.dark & {
+      background: #16181d;
+      color: #f2f3f5;
+      border-color: rgba(255, 255, 255, 0.09);
+      box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  &__note {
+    margin: 0;
+    padding: 20px 14px;
+    text-align: center;
+    font-size: 13px;
+    color: color-mix(in srgb, var(--morph-fg) 55%, transparent);
+  }
+
+  &__list {
+    @apply m-0 p-0;
+    list-style: none;
+    display: grid;
+    gap: 2px;
+  }
+
+  &__result {
+    @apply flex items-center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 14px;
+    color: var(--morph-fg);
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: color-mix(in srgb, currentColor 7%, transparent);
+    }
+  }
+
+  &__thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    /* placeholder tint while a product ships without an image */
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+
+  &__result-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  &__result-price {
+    flex: none;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: color-mix(in srgb, var(--morph-fg) 70%, transparent);
+
+    i[class^='sicon'] {
+      font-size: 0.92em;
+    }
+  }
+
+  &__all {
+    @apply flex items-center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 4px;
+    padding: 9px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--morph-fg) 7%, transparent);
+    color: var(--morph-fg);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: color-mix(in srgb, var(--morph-fg) 13%, transparent);
+    }
+  }
+
+  /* ── idle state: the features the stock header search had — a hint while
+     the term is too short and the recent searches as one-tap chips ── */
+  &__recent {
+    padding: 4px 10px 2px;
+  }
+
+  &__recent-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: color-mix(in srgb, var(--morph-fg) 55%, transparent);
+  }
+
+  &__recent-list {
+    @apply flex flex-wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  &__recent-item {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(20, 20, 30, 0.1);
+    background: color-mix(in srgb, var(--morph-fg) 5%, transparent);
+    color: var(--morph-fg);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: color-mix(in srgb, var(--morph-fg) 12%, transparent);
+    }
+
+    html.dark & {
+      border-color: rgba(255, 255, 255, 0.12);
     }
   }
 
@@ -1968,22 +2158,13 @@ html.dark .morph-header {
   }
 }
 
-/* THIS port has no dark body palette (the engine sheet here ships light values
-   only), so `html.dark` flips the HEADER and nothing else. An idle pill is
-   `background-color: transparent` by design — light ink over the light
-   storefront body then vanished invisibly the moment a visitor toggled dark by
-   hand (measured live: nav links rgb(232…) on a white page). Until the body
-   palette is ported too, the dark glass is the header's own surface: it paints
-   ALWAYS, not only when `.is-scrolled`, so the light ink always sits on the
-   dark glass it was designed against. */
-html.dark .morph-header:not(.is-scrolled) .morph-pill {
-  background-color: var(--morph-glass);
-  border-radius: 999px;
-  max-width: 880px;
-  box-shadow: 0 14px 44px rgba(20, 20, 19, 0.14);
-  backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.6);
-  -webkit-backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.6);
-}
+/* The whole site is dark now (02-generic/dark.scss ports the body palette via
+   the theme tokens), so the idle pill goes back to the SAME contract it has in
+   light: transparent at the top, glass only once `.is-scrolled` flips it. The
+   old "always glass + max-width 880px" bandage — added only because a dark
+   transparent header was invisible on the still-light page — made the header
+   look like it SHRANK whenever the toggle was hit at the top; it is obsolete
+   and removed. Ink still reads against the dark canvas. */
 
 /* hover tints were dark ink — invert to a light wash */
 html.dark .morph-burger:hover,
