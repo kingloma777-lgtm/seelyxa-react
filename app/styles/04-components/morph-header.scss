@@ -384,6 +384,15 @@ button.morph-search__toggle svg {
     line-height: 14px;
   }
 
+  /* the globe leads the trigger (merchant order: globe → العربية → riyal);
+     16px keeps it a notch above the 14px text without becoming an
+     icon-only chip. span+class beats the later-landing `.morph-ico > svg`
+     em sizing (0,1,1) tie. */
+  span.morph-loco-btn__globe svg {
+    width: 16px;
+    height: 16px;
+  }
+
   &__separator {
     display: none;
   }

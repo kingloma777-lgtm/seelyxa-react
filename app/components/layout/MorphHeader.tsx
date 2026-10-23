@@ -1069,11 +1069,11 @@ export function MorphHeader() {
           <div className="morph-pill__actions" data-testid="morph-header-actions">
             {/* Language/currency trigger, modelled on the platform's own
                 `<a class="s-localization-modal-trigger-btn">` markup the
-                merchant pointed at: the language NAME + a separator + the
-                currency glyph. The name comes from the live locale, the
-                glyph from the store currency (the Salla font has a drawn
-                riyal for SAR; every other code shows as text — honest and
-                never a blank slot). */}
+                merchant pointed at, in the order he fixed later: the GLOBE
+                first, then the language NAME, then the currency glyph. The
+                name comes from the live locale, the glyph from the store
+                currency (the Salla font has a drawn riyal for SAR; every
+                other code shows as text — honest and never a blank slot). */}
             <button
               type="button"
               className="morph-loco-btn morph-localization-btn"
@@ -1081,6 +1081,7 @@ export function MorphHeader() {
               aria-label={labels.language}
               data-testid="morph-localization-btn"
             >
+              <MorphIco setting={undefined} legacy="globe" className="morph-loco-btn__globe" />
               <span className="morph-loco-btn__lang">{locale === 'en' ? 'English' : 'العربية'}</span>
               <span className="morph-loco-btn__separator" aria-hidden="true" />
               <span className="morph-loco-btn__currency">

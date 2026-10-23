@@ -12,3 +12,6 @@ tsconfig.tsbuildinfo
 app/routeTree.gen.ts
 
 twilight.preview.json
+
+# preview captures from the design-implementation loop (never commit these)
+twilight-preview-assets/
