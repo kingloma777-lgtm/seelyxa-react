@@ -186,18 +186,29 @@
   /* the cart's own count badge: the platform ships it, and wherever the base
      stylesheet drops it, this pins it to the design position — ABOVE the
      icon's outer edge (RTL: right, LTR: left), never below it. Relative host
-     because the badge is absolutely positioned against it. */
+     because the badge is absolutely positioned against it. Measured live:
+     the engine's own sheet ships `.s-cart-summary-count` with
+     `top: auto !important; bottom: -0.375rem; left: 50%; translate -50%`
+     (its "under the icon, centered" variant), which beat this block's plain
+     declarations — the badge rendered at computed top:28px, i.e. BELOW the
+     bag (rect 59..77 vs icon center y≈44). Same-source !important is the
+     only deterministic counter there, with `auto` on the mirrored side so
+     the horizontal is never over-constrained. */
   salla-cart-summary {
     position: relative;
 
     .s-cart-summary-count {
-      position: absolute;
-      top: -2px;
+      position: absolute !important;
+      top: -2px !important;
+      bottom: auto !important;
+      transform: none !important;
       [dir='ltr'] & {
-        left: -6px;
+        left: -6px !important;
+        right: auto !important;
       }
       [dir='rtl'] & {
-        right: -6px;
+        right: -6px !important;
+        left: auto !important;
       }
       height: 18px;
       min-width: 18px;
@@ -1650,6 +1661,23 @@ html.dark .morph-header {
   html.dark[data-morph-lift='1'] .morph-header:not(.is-scrolled) {
     --morph-fg: #ffffff !important;
   }
+}
+
+/* THIS port has no dark body palette (the engine sheet here ships light values
+   only), so `html.dark` flips the HEADER and nothing else. An idle pill is
+   `background-color: transparent` by design — light ink over the light
+   storefront body then vanished invisibly the moment a visitor toggled dark by
+   hand (measured live: nav links rgb(232…) on a white page). Until the body
+   palette is ported too, the dark glass is the header's own surface: it paints
+   ALWAYS, not only when `.is-scrolled`, so the light ink always sits on the
+   dark glass it was designed against. */
+html.dark .morph-header:not(.is-scrolled) .morph-pill {
+  background-color: var(--morph-glass);
+  border-radius: 999px;
+  max-width: 880px;
+  box-shadow: 0 14px 44px rgba(20, 20, 19, 0.14);
+  backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.6);
 }
 
 /* hover tints were dark ink — invert to a light wash */
