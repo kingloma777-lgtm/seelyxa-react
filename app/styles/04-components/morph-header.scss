@@ -191,15 +191,13 @@
     flex: none;
   }
 
-  /* the chip recipe, taken verbatim from the spec's glass buttons: a
-     translucent surface, a hairline, real blur+saturate and the two-layer
-     shadow. Light mode derives the line from the pill's own ink (white
-     hairlines vanish on the cream glass); dark mode is the spec to the
-     letter. Ink stays the pill's fg in both — an always-white ink dies on
-     the light glass, while --morph-fg already tracks it. */
+  /* the chip recipe, taken verbatim from the spec's glass buttons: the
+     translucent 15% dark surface, the 10% white hairline, real
+     blur+saturate and the two-layer shadow — all modes. Ink stays the
+     pill's palette below; only it adapts. */
   --morph-chip-ink: var(--morph-fg);
-  --morph-chip-bg: color-mix(in srgb, #14141e 5%, transparent);
-  --morph-chip-line: color-mix(in srgb, var(--morph-fg) 16%, transparent);
+  --morph-chip-bg: rgba(20, 20, 30, 0.15);
+  --morph-chip-line: rgba(255, 255, 255, 0.1);
   --morph-chip-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
 
   salla-user-menu,
@@ -321,7 +319,8 @@
   backdrop-filter: blur(12px) saturate(1.8);
   -webkit-backdrop-filter: blur(12px) saturate(1.8);
   transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s ease, transform 0.3s ease;
+    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
   &:hover {
     background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
@@ -330,16 +329,15 @@
 
 /* Platform-style glass action chips — the merchant handed over a literal
    Builder capture of the stock header-actions as the spec: 44px discs,
-   translucent dark surface, 1px hairline, blur+saturate 1.8, and the two
-   shadow layers. Values are the spec verbatim in gap (16px), geometry
-   (44px), blur and shadow; the surface/line tint adapts through the chip
-   variables the actions row declares (light mode can't take an
-   always-white hairline on cream glass). The tokens ride
-   `.morph-pill__actions`, so every rule here can stay unscoped. */
+   translucent dark surface, 1px white hairline, blur+saturate 1.8, and the
+   two shadow layers. The SURFACE is the spec verbatim in both modes — the
+   chip tints its own corner of the pill exactly like the captured buttons
+   (a dark 15% wash that reads over any backdrop); only the INK stays
+   palette-aware, because always-white ink dies on the cream glass in light
+   mode. The tokens ride `.morph-pill__actions`, so every rule here can
+   stay unscoped. */
 html.dark .morph-pill__actions {
   --morph-chip-ink: #ffffff;
-  --morph-chip-bg: rgba(20, 20, 30, 0.15);
-  --morph-chip-line: rgba(255, 255, 255, 0.1);
 }
 
 /* the action glyphs go 20px per the spec (sun draws 20×20 at stroke 1.5).
@@ -378,7 +376,8 @@ button.morph-search__toggle svg {
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s ease;
+    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
   i {
     font-size: 14px;
@@ -1410,7 +1409,8 @@ html.theme-transition {
     -webkit-backdrop-filter: blur(12px) saturate(1.8);
     border-radius: 999px;
     transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s ease;
+      border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
     &:hover {
       background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
