@@ -301,13 +301,17 @@
         display: inline !important;
       }
 
-      /* the spec draws the cart plate big (30×32 svg), and this glyph rides
-         beside a price — 20px matches the icon-only chips in the same row
-         so the family stays one size. span specificity beats the
-         later-landing `.morph-ico > svg` em rule (tie at 0,1,1). */
-      span.morph-ico--slot svg {
-        width: 20px;
-        height: 20px;
+      /* THE cart icon: the engine's own drawn plate — the slot-fb
+         `<i class="s-cart-summary-icon">` svg (the IcoMoon cart, wheels and
+         all, 30×32 like the spec capture). With no slotted content the
+         runtime shows this fallback instead of hiding it. Sized literally
+         (the engine's own rule wants 1.25rem) and painted with the chip's
+         ink so it survives both modes — the engine's `fill:
+         var(--color-text)` is page-inherited, not chip-aware. */
+      .s-cart-summary-icon svg {
+        width: 30px;
+        height: 32px;
+        fill: var(--morph-chip-ink);
       }
     }
   }

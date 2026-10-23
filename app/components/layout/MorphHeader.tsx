@@ -331,7 +331,6 @@ export function MorphHeader() {
     menu: s.header_icon_menu,
     search: s.header_icon_search,
     account: s.header_icon_account,
-    cart: s.header_icon_cart,
     close: s.header_icon_close,
   };
 
@@ -1203,13 +1202,11 @@ export function MorphHeader() {
             </div>
 
             <SallaCartSummary data-testid="morph-cart-summary" suppressHydrationWarning>
-              <span slot="icon" className="morph-ico header-btn__icon icon" data-testid="morph-cart-icon">
-                <MorphIco
-                  setting={icons.cart}
-                  legacy="bag"
-                  className="morph-ico--slot"
-                />
-              </span>
+              {/* no `slot="icon"` children: the engine's own drawn cart plate
+                  (the slot-fb `<i class="s-cart-summary-icon">` svg, 30×32)
+                  is the icon the merchant picked — with slotted content the
+                  runtime hides the fallback, so the slot stays empty and the
+                  platform glyph shows. */}
             </SallaCartSummary>
           </div>
         </div>

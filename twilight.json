@@ -367,48 +367,6 @@
       ]
     },
     {
-      "id": "header_icon_cart",
-      "key": "af946b8c-0c7f-464e-8f0e-f0aedff82ac3",
-      "type": "items",
-      "format": "dropdown-list",
-      "label": "أيقونة سلة المشتريات",
-      "description": "أيقونة سلة المشتريات في الهيدر",
-      "icon": "sicon-shopping-bag",
-      "required": false,
-      "selected": [
-        {
-          "label": "التصميم — حقيبة",
-          "value": "bag",
-          "key": "d021b798-9105-4f28-851d-3cae1bde1e8f"
-        }
-      ],
-      "options": [
-        {
-          "label": "التصميم — حقيبة",
-          "value": "bag",
-          "key": "d021b798-9105-4f28-851d-3cae1bde1e8f"
-        },
-        {
-          "label": "Salla — حقيبة تسوق",
-          "value": "sicon-shopping-bag",
-          "key": "77ad56f2-c99a-406a-b48f-88f9b24dfda6"
-        },
-        {
-          "label": "Salla — عربة",
-          "value": "sicon-luggage-cart",
-          "key": "d06d9a35-f1b1-421a-aae2-1f9e117dbabe"
-        }
-      ],
-      "source": "Manual",
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
-    },
-    {
       "id": "header_icon_close",
       "key": "583fe25d-3150-49f7-9ad8-8e6859a3d7ee",
       "type": "items",
