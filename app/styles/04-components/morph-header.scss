@@ -207,34 +207,28 @@
 
   /* the cart's own count badge: the platform ships it, and wherever the base
      stylesheet drops it, this pins it to the design position — ABOVE the
-     icon's outer edge (RTL: right, LTR: left), never below it. Relative host
-     because the badge is absolutely positioned against it. Measured live:
-     the engine's own sheet ships `.s-cart-summary-count` with
-     `top: auto !important; bottom: -0.375rem; left: 50%; translate -50%`
-     (its "under the icon, centered" variant), which beat this block's plain
-     declarations — the badge rendered at computed top:28px, i.e. BELOW the
-     bag (rect 59..77 vs icon center y≈44). Same-source !important is the
-     only deterministic counter there, with `auto` on the mirrored side so
-     the horizontal is never over-constrained. Spec: a #dc2626 dot with a
-     2px glass ring riding -5px off the disc's edge. */
+     chip (never below it) and hugging the chip's PHYSICAL LEFT corner
+     (merchant: "اليبل من الشمال"), mirroring the spec's `left: -5px` in its
+     own RTL capture. Measured live: the engine's own sheet ships
+     `.s-cart-summary-count` with `top: auto !important; bottom: -0.375rem;
+     left: 50%; translate -50%` (its "under the icon, centered" variant),
+     which beat this block's plain declarations — the badge rendered at
+     computed top:28px, i.e. BELOW the bag (rect 59..77 vs icon center
+     y≈44). Same-source !important is the only deterministic counter
+     there, with `auto` on the mirrored side so the horizontal is never
+     over-constrained. The chip itself (the wrapper LINK) is the
+     `position: relative` anchor (see the `.s-cart-summary-wrapper` block). */
   salla-cart-summary {
-    position: relative;
-
     .s-cart-summary-count {
       position: absolute !important;
       top: -5px !important;
       bottom: auto !important;
+      left: -5px !important;
+      right: auto !important;
       transform: none !important;
-      [dir='ltr'] & {
-        left: -5px !important;
-        right: auto !important;
-      }
-      [dir='rtl'] & {
-        right: -5px !important;
-        left: auto !important;
-      }
+      z-index: 10;
+      min-width: 20px;
       height: 17px;
-      min-width: 17px;
       padding: 0 4px;
       border: 2px solid rgba(20, 20, 30, 0.38);
       border-radius: 999px;
@@ -261,17 +255,18 @@
       }
     }
 
-    /* the cart chip: per the spec the glass surface rides the wrapper LINK
-       (the host stays bare), and it carries the SAME anatomy the language
-       trigger ships — 44 tall, 112px min-width, 8/15px paddings, 9px gap,
-       tabular numerals at weight 650, the five-property 0.3s glass
-       transition with the same spring. */
+    /* the cart chip: the spec paints the glass on the wrapper LINK — the
+       anchor is `position: relative` so the badge anchors to THIS chip and
+       not the host. Sized by its content (spec: 84.86px natural) over a
+       44px min width, 16px side paddings, and an 8px gap so the running
+       total breathes between icon and price. */
     .s-cart-summary-wrapper {
       @apply flex items-center justify-center;
-      gap: 9px;
+      position: relative;
+      gap: 8px;
       height: 44px;
-      min-width: 112px;
-      padding: 8px 15px;
+      min-width: 44px;
+      padding: 0 16px;
       border-radius: 999px;
       color: var(--morph-chip-ink);
       background: var(--morph-chip-bg);
@@ -288,6 +283,31 @@
 
       &:hover {
         background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
+      }
+
+      /* the count line: the spec lays icon and price on one flex row with
+         a 4px split (the engine default <p> is a block), and the price
+         itself is part of the spec's chip — the engine's own sheet ships
+         `.s-cart-summary-total { display: none }` (its pill is icon+badge
+         only), so this block is the reveal. The badge is pinned by the
+         outer `salla-cart-summary` block above. */
+      .s-cart-summary-content {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .s-cart-summary-total {
+        display: inline !important;
+      }
+
+      /* the spec draws the cart plate big (30×32 svg), and this glyph rides
+         beside a price — 20px matches the icon-only chips in the same row
+         so the family stays one size. span specificity beats the
+         later-landing `.morph-ico > svg` em rule (tie at 0,1,1). */
+      span.morph-ico--slot svg {
+        width: 20px;
+        height: 20px;
       }
     }
   }
