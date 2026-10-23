@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouterState } from '@tanstack/react-router';
-import { Link, Image } from '@salla.sa/twilight-theme-engine/common';
+import { Link, Image, CurrencySymbol } from '@salla.sa/twilight-theme-engine/common';
 import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
 import { useTwilight, useIsHome } from '@salla.sa/twilight-theme-engine/providers';
 import { menu } from '@salla.sa/twilight-theme-engine/api/menu';
@@ -287,7 +287,6 @@ interface MorphSettings {
   header_icon_menu?: unknown;
   header_icon_search?: unknown;
   header_icon_account?: unknown;
-  header_icon_localization?: unknown;
   header_icon_cart?: unknown;
   header_icon_close?: unknown;
   /* the curtain mega menu's merchant slots (the theme's only collection) */
@@ -300,8 +299,8 @@ interface MorphSettings {
  * engine layouts untouched.
  */
 export function MorphHeader() {
-  const { store, theme } = useTwilight();
-  const { t } = useTranslation();
+  const { store, theme, currency } = useTwilight();
+  const { t, locale } = useTranslation();
   const isHomePage = useIsHome();
   const hydrated = useHydrated();
   const isProductPage = useRouterState({
@@ -332,7 +331,6 @@ export function MorphHeader() {
     menu: s.header_icon_menu,
     search: s.header_icon_search,
     account: s.header_icon_account,
-    localization: s.header_icon_localization,
     cart: s.header_icon_cart,
     close: s.header_icon_close,
   };
@@ -1069,14 +1067,25 @@ export function MorphHeader() {
 
           {/* actions */}
           <div className="morph-pill__actions" data-testid="morph-header-actions">
+            {/* Language/currency trigger, modelled on the platform's own
+                `<a class="s-localization-modal-trigger-btn">` markup the
+                merchant pointed at: the language NAME + a separator + the
+                currency glyph. The name comes from the live locale, the
+                glyph from the store currency (the Salla font has a drawn
+                riyal for SAR; every other code shows as text — honest and
+                never a blank slot). */}
             <button
               type="button"
-              className="morph-icon-btn morph-localization-btn"
+              className="morph-loco-btn morph-localization-btn"
               onClick={() => openStoreSwitcher('language')}
               aria-label={labels.language}
               data-testid="morph-localization-btn"
             >
-              <MorphIco setting={icons.localization} legacy="languages" />
+              <span className="morph-loco-btn__lang">{locale === 'en' ? 'English' : 'العربية'}</span>
+              <span className="morph-loco-btn__separator" aria-hidden="true" />
+              <span className="morph-loco-btn__currency">
+                <CurrencySymbol currency={currency?.code || 'SAR'} />
+              </span>
             </button>
 
             {/* the bullet-delivery tag rides the actions row on ultra-wide

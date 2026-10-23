@@ -330,48 +330,6 @@
       ]
     },
     {
-      "id": "header_icon_localization",
-      "key": "4601db3e-20f5-41ec-a594-ee7ec86c7f5e",
-      "type": "items",
-      "format": "dropdown-list",
-      "label": "أيقونة اللغة والعملة",
-      "description": "أيقونة زر اللغة والعملة في الهيدر، اللي بيفتح نافذة تغيير اللغة أو العملة",
-      "icon": "sicon-location",
-      "required": false,
-      "selected": [
-        {
-          "label": "التصميم — لغة",
-          "value": "languages",
-          "key": "bd04241d-cf38-4386-bd0a-24410f33484f"
-        }
-      ],
-      "options": [
-        {
-          "label": "التصميم — لغة",
-          "value": "languages",
-          "key": "bd04241d-cf38-4386-bd0a-24410f33484f"
-        },
-        {
-          "label": "التصميم — كرة أرض",
-          "value": "globe",
-          "key": "a2cfb493-4660-4af6-8039-092be3a9b0e7"
-        },
-        {
-          "label": "Salla — موقع",
-          "value": "sicon-location",
-          "key": "2b5d73a8-19d5-4bcc-9605-ec3ae9a80092"
-        }
-      ],
-      "source": "Manual",
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
-    },
-    {
       "id": "header_icon_search",
       "key": "1e943c67-cf9d-4e60-8d7d-26298fb8b3e8",
       "type": "items",

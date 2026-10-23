@@ -175,8 +175,32 @@
 
 .morph-pill__actions {
   @apply flex items-center;
-  gap: 4px;
+  /* the merchant spec (Builder capture of the stock header-actions) spaces
+     the chips 16px apart — the 4px the pill used to keep belonged to bare
+     glyph rows, not to bordered discs. */
+  gap: 16px;
   flex-shrink: 0;
+  /* The row never donates its own width, and no chip inside it may flex
+     away its border: near the 1024px nav threshold the row's automatic
+     min-size sits below the chips' sum and the flex algorithm was crushing
+     the toggle discs to ~18px. The nav (with its own "more" overflow) is the
+     pressure valve — the icons stay whole. */
+  min-width: max-content;
+
+  > * {
+    flex: none;
+  }
+
+  /* the chip recipe, taken verbatim from the spec's glass buttons: a
+     translucent surface, a hairline, real blur+saturate and the two-layer
+     shadow. Light mode derives the line from the pill's own ink (white
+     hairlines vanish on the cream glass); dark mode is the spec to the
+     letter. Ink stays the pill's fg in both — an always-white ink dies on
+     the light glass, while --morph-fg already tracks it. */
+  --morph-chip-ink: var(--morph-fg);
+  --morph-chip-bg: color-mix(in srgb, #14141e 5%, transparent);
+  --morph-chip-line: color-mix(in srgb, var(--morph-fg) 16%, transparent);
+  --morph-chip-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
 
   salla-user-menu,
   salla-cart-summary {
@@ -193,34 +217,74 @@
      declarations — the badge rendered at computed top:28px, i.e. BELOW the
      bag (rect 59..77 vs icon center y≈44). Same-source !important is the
      only deterministic counter there, with `auto` on the mirrored side so
-     the horizontal is never over-constrained. */
+     the horizontal is never over-constrained. Spec: a #dc2626 dot with a
+     2px glass ring riding -5px off the disc's edge. */
   salla-cart-summary {
     position: relative;
 
     .s-cart-summary-count {
       position: absolute !important;
-      top: -2px !important;
+      top: -5px !important;
       bottom: auto !important;
       transform: none !important;
       [dir='ltr'] & {
-        left: -6px !important;
+        left: -5px !important;
         right: auto !important;
       }
       [dir='rtl'] & {
-        right: -6px !important;
+        right: -5px !important;
         left: auto !important;
       }
-      height: 18px;
-      min-width: 18px;
-      padding: 0 5px;
+      height: 17px;
+      min-width: 17px;
+      padding: 0 4px;
+      border: 2px solid rgba(20, 20, 30, 0.38);
       border-radius: 999px;
-      background: #991b1b;
+      background: #dc2626;
       text-align: center;
       vertical-align: middle;
-      line-height: 18px;
-      font-size: 11px;
+      line-height: 13px;
+      font-size: 10px;
       font-weight: 700;
+      font-variant-numeric: tabular-nums;
       color: #fff;
+    }
+
+    /* the running total beside the icon: 13px, weight 600, +0.13px
+       tracking, tabular numerals, and the drawn riyal at the same size. */
+    .s-cart-summary-total {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.13px;
+      font-variant-numeric: tabular-nums;
+
+      i[class*='sicon-'] {
+        font-size: 13px;
+      }
+    }
+
+    /* the cart chip: per the spec the glass surface rides the wrapper LINK
+       (the host stays bare), 44 tall, 16px side paddings, 8px gap between
+       icon and total. */
+    .s-cart-summary-wrapper {
+      @apply flex items-center justify-center;
+      gap: 8px;
+      height: 44px;
+      min-width: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      color: var(--morph-chip-ink);
+      background: var(--morph-chip-bg);
+      border: 1px solid var(--morph-chip-line);
+      box-shadow: var(--morph-chip-shadow);
+      backdrop-filter: blur(12px) saturate(1.8);
+      -webkit-backdrop-filter: blur(12px) saturate(1.8);
+      transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+        border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s ease;
+
+      &:hover {
+        background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
+      }
     }
   }
 
@@ -241,14 +305,82 @@
 
 .morph-icon-btn {
   @apply items-center justify-center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
-  color: var(--morph-fg);
-  transition: background-color 0.25s ease, color 0.25s ease;
+  color: var(--morph-chip-ink);
+  background: var(--morph-chip-bg);
+  border: 1px solid var(--morph-chip-line);
+  box-shadow: var(--morph-chip-shadow);
+  backdrop-filter: blur(12px) saturate(1.8);
+  -webkit-backdrop-filter: blur(12px) saturate(1.8);
+  transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s ease, transform 0.3s ease;
 
   &:hover {
-    background: rgba(20, 20, 19, 0.08);
+    background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
+  }
+}
+
+/* Platform-style glass action chips — the merchant handed over a literal
+   Builder capture of the stock header-actions as the spec: 44px discs,
+   translucent dark surface, 1px hairline, blur+saturate 1.8, and the two
+   shadow layers. Values are the spec verbatim in gap (16px), geometry
+   (44px), blur and shadow; the surface/line tint adapts through the chip
+   variables the actions row declares (light mode can't take an
+   always-white hairline on cream glass). The tokens ride
+   `.morph-pill__actions`, so every rule here can stay unscoped. */
+html.dark .morph-pill__actions {
+  --morph-chip-ink: #ffffff;
+  --morph-chip-bg: rgba(20, 20, 30, 0.15);
+  --morph-chip-line: rgba(255, 255, 255, 0.1);
+}
+
+/* the action glyphs go 20px per the spec (sun draws 20×20 at stroke 1.5).
+   span.morph-ico's own svg rule ties any bare `svg` selector and lands
+   later in the output, so these are scoped element+class on purpose. */
+button.morph-icon-btn svg,
+button.morph-search__toggle svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.5;
+}
+
+/* The language/currency trigger: the spec's glass chip anatomy — the language
+   name + the drawn riyal (`sicon-sar`), 44px tall, min-width 112, 8/15px
+   paddings on a 9px gap, 14px ink at weight 650 over tabular numerals. The
+   spec renders the "|" separator `display:none` (the gap carries the split),
+   so the span stays in the DOM but shows nothing — flipping it back on is a
+   one-line CSS change, not a markup one. */
+.morph-loco-btn {
+  @apply inline-flex items-center;
+  gap: 9px;
+  height: 44px;
+  min-width: 112px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  color: var(--morph-chip-ink);
+  background: var(--morph-chip-bg);
+  border: 1px solid var(--morph-chip-line);
+  box-shadow: var(--morph-chip-shadow);
+  backdrop-filter: blur(12px) saturate(1.8);
+  -webkit-backdrop-filter: blur(12px) saturate(1.8);
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s ease;
+
+  i {
+    font-size: 14px;
+    line-height: 14px;
+  }
+
+  &__separator {
+    display: none;
   }
 }
 
@@ -479,14 +611,18 @@ html.theme-transition {
   height: 20px;
 }
 
+/* the action glyphs: the spec draws them at 20px (search = the 20px
+   sallaicons glyph, sun 20×20 at stroke 1.5, user disc 20px ink). The
+   sourceSlot icons ride the same scale so any state that reveals them
+   matches the chips. */
 .morph-search__glyph.morph-ico > svg {
-  width: 17px;
-  height: 17px;
+  width: 20px;
+  height: 20px;
 }
 
 .morph-account-ico.morph-ico > svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
 /* kept readable by assistive tech, invisible on screen — `.morph-sr-only`
@@ -1210,12 +1346,12 @@ html.theme-transition {
   flex-shrink: 0;
   /* The collapsed field is empty (salla-search mounts post-hydration), so the
      container used to be 0px tall and the toggle's glyph sat ~9px BELOW the
-     other action icons' midline. 40px = the cart disc's height; every action
+     other action icons' midline. 44px = the chip spec's disc; every action
      then shares one line and one centre. */
-  height: 40px;
+  height: 44px;
 
   &__field {
-    width: 40px;
+    width: 44px;
     overflow: hidden;
     /* Collapsed, the disc shows OUR glyph only. `salla-search` keeps its own
        magnifier inside that same 40px, so leaving it visible stacked two icons
@@ -1259,15 +1395,23 @@ html.theme-transition {
     position: absolute;
     inset-block: 0;
     inset-inline-start: 0;
-    width: 40px;
-    color: var(--morph-fg);
-    transition: color 0.25s ease, background-color 0.25s ease;
+    width: 44px;
+    color: var(--morph-chip-ink);
+    background: var(--morph-chip-bg);
+    border: 1px solid var(--morph-chip-line);
+    box-shadow: var(--morph-chip-shadow);
+    backdrop-filter: blur(12px) saturate(1.8);
+    -webkit-backdrop-filter: blur(12px) saturate(1.8);
+    border-radius: 999px;
+    transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s ease;
 
     &:hover {
-      background: rgba(20, 20, 19, 0.07);
+      background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
       border-radius: 999px;
     }
   }
+
 
   &__glyph--close {
     display: none;
@@ -1294,9 +1438,23 @@ html.theme-transition {
    settings / logout all keep working untouched — we only change the look.
    Class names are the component's real ones. The old theme's rule 4 stands:
    the slot wrapper is a leftover the component leaves behind, so the boxed
-   36px trigger is `.s-user-menu-trigger-slot`, not `.morph-account-slot`. */
+   trigger is `.s-user-menu-trigger-slot`, not `.morph-account-slot`. Per the
+   merchant's Builder spec the HOST itself is the 44px glass disc (the stock
+   header paints `s-button` glass straight onto it), so the surface lives
+   here once and the trigger inside just fills it. */
 .morph-pill salla-user-menu {
-  @apply flex items-center;
+  @apply flex items-center justify-center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  overflow: hidden;
+  color: var(--morph-chip-ink);
+  background: var(--morph-chip-bg);
+  border: 1px solid var(--morph-chip-line);
+  box-shadow: var(--morph-chip-shadow);
+  backdrop-filter: blur(12px) saturate(1.8);
+  -webkit-backdrop-filter: blur(12px) saturate(1.8);
+  cursor: pointer;
 
   /* the slot content the component COPIES: source material, not UI */
   > .morph-account-slot {
@@ -1309,16 +1467,50 @@ html.theme-transition {
 
   .s-user-menu-trigger-slot {
     @apply flex items-center justify-center;
-    width: 36px;
-    height: 36px;
+    width: 100%;
+    height: 100%;
     border-radius: 999px;
-    color: var(--morph-fg);
+    color: inherit;
     cursor: pointer;
-    transition: background-color 0.25s ease;
+    transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .s-user-menu-trigger-slot:hover {
-    background: rgba(20, 20, 19, 0.08);
+    background: color-mix(in srgb, var(--morph-fg) 10%, transparent);
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 1.5;
+  }
+
+  /* upgrade shield — the component hides its own login-slot fallback
+     (`slot-fb[hidden]`) the moment it "takes over", but in the dev shim it
+     then renders NOTHING of its own and the disc stays a blank 44px dot.
+     When its own trigger exists (Portal, normally) this block is inert;
+     when it does NOT, the fallback login button comes back and fills the
+     disc, exactly like the stock header drives it. */
+  &:not(:has(.s-user-menu-trigger-slot)) {
+    slot-fb {
+      display: contents !important;
+    }
+
+    .s-user-menu-login-btn {
+      @apply flex items-center justify-center;
+      width: 100%;
+      height: 100%;
+      color: inherit;
+      cursor: pointer;
+
+      svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+        clip-path: none;
+        position: static;
+      }
+    }
   }
 
   .s-user-menu-wrapper {

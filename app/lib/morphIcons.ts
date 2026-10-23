@@ -40,10 +40,6 @@ export const MORPH_ICONS: Record<string, MorphGlyph> = {
     19
   ),
   x: svgGlyph('<line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line>', 17),
-  languages: svgGlyph(
-    '<path d="M2 5h10"></path><path d="M7 3v2"></path><path d="M4 5c0 4.5 2.8 8.5 6.5 9.5"></path><path d="M9.5 5c0 3-1.2 5.6-3 7.3"></path><path d="M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z"></path>',
-    17
-  ),
   globe: svgGlyph(
     '<circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"></path>',
     17
