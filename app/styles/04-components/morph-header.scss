@@ -191,17 +191,18 @@
     flex: none;
   }
 
-  /* the chip recipe, taken verbatim from the spec's glass buttons: the
-     10% white hairline, real blur+saturate and the two-layer shadow. The
-     ink is WHITE in BOTH modes — white-on-dark-glass is the capture's own
-     look, and a dark glyph on the washed 15% glass read "gray icons on a
-     white pill" at the top of the light page (the merchant flagged it).
-     So in LIGHT mode the wash deepens just enough that the dark glass
-     still reads over the white header bar; in dark mode the surface
-     stays captured at 15% (the bar itself is dark). */
-  --morph-chip-ink: #ffffff;
-  --morph-chip-bg: rgba(20, 20, 30, 0.65);
-  --morph-chip-line: rgba(255, 255, 255, 0.1);
+  /* the chip recipe: a WHITE glass pill (the capture renders the 15% dark
+     wash over a light backdrop — over this theme's white header bar the
+     merchant wants it read plainly white) with GRAY glyphs — #7c8082, the
+     exact icon colour the capture's own cart svg ships inline. The TEXT
+     ink keeps the palette's dark; only the icons go gray. Hover speaks on
+     the icon alone: glyph colour shifts to the palette ink. In dark mode
+     the surface and hairline stay captured (the bar itself is dark) and
+     the glyph turns white. */
+  --morph-chip-ink: var(--morph-fg);
+  --morph-chip-glyph: #7c8082;
+  --morph-chip-bg: rgba(255, 255, 255, 0.92);
+  --morph-chip-line: rgba(20, 20, 30, 0.08);
   --morph-chip-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
 
   salla-user-menu,
@@ -241,7 +242,9 @@
          line-height inside the 17px border-box — flex centring does the
          real work, the values keep it literal. */
       padding: 4px;
-      border: 2px solid rgba(20, 20, 30, 0.38);
+      /* the ring: red, one STEP-DARKER shade than the #dc2626 fill — the
+         merchant asked for a different red degree on the ring */
+      border: 2px solid #b91c1c;
       border-radius: 999px;
       background: #dc2626;
       text-align: center;
@@ -292,10 +295,6 @@
         border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
         box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
-      &:hover {
-        background: color-mix(in srgb, var(--morph-chip-ink) 10%, transparent);
-      }
-
       /* the count line: the spec lays icon and price on one flex row with
          a 4px split (the engine default <p> is a block), and the price
          itself is part of the spec's chip — the engine's own sheet ships
@@ -317,12 +316,17 @@
          all, 30×32 like the spec capture). With no slotted content the
          runtime shows this fallback instead of hiding it. Sized literally
          (the engine's own rule wants 1.25rem) and painted with the chip's
-         ink so it survives both modes — the engine's `fill:
-         var(--color-text)` is page-inherited, not chip-aware. */
+         glyph grey — #7c8082, the colour the capture's own svg ships —
+         hover darkens it to the palette ink. */
       .s-cart-summary-icon svg {
         width: 30px;
         height: 32px;
-        fill: var(--morph-chip-ink);
+        fill: var(--morph-chip-glyph);
+        transition: fill 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      &:hover .s-cart-summary-icon svg {
+        fill: var(--morph-fg);
       }
     }
   }
@@ -350,7 +354,8 @@
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  color: var(--morph-chip-ink);
+  /* icon-only chip: the glyph grey carries it; hover darkens the icon */
+  color: var(--morph-chip-glyph);
   background: var(--morph-chip-bg);
   border: 1px solid var(--morph-chip-line);
   box-shadow: var(--morph-chip-shadow);
@@ -361,7 +366,9 @@
     box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
   &:hover {
-    background: color-mix(in srgb, var(--morph-chip-ink) 10%, transparent);
+    /* the hover marks itself on the ICON, not the surface ("الهوفر يغير
+       لون الايقونات") — the dark html.dark rule keeps a bg veil there */
+    color: var(--morph-fg);
   }
 }
 
@@ -375,8 +382,12 @@
    mode. The tokens ride `.morph-pill__actions`, so every rule here can
    stay unscoped. */
 html.dark .morph-pill__actions {
-  /* over the dark bar 15% lands exactly as the capture shows it */
+  /* over the dark bar the captured wash lands exactly as the capture
+     shows it, and both inks go white */
+  --morph-chip-ink: #ffffff;
+  --morph-chip-glyph: #ffffff;
   --morph-chip-bg: rgba(20, 20, 30, 0.15);
+  --morph-chip-line: rgba(255, 255, 255, 0.1);
 }
 
 /* the action glyphs ride 22px — the icon-to-target ratio the guides agree
@@ -405,6 +416,8 @@ button.morph-search__toggle svg {
   min-width: 112px;
   padding: 8px 15px;
   border-radius: 999px;
+  /* the TEXT ink stays the palette's own; only the glyphs go gray, and
+     hover speaks on the icons alone */
   color: var(--morph-chip-ink);
   background: var(--morph-chip-bg);
   border: 1px solid var(--morph-chip-line);
@@ -424,6 +437,8 @@ button.morph-search__toggle svg {
   i {
     font-size: 14px;
     line-height: 14px;
+    color: var(--morph-chip-glyph);
+    transition: color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   /* the globe leads the trigger (merchant order: globe → العربية → riyal);
@@ -436,12 +451,23 @@ button.morph-search__toggle svg {
     height: 18px;
   }
 
+  span.morph-loco-btn__globe {
+    color: var(--morph-chip-glyph);
+  }
+
   /* the riyal's inline line-box rode 1px high of the chip's centre (font
      ascent against a 14px line) — a flex wrapper centres it geometrically
      like every other glyph in the row. */
   span.morph-loco-btn__currency {
     display: flex;
     align-items: center;
+  }
+
+  /* hover marks itself on the ICONS alone — the language name keeps its
+     ink ("الهوفر يغير لون الايقونات") */
+  &:hover span.morph-loco-btn__globe,
+  &:hover i {
+    color: var(--morph-fg);
   }
 
   &__separator {
@@ -1461,7 +1487,8 @@ html.theme-transition {
     inset-block: 0;
     inset-inline-start: 0;
     width: 44px;
-    color: var(--morph-chip-ink);
+    /* icon-only disc: glyph grey, hover darkens the icon */
+    color: var(--morph-chip-glyph);
     background: var(--morph-chip-bg);
     border: 1px solid var(--morph-chip-line);
     box-shadow: var(--morph-chip-shadow);
@@ -1473,7 +1500,9 @@ html.theme-transition {
       box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
     &:hover {
-      background: color-mix(in srgb, var(--morph-chip-ink) 10%, transparent);
+      /* the hover marks itself on the ICON, the surface stays put; the
+         dark html.dark rule keeps a bg veil there */
+      color: var(--morph-fg);
       border-radius: 999px;
     }
   }
@@ -1514,12 +1543,15 @@ html.theme-transition {
   height: 44px;
   border-radius: 999px;
   overflow: hidden;
-  color: var(--morph-chip-ink);
+  /* icon-only disc: glyph grey, hover darkens the icon; the trigger and
+     the fallback inherit it */
+  color: var(--morph-chip-glyph);
   background: var(--morph-chip-bg);
   border: 1px solid var(--morph-chip-line);
   box-shadow: var(--morph-chip-shadow);
   backdrop-filter: blur(12px) saturate(1.8);
   -webkit-backdrop-filter: blur(12px) saturate(1.8);
+  transition: color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   cursor: pointer;
 
   /* the slot content the component COPIES: source material, not UI */
@@ -1538,11 +1570,13 @@ html.theme-transition {
     border-radius: 999px;
     color: inherit;
     cursor: pointer;
-    transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .s-user-menu-trigger-slot:hover {
-    background: color-mix(in srgb, var(--morph-chip-ink) 10%, transparent);
+    /* hover marks itself on the ICON; the dark html.dark rule overlays a
+       bg veil on top */
+    color: var(--morph-fg);
   }
 
   svg {
@@ -1574,7 +1608,13 @@ html.theme-transition {
       flex: none;
       border: 0 !important;
       color: inherit;
+      transition: color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
       cursor: pointer;
+
+      /* hover marks itself on the ICON like every other chip */
+      &:hover {
+        color: var(--morph-fg);
+      }
 
       svg {
         width: 22px;
