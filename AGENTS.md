@@ -105,6 +105,18 @@ took the MorphPill header down — never repeat them:
 - `enabled: false` drops the override entirely and exposes the store's real settings —
   which on a dev store may not have `header_layout = morph` saved at all.
 
+**Never hammer-move the dev dev-server off them — one reload per change.** Every page
+load makes the engine fetch `api.salla.dev/store/v1/store/settings`. Pin that request
+often enough (rapid reload loops during diagnostics) and Cloudflare answers
+**429 Too Many Requests with a challenge page** (`cf-mitigated: challenge`) for the
+whole machine IP — every SSR render then fails with a **500** (the settings fetch
+throws), the client logs *"Could not hydrate twilight context"* + a hydration
+mismatch, and the page looks randomly broken: popups dead, mega menu half-rendered,
+cart page off. None of that is a code regression; it is the rate limit. The fix is
+one: **stop reloading and let the cooldown pass** (minutes, IP-wide, survives a dev
+server restart). Verify with a single `fetch` of the page (status 200, `morph-header`
+in the HTML) before opening it again.
+
 Reproducible restore payload: all `value`/`selected` fields from `twilight.json`
 (`header_layout` forced to the scalar string `'morph'`, no `curtain_slots` — that
 collection keeps passing through to the store's real value), `layout: null` to render
