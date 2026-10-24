@@ -4,6 +4,7 @@ import type { MenuItem } from '@salla.sa/twilight-theme-engine/types';
 import { Link } from '@salla.sa/twilight-theme-engine/common';
 import { product, type ProductsListSource } from '@salla.sa/twilight-theme-engine/api/product';
 import { ProductCard } from '../product/ProductCard';
+import { MorphMenuCard, type MenuCardProduct } from '../product/MorphMenuCard';
 import { SallaProductsList, ProductsListSkeleton } from '@salla.sa/twilight-components-react';
 import type { CurtainSlot } from '../../lib/curtainSlots';
 import { menuProductIds } from '../../lib/menuProducts';
@@ -283,12 +284,14 @@ function FeaturedRow({
         <Suspense fallback={<ProductsListSkeleton />}>
           <SallaProductsList loader={loader} itemsClassName="morph-featured__list">
             {(items: unknown[]) =>
-              items.slice(0, 4).map((item) => (
-                <ProductCard
-                  key={String((item as { id: unknown }).id)}
-                  product={item as never}
-                />
-              ))
+              items
+                .slice(0, 4)
+                .map((item) => (
+                  <MorphMenuCard
+                    key={String((item as { id: unknown }).id)}
+                    product={item as MenuCardProduct}
+                  />
+                ))
             }
           </SallaProductsList>
         </Suspense>

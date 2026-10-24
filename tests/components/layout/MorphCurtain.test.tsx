@@ -38,6 +38,15 @@ vi.mock('../../../app/components/product/ProductCard', () => ({
   ),
 }));
 
+/* the menu card is a black box here too: same testdataid as the slot card, so
+   the featured-row assertions keep reading "four cards in the list" no matter
+   which card component paints them */
+vi.mock('../../../app/components/product/MorphMenuCard', () => ({
+  MorphMenuCard: ({ product }: { product: Record<string, unknown> }) => (
+    <div data-testid="curtain-card">{String(product.id)}</div>
+  ),
+}));
+
 vi.mock('@salla.sa/twilight-theme-engine/api/product', () => ({
   product: { list: vi.fn(() => Promise.resolve({ data: [] })) },
 }));

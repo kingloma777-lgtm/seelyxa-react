@@ -818,10 +818,7 @@ html.theme-transition {
 
   @media (min-width: 768px) {
     /* TWO tracks, and the count is a contract. The SPLIT is the merchant's:
-       **two thirds to the subcategories, one third to the rest.** The discs are
-       a 54px circle in an 84px minimum cell — they need room to breathe —
-       while the slot is a single card that can never use more than it has
-       (rule 13). */
+       **two thirds to the subcategories, one third to the rest.** */
     grid-template-columns: 2fr 1fr;
     gap: 22px;
   }
@@ -877,8 +874,8 @@ html.theme-transition {
 
   &__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-    gap: 14px 8px;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
   }
 
   /* Vertical centring, and the SLOT LAYER ONLY — scoped by the
@@ -890,8 +887,8 @@ html.theme-transition {
   }
 }
 
-/* Every node is a gradient/category disc with its name beneath it. The only
-   ones left are subcategories — see `.morph-node--2` below (rule 21). */
+/* Every node is a gradient/category plate with its name beneath it. The only
+   ones left are subcategories — see `.morph-node--2` below. */
 .morph-node {
   @apply flex flex-col items-center;
   position: relative;
@@ -986,9 +983,80 @@ html.theme-transition {
 /* The only discs left are subcategory discs at the 54px size. `.morph-node--1`
    is deliberately NOT left behind: a rule nothing can ever match is an
    invitation to build a second column against it and assume it still works. */
-.morph-node--2 .morph-node__disc { width: 54px; height: 54px; }
+/* The subcategory node is a TILE, not a disc. The merchant's rule for this
+   column: **a rectangle that holds the subcategories as a grid** —
+   "مش مستطيل نحيف … مستطيل يضمن عرضهم فشبكة". Same markup, one class:
+   the circle plate becomes the tile's picture (fills its grid cell, 4/3),
+   the name sits inside the tile's foot, and the badge skins onto the
+   picture's corner instead of hanging off a circle. */
+.morph-node--2 {
+  overflow: hidden;
+  gap: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(112, 96, 72, 0.18);
+  background: #fff;
+  transition: border-color 0.2s var(--morph-ease), box-shadow 0.22s var(--morph-ease);
 
-.morph-node--2 .morph-node__name { font-size: 11px; }
+  &:hover {
+    border-color: rgba(112, 96, 72, 0.32);
+    box-shadow: 0 12px 24px -18px rgba(43, 45, 52, 0.55);
+  }
+
+  &.is-active {
+    border-color: var(--morph-ink);
+  }
+
+  /* `items-center` on the base turns the media span into a shrink-to-fit
+     flex item, and a child's `width: 100%` of a content-sized parent
+     collapses to 0 — force the span back to the full cell so the tile's
+     plate has a width to inherit. */
+  .morph-node__media {
+    width: 100%;
+  }
+
+  .morph-node__disc {
+    /* fills the cell — the tile's width, 4/3 tall. The circle's own
+       transform-scale hover would fight the tile edge, so it is neutralised
+       and the zoom moves to the <img> under it. */
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    border-radius: 0;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+    transform: none;
+  }
+
+  .morph-node__img {
+    transition: transform 0.4s var(--morph-ease);
+  }
+
+  &:hover .morph-node__img,
+  &.is-active .morph-node__img {
+    transform: scale(1.06);
+  }
+
+  /* the base's circle-scoped hover/active treatments: dead on a tile */
+  &:hover .morph-node__disc,
+  &.is-active .morph-node__disc {
+    transform: none;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+
+  &.is-active .morph-node__disc {
+    outline: 0;
+  }
+
+  .morph-node__badge {
+    top: 6px;
+    inset-inline-end: 6px;
+  }
+
+  .morph-node__name {
+    padding: 8px 8px 9px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+}
 
 /* ── second column: a merchant SLOT, not a taxonomy level ────────────────── */
 .morph-spotlight {
@@ -1005,6 +1073,13 @@ html.theme-transition {
   overflow: hidden;
   border-radius: 14px;
   background: linear-gradient(140deg, #e6ded2, #c9b9a3);
+  /* Smaller than its column: the merchant read the full-track 266×355 card
+     as "العبط" and asked for it smaller — the product slot already clamps at
+     180px, so the image slot clamps at the neighbour width and centres on
+     both axes the same way (A clamped block with auto margins is what
+     centres it; see the centring note under `.morph-layer`). */
+  max-width: 190px;
+  margin-inline: auto;
 
   &__img {
     display: block;
@@ -1210,6 +1285,212 @@ html.theme-transition {
 
   .s-product-card-content-subtitle {
     display: none;
+  }
+}
+
+/* the mega menu's product card — the merchant's reference design: a circular
+   picture breaking out over a white rounded card, the name in bold, two lines
+   of description, the price, then the add-to-cart disc and the wishlist disc */
+.morph-featured .morph-menu-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 160px;
+  height: auto;
+  min-height: 0;
+  justify-self: center;
+  padding: 0 8px 8px;
+  border-radius: 18px;
+  border: 1px solid rgba(112, 96, 72, 0.16);
+  background: #fff;
+  text-align: start;
+  box-shadow: 0 10px 22px -18px rgba(43, 45, 52, 0.5);
+  transition: transform 0.22s var(--morph-ease), box-shadow 0.22s var(--morph-ease),
+    border-color 0.22s var(--morph-ease);
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: rgba(112, 96, 72, 0.3);
+    box-shadow: 0 16px 28px -18px rgba(43, 45, 52, 0.55);
+  }
+
+  &__media {
+    display: block;
+    width: min(64%, 78px);
+    aspect-ratio: 1;
+    margin: -10px auto 6px;
+    border-radius: 999px;
+    overflow: hidden;
+    /* the same gradient as the discs: what shows before/without a picture */
+    background: linear-gradient(140deg, #e6ded2, #c9b9a3);
+    border: 3px solid #fff;
+    box-shadow: 0 8px 16px -10px rgba(30, 25, 18, 0.5);
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    &-empty {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 3px;
+    min-width: 0;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.3;
+    color: #14181f;
+    /* two lines, so a long name cannot make one card taller than its row */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: 9px;
+    line-height: 1.45;
+    color: rgba(0, 0, 0, 0.52);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__price {
+    margin: 2px 0 0;
+    font-size: 12px;
+    font-weight: 800;
+    color: #14181f;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-top: auto;
+    padding-top: 6px;
+  }
+
+  /* the platform's add-to-cart, worn as the reference's compact black disc */
+  &__add {
+    display: block;
+    width: 28px;
+    height: 28px;
+    flex: none;
+
+    salla-button {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .s-button-element {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      min-width: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 999px;
+      background: #14181f;
+      color: #fff;
+      box-shadow: 0 6px 10px -8px rgba(0, 0, 0, 0.7);
+
+      &:hover {
+        background: #000;
+        color: #fff;
+      }
+    }
+
+    .s-button-text {
+      display: grid;
+      place-items: center;
+    }
+  }
+
+  &__plus {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* the wishlist disc — light plate, outline heart, compact like the reference */
+  &__fav {
+    display: grid;
+    place-items: center;
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 0;
+    padding: 0;
+    flex: none;
+    border: 0;
+    border-radius: 999px;
+    background: #f1f0ec;
+    color: #14181f;
+
+    i {
+      font-size: 13px;
+      line-height: 1;
+    }
+
+    &:hover {
+      background: #e8e6e0;
+      color: #14181f;
+    }
+
+    &.is-fav {
+      color: #cf3b3b;
+      background: #fdeeee;
+    }
+  }
+}
+
+html.dark .morph-featured .morph-menu-card {
+  background: #20262f;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 22px 38px -26px rgba(0, 0, 0, 0.8);
+
+  .morph-menu-card__name,
+  .morph-menu-card__price {
+    color: #eef1f5;
+  }
+
+  .morph-menu-card__desc {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .morph-menu-card__media {
+    border-color: #20262f;
+  }
+
+  .morph-menu-card__add .s-button-element {
+    background: #eef1f5;
+    color: #14181f;
+  }
+
+  .morph-menu-card__fav {
+    background: rgba(255, 255, 255, 0.1);
+    color: #eef1f5;
   }
 }
 
@@ -2193,6 +2474,17 @@ html.dark .morph-node__name {
 
 html.dark .morph-node__badge {
   color: #14161b;
+}
+
+/* the subcategory tile carries its own light surface — flip it */
+html.dark .morph-node--2 {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #20262f;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow: 0 14px 26px -18px rgba(0, 0, 0, 0.8);
+  }
 }
 
 html.dark .morph-curtain__panel {
