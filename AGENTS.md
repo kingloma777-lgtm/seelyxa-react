@@ -91,6 +91,26 @@ The engine renders many Salla widgets as web components. In React, prefer, in th
 
 Before using one, `read` `/web-components/<tag>` (for example `/web-components/salla-modal`) for its exact props, events, methods and slots. Do not invent attributes.
 
+**Engine dev preview (`POST /__twilight/preview`)**
+
+The dev preview state (`twilight.preview.json`, body `{ state: { enabled, settings, layout } }`)
+overrides BOTH home layout and theme settings while `enabled: true`. Two ways it once
+took the MorphPill header down — never repeat them:
+
+- `settings: {}` is NOT "no override". The engine merges `{ ...baseTheme.settings, ...overrides }`,
+  so any key you omit keeps the store's value — but `header_layout` (the MorphPill gate,
+  `settings.header_layout === 'morph'`) must be present and must be the **scalar string**
+  `'morph'`; a picker array `[{ value: 'morph' }]` fails that strict comparison and the
+  header silently falls back to `site-header--lite`.
+- `enabled: false` drops the override entirely and exposes the store's real settings —
+  which on a dev store may not have `header_layout = morph` saved at all.
+
+Reproducible restore payload: all `value`/`selected` fields from `twilight.json`
+(`header_layout` forced to the scalar string `'morph'`, no `curtain_slots` — that
+collection keeps passing through to the store's real value), `layout: null` to render
+no home blocks. Served settings merge over the store's, so omit anything you do not
+want to shadow.
+
 ## Verify
 
 ```bash
