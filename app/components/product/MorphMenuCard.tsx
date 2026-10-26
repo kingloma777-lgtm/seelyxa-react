@@ -81,7 +81,13 @@ export function MorphMenuCard({ product }: { product: MenuCardProduct }) {
     <article className="morph-menu-card" data-product-id={String(product.id)}>
       <Link to={href} className="morph-menu-card__media" aria-hidden="true" data-morph-media>
         {src ? (
-          <img src={src} alt="" loading="lazy" decoding="async" />
+          /* eager, never lazy: this card mounts INSIDE the curtain as it
+             opens, under the panel's opacity entrance and React remounts of
+             the featured region on every focus change — a lazy fetch here
+             starts late or restarts with each hover, which reads as "the
+             product picture never shows" (deep image audit, 2026-10). These
+             thumbnails are Salla's own ~500x500 jpgs, a few KB each. */
+          <img src={src} alt="" loading="eager" decoding="async" />
         ) : (
           <span className="morph-menu-card__media-empty" />
         )}

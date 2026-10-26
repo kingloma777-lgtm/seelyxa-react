@@ -199,7 +199,11 @@ function CurtainNode({
             className="morph-node__img"
             src={img}
             alt=""
-            loading="lazy"
+            /* eager, never lazy: the curtain OPENS on hover, and a lazy fetch
+               here starts only on a later layout pass — paired with the
+               panel's opacity entrance it reads as "the picture never shows"
+               (deep image audit, 2026-10). The urls are tiny category thumbs,
+               300-900px jpgs; eager costs nothing. */
             decoding="async"
             style={{ objectFit: 'cover', width: '100%', height: '100%', display: 'block' }}
             onError={(e) => {
@@ -327,7 +331,9 @@ function SlotColumn({
           className="morph-spotlight__img"
           src={src}
           alt=""
-          loading="lazy"
+          /* eager: the slot is the first thing the eye lands on when the
+             curtain opens — a lazy fetch can miss the opening beat entirely
+             (deep image audit, 2026-10). */
           decoding="async"
         />
         {name && <span className="morph-spotlight__title">{name}</span>}
