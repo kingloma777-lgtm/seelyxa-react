@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { FixedProductsSkeleton } from '@salla.sa/twilight-components-react';
 import { Link } from '@salla.sa/twilight-theme-engine/common';
 import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
+import { useTwilight } from '@salla.sa/twilight-theme-engine/providers';
 import { product, type ProductsListSource } from '@salla.sa/twilight-theme-engine/api/product';
 import { ProductCard } from '../product/ProductCard';
 import { blockLimit } from '../../lib/blockLimit';
@@ -36,10 +37,17 @@ export interface FixedProductsProps {
  */
 export function FixedProducts({ data }: FixedProductsProps) {
   const { t } = useTranslation();
+  const { theme } = useTwilight();
 
   const title = data.title;
   const limit = blockLimit(data.limit);
-  const isVertical = data.isVertical ?? true;
+  // Ported from engine 1.0.133: the merchant's `vertical_fixed_products` toggle
+  // now decides, like Twig Raed (`theme.settings.get('vertical_fixed_products',
+  // true)`). This theme declares the field on the block itself, so the block's
+  // own data carries it first; `?` (not `||`) so the undecided setting stays
+  // undefined and the long-standing vertical default stands.
+  const isVertical = data.isVertical ?? (data as { vertical_fixed_products?: boolean })
+    .vertical_fixed_products ?? theme?.settings?.vertical_fixed_products ?? true;
 
   const { data: result, isLoading } = useQuery(
     product.queries.list({
