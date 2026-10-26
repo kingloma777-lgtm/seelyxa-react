@@ -1158,7 +1158,11 @@ html.theme-transition {
 
   &__head {
     @apply flex items-end justify-between;
-    margin-bottom: 8px;
+    /* The card circles now pop HALF of their height above the card's top edge
+       (up to 92px / 2 = 46px). That band lands between the heading and the
+       row, so the clearance lives here — a smaller circle simply leaves a
+       little more air under the heading. */
+    margin-bottom: 54px;
 
     p {
       font-size: 10px;
@@ -1319,7 +1323,13 @@ html.theme-transition {
     display: block;
     width: min(64%, 78px);
     aspect-ratio: 1;
-    margin: -10px auto 6px;
+    /* نصفها جوه كارت المنتج ونصها فوق حده: border-box يجعل الارتفاع المرئي
+       مساويًا للعرض، فالهامش العلوي نصف العرض يضع مركز الدايرة عند حد
+       الكارت — نصف ظاهر فوق المستطيل، نصف داخله (طلب "ارفعها نصها").
+       الـ 1px إزاحة لحد الكارت نفسه، فالمركز بين أدق «نص» مضبوط بالقياس. */
+    margin-block-start: calc(min(62%, 92px) / -2 - 1px);
+    margin-block-end: 6px;
+    margin-inline: auto;
     border-radius: 999px;
     overflow: hidden;
     /* the same gradient as the discs: what shows before/without a picture */
