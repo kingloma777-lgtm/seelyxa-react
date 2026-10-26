@@ -69,6 +69,15 @@
   .s-payments-list-item {
     @apply w-16;
   }
+
+  /* The SBC badge ships 192×146, but the engine sizes its box 56×40 with
+     `h-10 w-14` — a ~6.5% squash Lighthouse reads as a distorted image
+     (image-aspect-ratio). `height: auto` on the fixed 3.5rem width restores
+     the natural ratio; CSS wins over the width/height attributes. */
+  .store-footer__sbc img {
+    @apply block w-14;
+    height: auto;
+  }
 }
 
 /* Mobile: no page footer — its widgets live in the bottom bar's account sheet
