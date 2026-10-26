@@ -124,6 +124,36 @@ function MorphIco({
   );
 }
 
+/* Both theme glyphs are always in the markup and `html.dark` picks which one
+   paints (see morph-header.scss) — one token, no JS icon state to go stale.
+   Shared by the pill's toggle and the phone index's own button, which is the
+   only copy a phone sees (the pill's is `display: none` there: the row has no
+   width to spare, measured live). */
+function ThemeGlyphs() {
+  return (
+    <>
+      <span className="morph-ico morph-theme-btn__glyph morph-theme-btn__moon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+        </svg>
+      </span>
+      <span className="morph-ico morph-theme-btn__glyph morph-theme-btn__sun" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="m4.93 4.93 1.41 1.41" />
+          <path d="m17.66 17.66 1.41 1.41" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+          <path d="m6.34 17.66-1.41 1.41" />
+          <path d="m19.07 4.93-1.41 1.41" />
+        </svg>
+      </span>
+    </>
+  );
+}
+
 const CARET = (
   <svg
     className="morph-link__caret"
@@ -185,11 +215,17 @@ function MorphOverlay({
   rows,
   onClose,
   labels,
+  themeToggle,
 }: {
   open: boolean;
   rows: OverlayRow[];
   onClose: () => void;
   labels: { close: string; shop: string };
+  /* The phone's copy of the light/dark toggle. The pill keeps its own chip at
+     ≥768px; below that the action row has no 44px to spare (measured: the row
+     needed 554px inside a 317px box), so the control lives here — the screen a
+     phone user already opens for the menu. `null` = merchant turned it off. */
+  themeToggle?: { dark: boolean; label: string; onToggle: () => void } | null;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const openerRef = useRef<Element | null>(null);
@@ -287,6 +323,18 @@ function MorphOverlay({
         </nav>
 
         <div className="morph-overlay__foot">
+          {themeToggle && (
+            <button
+              type="button"
+              className="morph-overlay__theme morph-theme-btn"
+              data-testid="morph-overlay-theme-btn"
+              aria-pressed={themeToggle.dark}
+              aria-label={themeToggle.label}
+              onClick={themeToggle.onToggle}
+            >
+              <ThemeGlyphs />
+            </button>
+          )}
           <span className="morph-overlay__note">
             <SallaSocial data-testid="morph-header-social" />
           </span>
@@ -670,7 +718,11 @@ export function MorphHeader() {
 
   /* ── light / dark with the View Transition reveal (old §0) ── */
   const themeBtnRef = useRef<HTMLButtonElement>(null);
-  const toggleDark = () => {
+  /* `originEl` is the button that was actually pressed: on a phone the pill's
+     chip is hidden and the index's own button fires, so both call sites hand
+     their element over — the wipe then grows out of the glyph the user tapped
+     instead of out of a 0×0 box. */
+  const toggleDark = (originEl?: Element | null) => {
     const rootEl = document.documentElement;
     const next = !rootEl.classList.contains('dark');
     // aria state (label/pressed) — the glyph itself is pure CSS off `html.dark`
@@ -687,21 +739,23 @@ export function MorphHeader() {
       apply();
       return;
     }
-    const btn = themeBtnRef.current;
-    if (!btn) {
-      apply();
-      return;
+    const btn = originEl instanceof Element ? originEl : themeBtnRef.current;
+    const box = btn?.getBoundingClientRect();
+    if (!box || !box.width) {
+      // no measurable trigger (hidden chip): wipe from the top centre
+      rootEl.style.setProperty('--morph-theme-x', `${window.innerWidth / 2}px`);
+      rootEl.style.setProperty('--morph-theme-y', '24px');
+    } else {
+      const x = box.left + box.width / 2;
+      const y = box.top + box.height / 2;
+      const r = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+      rootEl.style.setProperty('--morph-theme-x', `${x}px`);
+      rootEl.style.setProperty('--morph-theme-y', `${y}px`);
+      rootEl.style.setProperty('--morph-theme-r', `${r}px`);
     }
-    const rect = btn.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    const r = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
-    rootEl.style.setProperty('--morph-theme-x', `${x}px`);
-    rootEl.style.setProperty('--morph-theme-y', `${y}px`);
-    rootEl.style.setProperty('--morph-theme-r', `${r}px`);
     rootEl.classList.add('theme-transition');
     const transition = document.startViewTransition(apply);
     transition.finished.then(
@@ -1286,29 +1340,12 @@ export function MorphHeader() {
                 type="button"
                 ref={themeBtnRef}
                 className="morph-icon-btn morph-theme-btn"
-                onClick={toggleDark}
+                onClick={(event) => toggleDark(event.currentTarget)}
                 aria-label={dark ? labels.lightMode : labels.darkMode}
                 aria-pressed={dark}
                 data-testid="morph-theme-btn"
               >
-                <span className="morph-ico morph-theme-btn__glyph morph-theme-btn__moon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
-                  </svg>
-                </span>
-                <span className="morph-ico morph-theme-btn__glyph morph-theme-btn__sun" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="4" />
-                    <path d="M12 2v2" />
-                    <path d="M12 20v2" />
-                    <path d="m4.93 4.93 1.41 1.41" />
-                    <path d="m17.66 17.66 1.41 1.41" />
-                    <path d="M2 12h2" />
-                    <path d="M20 12h2" />
-                    <path d="m6.34 17.66-1.41 1.41" />
-                    <path d="m19.07 4.93-1.41 1.41" />
-                  </svg>
-                </span>
+                <ThemeGlyphs />
               </button>
             )}
 
@@ -1388,6 +1425,15 @@ export function MorphHeader() {
         rows={overlayRows}
         onClose={() => setOverlayOpen(false)}
         labels={{ close: labels.close, shop: labels.shop }}
+        themeToggle={
+          themeToggleOn
+            ? {
+                dark,
+                label: dark ? labels.lightMode : labels.darkMode,
+                onToggle: () => toggleDark(null),
+              }
+            : null
+        }
       />
     </header>
   );

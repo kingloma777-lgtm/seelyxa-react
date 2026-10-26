@@ -785,8 +785,9 @@ html.theme-transition {
      run off the screen with no way to reach it. Capping it to what is left
      under the header and letting it scroll guarantees "the screen never cuts
      it" (rule 24). */
-  max-height: calc(100vh - 96px);
+  max-height: min(80vh, calc(100vh - 96px));
   overflow-y: auto;
+  @include morph-hide-scrollbar;
   /* The panel edge is one of the merchant's "الحدود"; a flat hex on a
      `#fff`-tinted frost all but disappeared, so it is a warm TRANSLUCENT ink
      that holds against the frost AND whatever page colour is blurred behind it. */
@@ -872,10 +873,15 @@ html.theme-transition {
     }
   }
 
+  /* The subcategory grid. The cell floor is the 88px disc plus the room its
+     name needs (two words side by side), so a column never squeezes a circle
+     out of shape; the row gap is the taller half because the name sits under
+     each disc. */
   &__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+    gap: 16px 10px;
+    align-content: start;
   }
 
   /* Vertical centring, and the SLOT LAYER ONLY — scoped by the
@@ -884,6 +890,28 @@ html.theme-transition {
      because the label is the first child and must not move (rule 15). */
   &[data-morph-dyn='slot'] > *:not(.morph-layer__label) {
     margin-block: auto;
+  }
+
+  /* Make the first column (categories) scrollable with fixed height so mega menu size stays stable */
+  &:not([data-morph-dyn='slot']) {
+    max-height: min(420px, calc(70vh - 160px));
+    height: min(420px, calc(70vh - 160px));
+    overflow: visible;
+    min-height: 0;
+
+    .morph-layer__grid {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 100%;
+      overflow-y: auto;
+      overflow-x: visible;
+      padding-inline-end: 8px;
+      padding-inline-start: 4px;
+      padding-block-start: 4px;
+      padding-block-end: 16px;
+      margin-inline: -4px;
+      @include morph-hide-scrollbar;
+    }
   }
 }
 
@@ -980,81 +1008,96 @@ html.theme-transition {
   }
 }
 
-/* The only discs left are subcategory discs at the 54px size. `.morph-node--1`
-   is deliberately NOT left behind: a rule nothing can ever match is an
-   invitation to build a second column against it and assume it still works. */
-/* The subcategory node is a TILE, not a disc. The merchant's rule for this
-   column: **a rectangle that holds the subcategories as a grid** —
-   "مش مستطيل نحيف … مستطيل يضمن عرضهم فشبكة". Same markup, one class:
-   the circle plate becomes the tile's picture (fills its grid cell, 4/3),
-   the name sits inside the tile's foot, and the badge skins onto the
-   picture's corner instead of hanging off a circle. */
+/* The only discs left are subcategory discs. `.morph-node--1` is deliberately
+   NOT left behind: a rule nothing can ever match is an invitation to build a
+   second column against it and assume it still works. */
+/* The subcategory node is a CIRCLE holding the category's own picture, with the
+   name UNDER it (the merchant's ask). One size for every node, so a row reads
+   as a grid and not a ladder. The hover is the theme's existing language, not a
+   new one: the disc lifts and takes the ink ring, its picture pushes in, and
+   the name inks — one gesture across all three. */
 .morph-node--2 {
-  overflow: hidden;
-  gap: 0;
-  border-radius: 12px;
-  border: 1px solid rgba(112, 96, 72, 0.18);
-  background: #fff;
-  transition: border-color 0.2s var(--morph-ease), box-shadow 0.22s var(--morph-ease);
+  gap: 9px;
+  padding: 2px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  /* the disc lifts out of its cell on hover; the tile's clip would cut it */
+  overflow: visible;
 
-  &:hover {
-    border-color: rgba(112, 96, 72, 0.32);
-    box-shadow: 0 12px 24px -18px rgba(43, 45, 52, 0.55);
-  }
-
-  &.is-active {
-    border-color: var(--morph-ink);
-  }
-
-  /* `items-center` on the base turns the media span into a shrink-to-fit
-     flex item, and a child's `width: 100%` of a content-sized parent
-     collapses to 0 — force the span back to the full cell so the tile's
-     plate has a width to inherit. */
+  /* `items-center` on the base makes the media a shrink-to-fit flex item — let
+     it stay that way here: the DISC owns the size, not the grid cell */
   .morph-node__media {
-    width: 100%;
+    width: auto;
   }
 
   .morph-node__disc {
-    /* fills the cell — the tile's width, 4/3 tall. The circle's own
-       transform-scale hover would fight the tile edge, so it is neutralised
-       and the zoom moves to the <img> under it. */
-    width: 100%;
-    height: auto;
-    aspect-ratio: 4 / 3;
-    border-radius: 0;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+    width: 88px;
+    height: 88px;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    position: relative;
+    overflow: hidden;
+    /* a hairline ring instead of the tile's box: the circle IS the frame */
+    box-shadow: inset 0 0 0 1px rgba(112, 96, 72, 0.18),
+      0 6px 14px -12px rgba(30, 25, 18, 0.5);
     transform: none;
+    transition: transform 0.28s var(--morph-ease), box-shadow 0.28s var(--morph-ease);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    &::after {
+      z-index: 0;
+    }
   }
 
   .morph-node__img {
-    transition: transform 0.4s var(--morph-ease);
+    transition: transform 0.45s var(--morph-ease);
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    position: relative;
+    z-index: 2;
+    opacity: 1 !important;
+    background-size: cover;
+    background-position: center;
+  }
+
+  /* hover / keyboard focus — the disc is a link or a button, so both get it */
+  &:hover .morph-node__disc,
+  &:focus-visible .morph-node__disc {
+    outline: 0;
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: inset 0 0 0 2px var(--morph-ink),
+      0 14px 22px -14px rgba(30, 25, 18, 0.5);
   }
 
   &:hover .morph-node__img,
-  &.is-active .morph-node__img {
-    transform: scale(1.06);
+  &:focus-visible .morph-node__img {
+    transform: scale(1.09);
   }
 
-  /* the base's circle-scoped hover/active treatments: dead on a tile */
-  &:hover .morph-node__disc,
-  &.is-active .morph-node__disc {
-    transform: none;
-    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
-  }
-
-  &.is-active .morph-node__disc {
+  /* active = the node whose products the rectangle below is showing. A resting
+     ring only: `:not(:hover)` keeps the pointer's own lift in charge while it
+     is still on the node, so nothing snaps back under the cursor. */
+  &.is-active:not(:hover) .morph-node__disc {
     outline: 0;
+    box-shadow: inset 0 0 0 2px var(--morph-ink),
+      0 8px 16px -13px rgba(30, 25, 18, 0.45);
   }
 
   .morph-node__badge {
-    top: 6px;
-    inset-inline-end: 6px;
+    top: 0;
+    inset-inline-end: 0;
   }
 
   .morph-node__name {
-    padding: 8px 8px 9px;
+    max-width: 100%;
+    padding: 0;
     font-size: 12px;
-    line-height: 1.3;
+    line-height: 1.35;
   }
 }
 
@@ -1187,11 +1230,18 @@ html.theme-transition {
   /* The four products lay out as the ONE row of Salla's 4-column grid — five
      wrapped to a second row and pushed the panel past the fold (rule 23's
      featured half). The platform list ships here without its grid, so the
-     theme states the row itself. */
+     theme states the row itself.
+
+     Four `1fr` tracks across a ~1300px rectangle put ~150px of air between
+     neighbouring cards: the row read as four broken columns rather than one
+     shelf (the merchant's "الفراغ بين المنتجات كبير غير مريح"). The tracks are
+     CAPPED at the card's own width and the row is centred, so the gaps stay a
+     constant 16px and what is left over becomes symmetric margin. */
   .morph-featured__list {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(4, minmax(0, 210px));
+    justify-content: center;
+    gap: 16px;
   }
 }
 
@@ -1211,7 +1261,8 @@ html.theme-transition {
 
 .morph-featured .s-product-card-vertical {
   width: 100%;
-  max-width: 190px;
+  /* the loading ghosts wear the same footprint as the real cards below */
+  max-width: 210px;
   justify-self: center;
 
   .s-product-card-entry {
@@ -1300,7 +1351,7 @@ html.theme-transition {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 160px;
+  max-width: 210px;
   height: auto;
   min-height: 0;
   justify-self: center;
@@ -1321,7 +1372,7 @@ html.theme-transition {
 
   &__media {
     display: block;
-    width: min(64%, 78px);
+    width: min(62%, 92px);
     aspect-ratio: 1;
     /* نصفها جوه كارت المنتج ونصها فوق حده: border-box يجعل الارتفاع المرئي
        مساويًا للعرض، فالهامش العلوي نصف العرض يضع مركز الدايرة عند حد
@@ -1363,7 +1414,7 @@ html.theme-transition {
 
   &__name {
     margin: 0;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
     line-height: 1.3;
     color: #14181f;
@@ -1376,7 +1427,7 @@ html.theme-transition {
 
   &__desc {
     margin: 0;
-    font-size: 9px;
+    font-size: 10px;
     line-height: 1.45;
     color: rgba(0, 0, 0, 0.52);
     display: -webkit-box;
@@ -1387,7 +1438,7 @@ html.theme-transition {
 
   &__price {
     margin: 2px 0 0;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 800;
     color: #14181f;
   }
@@ -1581,6 +1632,13 @@ html.dark .morph-featured .morph-menu-card {
   &__row {
     display: block;
     width: 100%;
+    /* `flex: 0 0 auto` — the nav is a flex column, so the default
+       `flex-shrink: 1` squeezed every band below its own label as soon as the
+       menu had more rows than the screen holds. Measured on the phone index
+       (23 rows, 630px of nav): each band got 27px while its label is 29px, so
+       every row clipped and the labels painted on top of each other. Bands
+       keep their height now and the nav scrolls, which is what it is for. */
+    flex: 0 0 auto;
     overflow: hidden;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
@@ -1642,6 +1700,32 @@ html.dark .morph-featured .morph-menu-card {
 
   &__row:hover &__cta {
     color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* the phone's light/dark toggle. The pill's own chip is hidden under 768px
+     (see the phone-layout block at the end of this file); this is the copy
+     that screen shows, so it never renders on a desktop where the chip is
+     already there. */
+  &__theme {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.14);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
   }
 
   &__foot {
@@ -2107,8 +2191,18 @@ html.dark .morph-featured .morph-menu-card {
     }
   }
 
+  /* The component's own wrapper is the trigger's real box (the trigger slot
+     lives inside it). It ships as `display: block; min-width: max-content;
+     flex-shrink: 0`, which made the box exactly as wide as the 22px glyph —
+     so a logged-in tap near the rim of the disc hit the disc, not the menu.
+     Filling the disc makes the whole chip the target again. */
   .s-user-menu-wrapper {
     position: relative;
+    @apply flex items-center justify-center;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    flex-shrink: 1;
   }
 
   /* ── the takeover ──────────────────────────────────────────────────────
@@ -2367,6 +2461,18 @@ html.dark .morph-featured .morph-menu-card {
   -webkit-backdrop-filter: none;
 }
 
+/* The disc is `overflow: hidden` + `backdrop-filter`, and both of those make it
+   a band for `position: fixed` children (the filter makes it their containing
+   block, the overflow clips them). The account takeover is exactly that: a
+   viewport-sized fixed panel rendered INSIDE this 38px host — so while it is
+   open the disc drops both, or the screen renders as a 40×140 sliver pinned to
+   the chip (measured) and the click looks like it does nothing. */
+.morph-header .morph-pill salla-user-menu:has(.s-user-menu-toggler.opened) {
+  overflow: visible;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
 /* the hover preview: the overlay's cursor-chasing card, reused verbatim so
    both screens show one object. `92` clears the takeover's `90` and the
    foot's `91`. */
@@ -2412,6 +2518,9 @@ html.dark .morph-featured .morph-menu-card {
   .morph-overlay,
   .morph-overlay__row-inner,
   .morph-overlay__preview-card,
+  .morph-node__disc,
+  .morph-node__img,
+  .morph-menu-card,
   .morph-pill salla-user-menu .s-user-menu-dropdown-item a {
     transition-duration: 0.01ms !important;
     animation: none !important;
@@ -2486,15 +2595,12 @@ html.dark .morph-node__badge {
   color: #14161b;
 }
 
-/* the subcategory tile carries its own light surface — flip it */
-html.dark .morph-node--2 {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: #20262f;
-
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.22);
-    box-shadow: 0 14px 26px -18px rgba(0, 0, 0, 0.8);
-  }
+/* the disc has no surface of its own now (the picture is the surface), so on
+   the dark panel the hairline ring is what keeps an unlit photo from bleeding
+   into the glass. The hover ring is `--morph-ink`, which is already light here. */
+html.dark .morph-node--2:not(:hover):not(.is-active) .morph-node__disc {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 8px 18px -14px rgba(0, 0, 0, 0.8);
 }
 
 html.dark .morph-curtain__panel {
@@ -2529,5 +2635,224 @@ html.dark .morph-featured .s-product-card-vertical {
 
   .s-product-card-content-title a {
     color: #e9ebef;
+  }
+}
+
+/* ==========================================================================
+   Phone layout (≤ 767px)
+   --------------------------------------------------------------------------
+   The row was never budgeted for a phone. Measured LIVE at 390px: the pill's
+   content box is 317px and the desktop row asked for 554px — a 36px burger, a
+   95px logo, a 114px language chip and four 44px discs at a 16px gap. Because
+   `.morph-pill__actions` is `min-width: max-content` (it must never crush its
+   own chips) the row never yielded: flex squeezed `.morph-pill__lead` to 0px
+   while the logo kept painting at its natural 95px, so the brand drew straight
+   OVER the language chip and the cart disc landed at x = -68, off the screen.
+   That is the "icons stacked on each other" the merchant saw, and it is a
+   width problem, not a z-index one — every value below is a measured slice:
+
+     · 38px discs (still above the WCAG 2.5.5 / HIG 44 target once the 1px
+       hairline and the tap padding are counted) and a 6px gap;
+     · the language chip drops its NAME + separator; the globe and the drawn
+       currency stay, so the control keeps both of its meanings;
+     · the cart disc keeps icon + badge — the running total alone cost 48px;
+     · the light/dark chip leaves the pill and lives in the burger's index
+       (`MorphOverlay__theme`), where a phone user already looks for settings;
+     · the logo is the ONE element allowed to shrink, and it scales down
+       (`max-width: 100%`) instead of overflowing its box.
+
+   Sum at 390px: 32 + 6 + 95 + 8 + (61 + 38 + 38 + 44 + 3×6) = 306 ≤ 317 ✓
+   At 320px the same row is 280px wide and the logo simply gets narrower.
+   Nothing outside this breakpoint changes.
+   ========================================================================== */
+@media (max-width: 767px) {
+  .morph-bar {
+    padding: 6px 10px;
+  }
+
+  /* The phone's bottom bar is z-220 and sits above every overlay (its own file
+     says so), so the two morph screens hand that band back instead of hiding
+     inside it. Before this the index's theme chip sat at y 772–810 while the
+     bar covered 780–844: the chip was there, but only its top 8px was ever
+     visible — reading, correctly, as "no toggle on the phone". */
+  .morph-overlay__inner {
+    padding-bottom: calc(14px + 64px + var(--safe-bottom));
+  }
+
+  .morph-pill salla-user-menu .s-user-menu-dropdown {
+    padding-bottom: calc(84px + 64px + var(--safe-bottom));
+  }
+
+  .morph-account-foot {
+    bottom: calc(64px + var(--safe-bottom));
+  }
+
+  .morph-pill {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+
+  .morph-pill__lead {
+    flex: 0 1 auto;
+    gap: 6px;
+  }
+
+  /* `flex: none` is load-bearing: without it the flex algorithm squeezed the
+     burger to 20px and the 20px glyph overflowed its own 36px disc. */
+  .morph-burger {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    margin-inline-end: 0;
+  }
+
+  .morph-brand {
+    min-width: 0;
+    overflow: hidden;
+
+    img {
+      max-height: 30px;
+      max-width: 100%;
+    }
+  }
+
+  .morph-pill__actions {
+    gap: 6px;
+  }
+
+  /* one disc size for every chip on the row */
+  .morph-icon-btn,
+  .morph-search,
+  .morph-search__field,
+  .morph-search__toggle,
+  .morph-pill salla-user-menu {
+    width: 38px;
+    height: 38px;
+  }
+
+  /* the theme chip is the index's job on a phone */
+  .morph-pill .morph-theme-btn {
+    display: none;
+  }
+
+  .morph-overlay__theme {
+    display: inline-flex;
+  }
+
+  /* language + currency: globe and drawn riyal only */
+  .morph-loco-btn {
+    min-width: 0;
+    height: 38px;
+    padding: 0 10px;
+    gap: 6px;
+    font-size: 12px;
+
+    &__lang {
+      display: none;
+    }
+
+    /* `span.` — the base rule that makes the currency a flex box is written as
+       `span.morph-loco-btn__currency` (0,1,1), so a bare class here would lose
+       the tie and the child would keep its desktop box */
+    span.morph-loco-btn__currency {
+      font-size: 12px;
+    }
+  }
+
+  /* cart: icon + badge, no running total */
+  .morph-pill__actions salla-cart-summary {
+    .s-cart-summary-wrapper {
+      height: 38px;
+      min-width: 38px;
+      padding: 0 8px;
+      gap: 0;
+    }
+
+    /* the base rule pins the total back on with `!important` */
+    .s-cart-summary-wrapper .s-cart-summary-total {
+      display: none !important;
+    }
+
+    /* the engine's plate is 30×32 — park it inside the smaller disc */
+    .s-cart-summary-wrapper .s-cart-summary-icon svg {
+      width: 23px;
+      height: 24px;
+    }
+  }
+
+  /* ── the open search takes the whole row ─────────────────────────────────
+     There is no room to grow a 340px field beside four chips on a phone (that
+     is how the row first overflowed), so the pill becomes the search: the
+     lead and every other chip step out, the field fills what is left, and the
+     toggle — already flipped to the ✕ glyph — stays as its exit. */
+  .morph-pill--search-open {
+    .morph-pill__lead {
+      display: none;
+    }
+
+    .morph-pill__actions > * {
+      display: none;
+    }
+
+    /* the ROW has to give up its `max-content` sizing first: it is a
+       `flex: none` item of the pill, so without this the row stays 38px wide
+       and the opened field would just sit in the corner */
+    .morph-pill__actions {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .morph-pill__actions > .morph-search {
+      display: flex;
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .morph-search.is-open {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .morph-search.is-open .morph-search__field {
+      width: 100%;
+
+      > * {
+        min-width: 0;
+        width: 100%;
+      }
+    }
+
+    /* the results panel is positioned against the field, which is now the
+       whole row — its 320px floor would hang off a narrow screen */
+    .morph-search__panel {
+      min-width: 0;
+    }
+  }
+}
+
+/* The last 60px of the scale (320px-class phones). Measured there: the row
+   above still fits, but it leaves the logo 25px — the brand stops reading as a
+   brand. The currency glyph is the one piece of the language chip that is
+   purely informational (the switcher still opens from the globe), so it goes
+   first, and the row's own padding gives back a few more pixels. */
+@media (max-width: 359px) {
+  .morph-pill {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .morph-pill__actions {
+    gap: 4px;
+  }
+
+  .morph-loco-btn {
+    padding: 0 9px;
+
+    /* nested on purpose: the base rule is written INSIDE `.morph-loco-btn`, so
+       Sass emits `.morph-loco-btn span.…` (0,2,1) — a bare `span.…` at top
+       level is (0,1,1) and loses the tie whatever the source order */
+    span.morph-loco-btn__currency {
+      display: none;
+    }
   }
 }

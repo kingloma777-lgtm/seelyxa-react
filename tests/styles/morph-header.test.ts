@@ -111,7 +111,7 @@ describe('curtain mega menu invariants (ported from the Twig theme)', () => {
     const panel = declarations(root, '.morph-curtain__panel');
     // sass keeps `min()` flat — the nested `calc` wrapper is resolved out
     expect(panel['max-width']).toBe('min(104rem, 100vw - 24px)');
-    expect(panel['max-height']).toBe('calc(100vh - 96px)');
+    expect(panel['max-height']).toBe('min(80vh, 100vh - 96px)');
     expect(panel['overflow-y']).toBe('auto');
     expect(panel['backdrop-filter']).toContain('blur(26px)');
   });
@@ -121,9 +121,9 @@ describe('curtain mega menu invariants (ported from the Twig theme)', () => {
 
     // last-wins collect across base + min-width rules
     expect(declarations(root, '.morph-curtain__layers')['grid-template-columns']).toBe('2fr 1fr');
-    // the discs grid keeps its 84px minimum cell
+    // the discs grid keeps a cell floor that fits the 88px disc + its name
     expect(declarations(root, '.morph-layer__grid')['grid-template-columns']).toBe(
-      'repeat(auto-fill, minmax(84px, 1fr))'
+      'repeat(auto-fill, minmax(108px, 1fr))'
     );
   });
 
@@ -137,30 +137,48 @@ describe('curtain mega menu invariants (ported from the Twig theme)', () => {
     expect(centre['margin-block']).toBe('auto');
   });
 
-  it('subcategory discs are the 54px circle (one size, no ladder)', async () => {
+  it('subcategory nodes are ONE circle size holding the picture, name beneath', async () => {
     const root = await compile('morph-header.scss');
 
+    // the merchant asked for a circle with the category picture inside and the
+    // name under it — same size for every node, no per-level ladder
     const disc = declarations(root, '.morph-node--2 .morph-node__disc');
-    expect(disc['width']).toBe('54px');
-    expect(disc['height']).toBe('54px');
+    expect(disc['width']).toBe('88px');
+    expect(disc['height']).toBe('88px');
+    expect(disc['aspect-ratio']).toBe('1');
     // the round clip lives on the shared __disc rule (sass flattens the parent)
     expect(declarations(root, '.morph-node__disc')['border-radius']).toBe('999px');
-    expect(declarations(root, '.morph-node--2 .morph-node__name')['font-size']).toBe('11px');
+    // the name sits UNDER the disc: no tile foot padding, its own line box
+    const name = declarations(root, '.morph-node--2 .morph-node__name');
+    expect(name['font-size']).toBe('12px');
+    expect(name['padding']).toBe('0');
+    // hover = lift + ink ring + name ink, one gesture for the three
+    const hover = declarations(root, '.morph-node--2:hover .morph-node__disc');
+    expect(hover['transform']).toContain('scale(1.04)');
+    expect(hover['box-shadow']).toContain('var(--morph-ink)');
   });
 
-  it('the featured row is FOUR cards on one 4-column track', async () => {
+  it('the featured row is FOUR capped tracks, centred with a tight gap', async () => {
     const root = await compile('morph-header.scss');
 
-    expect(declarations(root, '.morph-featured .morph-featured__list')['grid-template-columns']).toBe(
-      'repeat(4, minmax(0, 1fr))'
-    );
+    const list = declarations(root, '.morph-featured .morph-featured__list');
+    // `1fr` tracks across the whole rectangle left ~150px of air BETWEEN
+    // neighbouring cards; capped tracks + centring keep the gap constant and
+    // push the leftover width out to symmetric margins
+    expect(list['grid-template-columns']).toBe('repeat(4, minmax(0, 210px))');
+    expect(list['justify-content']).toBe('center');
+    expect(list['gap']).toBe('16px');
+    // the card fills its track, so the row is actually 4×210 wide
+    expect(declarations(root, '.morph-featured .morph-menu-card')['max-width']).toBe('210px');
   });
 
   it('the platform card is clamped + centred with a SQUARE picture — the height half of the pair', async () => {
     const root = await compile('morph-header.scss');
 
     const card = declarations(root, '.morph-featured .s-product-card-vertical');
-    expect(card['max-width']).toBe('190px');
+    // the loading ghosts wear the real card's footprint, or the row jumps
+    // size when the products land
+    expect(card['max-width']).toBe('210px');
     expect(card['justify-self']).toBe('center');
 
     const image = declarations(root, '.morph-featured .s-product-card-vertical .s-product-card-image');
@@ -205,5 +223,55 @@ describe('one-line nav fit invariants («المزيد» keeps links off the bran
     expect(nav['min-width']).toBe('0');
     expect(nav['justify-content']).toBe('center');
     expect(nav['gap']).toBe('2px');
+  });
+});
+
+describe('phone screens + account takeover invariants', () => {
+  /* The takeover is a `position: fixed`, viewport-sized panel rendered INSIDE
+     the 38px account disc. The disc clips (overflow) and its backdrop-filter
+     makes it the containing block, so while the panel is open both have to go
+     or the screen renders as a sliver pinned to the chip — measured live as a
+     40×140 box instead of 390×844, which is what "clicking does nothing" was. */
+  it('the account disc stops clipping / containing the takeover while it is open', async () => {
+    const root = await compile('morph-header.scss');
+
+    const host = declarations(
+      root,
+      '.morph-header .morph-pill salla-user-menu:has(.s-user-menu-toggler.opened)'
+    );
+    expect(host['overflow']).toBe('visible');
+    expect(host['backdrop-filter']).toBe('none');
+  });
+
+  /* The phone's bottom bar is z-220 and paints over every overlay, so the two
+     morph screens must end above it. Before this the index's theme chip sat at
+     y 772–810 inside the bar's 780–844 — the chip existed, but only 8px of it
+     was visible, which reads as "no dark-mode toggle on the phone". */
+  it('both morph screens give the phone bottom bar its 64px band back', async () => {
+    const root = await compile('morph-header.scss');
+    // Sass folds the arithmetic, so the band reads `calc(<n>px + var(--safe-bottom))`
+    const band = (value: string) => {
+      const match = /calc\((\d+)px \+ var\(--safe-bottom\)\)/.exec(value ?? '');
+      expect(match, `expected a bottom-bar band, got "${value}"`).toBeTruthy();
+      return Number(match![1]);
+    };
+
+    expect(band(declarations(root, '.morph-overlay__inner')['padding-bottom'])).toBeGreaterThanOrEqual(64);
+    expect(
+      band(
+        declarations(root, '.morph-pill salla-user-menu .s-user-menu-dropdown')['padding-bottom']
+      )
+    ).toBeGreaterThanOrEqual(64);
+    expect(band(declarations(root, '.morph-account-foot')['bottom'])).toBeGreaterThanOrEqual(64);
+  });
+
+  /* Bands must keep their own height: the index nav is a flex column, so the
+     default shrink squeezed 23 rows into 27px each while their label is 29px
+     and every row clipped on top of the next. */
+  it('index rows do not shrink below their label; the nav scrolls instead', async () => {
+    const root = await compile('morph-header.scss');
+
+    const row = declarations(root, '.morph-overlay__row');
+    expect(row['flex']).toBe('0 0 auto');
   });
 });
