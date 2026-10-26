@@ -1,9 +1,19 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MorphCurtain, type CurtainLabels } from '../../../app/components/layout/MorphCurtain';
 import { readSlots } from '../../../app/lib/curtainSlots';
 import { product } from '@salla.sa/twilight-theme-engine/api/product';
+
+/* The curtain reads the category tree through react-query (the
+   `menuCategoryIndex` enrichment); the store app provides the provider, so
+   the test does too — `retry: false` keeps the (networkless) failing query
+   from stalling the run, an empty index is exactly the pre-enrichment state. */
+function mountCurtain(ui: React.ReactElement) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  return render(<QueryClientProvider client={client}>{ui}</QueryClientProvider>);
+}
 
 /* The mock `SallaProductsList` fakes the RESOLVED loader payload: the curtain's
    own slot/featured loaders return instantly with these fixture items. It also
@@ -128,12 +138,12 @@ beforeEach(() => {
 
 describe('MorphCurtain', () => {
   it('is hidden by the `hidden` attribute alone when closed', () => {
-    const { getByTestId } = render(<MorphCurtain {...base({ open: false })} />);
+    const { getByTestId } = mountCurtain(<MorphCurtain {...base({ open: false })} />);
     expect(getByTestId('morph-curtain').hasAttribute('hidden')).toBe(true);
   });
 
   it('renders the hovered category: label, subcategory discs, names', () => {
-    const { container } = render(<MorphCurtain {...base()} />);
+    const { container } = mountCurtain(<MorphCurtain {...base()} />);
     expect(container.querySelector('.morph-layer__label')?.textContent).toBe('الأثاث');
     const nodes = container.querySelectorAll<HTMLElement>('[data-node-id]');
     expect(nodes).toHaveLength(2);
@@ -144,13 +154,13 @@ describe('MorphCurtain', () => {
   });
 
   it('a childless category shows its honest empty state (rule 9)', () => {
-    const { container } = render(<MorphCurtain {...base({ menu: CHILDLESS as never })} />);
+    const { container } = mountCurtain(<MorphCurtain {...base({ menu: CHILDLESS as never })} />);
     expect(container.querySelector('.morph-layer__empty')?.textContent).toBe(LABELS.noSubs);
   });
 
   it('hover on any disc drills it (delegated —the engine Link carries no hover props)', () => {
     const onDrill = vi.fn();
-    const { container } = render(<MorphCurtain {...base({ onDrill })} />);
+    const { container } = mountCurtain(<MorphCurtain {...base({ onDrill })} />);
     const node = container.querySelector('[data-node-id="12"]') as HTMLElement;
     act(() => {
       fireEvent.mouseOver(node);
@@ -159,7 +169,7 @@ describe('MorphCurtain', () => {
   });
 
   it('marks exactly the focused disc active', () => {
-    const { container } = render(
+    const { container } = mountCurtain(
       <MorphCurtain {...base({ focusId: '12' })} />
     );
     const active = container.querySelectorAll('.morph-node.is-active');
@@ -169,7 +179,7 @@ describe('MorphCurtain', () => {
 
   describe('the slot column', () => {
     it('no rows at all → the theme-defect message (the old triage)', () => {
-      const { container } = render(
+      const { container } = mountCurtain(
         <MorphCurtain {...base({ slots: readSlots(undefined), slotsRaw: undefined })} />
       );
       const empties = container.querySelectorAll('.morph-layer__empty');
@@ -183,7 +193,7 @@ describe('MorphCurtain', () => {
       const lan = [
         { category: [{ value: '/ar/furniture/other' }], type: [{ value: 'image' }], image: '' },
       ];
-      const { container } = render(
+      const { container } = mountCurtain(
         <MorphCurtain {...base({ slots: readSlots(lan), slotsRaw: lan })} />
       );
       const empties = container.querySelectorAll('.morph-layer__empty');
@@ -193,7 +203,7 @@ describe('MorphCurtain', () => {
     });
 
     it('a matching subcategory serves ITS image slot, caption ON the picture', () => {
-      const { container } = render(
+      const { container } = mountCurtain(
         <MorphCurtain
           {...base({ focusId: '11', slots: readSlots(slotsFixtureImage), slotsRaw: slotsFixtureImage })}
         />
@@ -215,7 +225,7 @@ describe('MorphCurtain', () => {
           title: '',
         },
       ];
-      const { container } = render(
+      const { container } = mountCurtain(
         <MorphCurtain {...base({ focusId: '11', slots: readSlots(fixture), slotsRaw: fixture })} />
       );
       expect(container.querySelector('.morph-spotlight__title')?.textContent).toBe('كراسي');
@@ -225,7 +235,7 @@ describe('MorphCurtain', () => {
       const lan = [
         { category: [{ value: '/ar/furniture/c11' }], type: [{ value: 'image' }], image: '' },
       ];
-      const { container } = render(
+      const { container } = mountCurtain(
         <MorphCurtain {...base({ focusId: '11', slots: readSlots(lan), slotsRaw: lan })} />
       );
       // the precise resolver returns null, and the fallback pool cannot use a
@@ -237,7 +247,7 @@ describe('MorphCurtain', () => {
     it('a product slot renders the clamped platform card inside its own box', () => {
       const lan = slotsFixtureProduct;
       ITEMS = [{ id: 555 }];
-      const { container } = render(
+      const { container } = mountCurtain(
         <MorphCurtain {...base({ focusId: '11', slots: readSlots(lan), slotsRaw: lan })} />
       );
       const box = container.querySelector('.morph-spotlight--product') as HTMLElement;
@@ -249,7 +259,7 @@ describe('MorphCurtain', () => {
 
   describe('the featured rectangle below the layers', () => {
     it('follows the hovered MENU with the featured heading + count', () => {
-      const { container } = render(
+      const { container } = mountCurtain(
         <MorphCurtain {...base({ menu: { ...MENU, products: [7, 8, 9] } as never })} />
       );
       const head = container.querySelector('.morph-featured__head');
@@ -261,7 +271,7 @@ describe('MorphCurtain', () => {
     it('an EMPTY-STRING products field is no picks, not a crash (demo-store shape)', () => {
       // 19 of 20 nodes come back as `products: ""`; `.filter` on that threw and
       // the error boundary blanked the storefront
-      const { container } = render(
+      const { container } = mountCurtain(
         <MorphCurtain {...base({ menu: { ...MENU, products: '' } as never })} />
       );
       expect(container.querySelector('.morph-featured__head p')?.textContent).toContain(
@@ -271,7 +281,7 @@ describe('MorphCurtain', () => {
     });
 
     it('a focused sub swaps the rectangle to the focus node', () => {
-      const { container } = render(
+      const { container } = mountCurtain(
         <MorphCurtain {...base({ menu: { ...MENU, products: [9] } as never, focusId: '12' })} />
       );
       expect(container.querySelector('.morph-featured__head p')?.textContent).toContain(
@@ -280,13 +290,13 @@ describe('MorphCurtain', () => {
     });
 
     it('falls back to the category products source (rule 19)', () => {
-      const { container } = render(<MorphCurtain {...base()} />);
+      const { container } = mountCurtain(<MorphCurtain {...base()} />);
       expect(container.querySelector('.morph-featured__head p')?.textContent).toContain('منتجات');
       expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
     });
 
     it('sends the REAL category id — read from the url, never the menu-row id', () => {
-      render(<MorphCurtain {...base()} />);
+      mountCurtain(<MorphCurtain {...base()} />);
       mockLoader?.();
       expect(product.list).toHaveBeenCalledWith(
         expect.objectContaining({ source: 'categories', sourceValue: [1], perPage: 4 })
@@ -294,7 +304,7 @@ describe('MorphCurtain', () => {
     });
 
     it('the focused subcategory falls back to its OWN category id', () => {
-      render(<MorphCurtain {...base({ focusId: '12' })} />);
+      mountCurtain(<MorphCurtain {...base({ focusId: '12' })} />);
       mockLoader?.();
       expect(product.list).toHaveBeenCalledWith(
         expect.objectContaining({ source: 'categories', sourceValue: [12] })
@@ -302,7 +312,7 @@ describe('MorphCurtain', () => {
     });
 
     it('the built-in offers page uses the offers source, which needs no value', () => {
-      const { container } = render(<MorphCurtain {...base({ menu: OFFERS as never })} />);
+      const { container } = mountCurtain(<MorphCurtain {...base({ menu: OFFERS as never })} />);
       expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
       mockLoader?.();
       expect(product.list).toHaveBeenCalledWith(
@@ -312,7 +322,7 @@ describe('MorphCurtain', () => {
 
     it('a node that is not a category page → the honest empty text, no doomed request', () => {
       // its menu-row id would answer 422; the empty state is the honest answer
-      const { container } = render(<MorphCurtain {...base({ menu: CHILDLESS as never })} />);
+      const { container } = mountCurtain(<MorphCurtain {...base({ menu: CHILDLESS as never })} />);
       expect(container.querySelector('.morph-featured__empty')?.textContent).toBe(
         LABELS.emptyFeatured
       );

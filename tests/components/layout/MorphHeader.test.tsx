@@ -36,22 +36,45 @@ vi.mock('@tanstack/react-router', () => ({
     }),
 }));
 
-/* `useQuery` is stubbed to resolve instantly with the fixture payload. */
+/* `useQuery` is stubbed to resolve instantly with the fixture payload. The
+   curtain also reads the category tree through this hook (the
+   menuCategoryIndex enrichment), so the stub keys on the queryKey and hands
+   the menus fixture only to the menus query — everything else resolves as an
+   empty list (no categories → no enrichment effects on these fixtures). */
 vi.mock('@tanstack/react-query', () => ({
-  useQuery: () => ({ data: state.menus ?? MENUS, isLoading: false }),
+  useQuery: (opts: unknown) => {
+    const arg = opts as { queryKey?: unknown[] } | (() => { queryKey: unknown[] });
+    const key = typeof arg === 'function' ? arg().queryKey : arg?.queryKey;
+    const isMenus = Array.isArray(key) && key[0] === 'morph-menus';
+    return { data: isMenus ? (state.menus ?? MENUS) : [], isLoading: false };
+  },
 }));
 
 vi.mock('@salla.sa/twilight-theme-engine/api/menu', () => ({
   menu: { queries: { header: () => ({ queryKey: ['morph-menus'] }) } },
 }));
 
+vi.mock('@salla.sa/twilight-theme-engine/api/category', () => ({
+  category: { queries: { list: () => ({ queryKey: ['morph-categories'] }) } },
+}));
+
 vi.mock('@salla.sa/twilight-theme-engine/providers', () => ({
-  useTwilight: () => ({ store: state.store, theme: state.theme }),
+  useTwilight: () => ({ store: state.store, theme: state.theme, currency: { code: 'SAR' } }),
   useIsHome: () => state.isHome,
+  /* the pill's search navigates; every scenario here renders without a router */
+  useNavigate: () => vi.fn(),
+}));
+
+vi.mock('@salla.sa/twilight-theme-engine/hooks/useMoney', () => ({
+  useMoney: () => ({ format: (value: unknown) => String(value ?? '') }),
+}));
+
+vi.mock('@salla.sa/twilight-theme-engine/api/product', () => ({
+  product: { queries: { list: () => ({ queryKey: ['morph-search'] }) } },
 }));
 
 vi.mock('@salla.sa/twilight-theme-engine/i18n', () => ({
-  useTranslation: () => ({ t: (_k: string, fb?: string) => fb ?? _k }),
+  useTranslation: () => ({ t: (_k: string, fb?: string) => fb ?? _k, locale: 'ar' }),
 }));
 
 vi.mock('@salla.sa/twilight-theme-engine/common', () => ({
@@ -61,6 +84,7 @@ vi.mock('@salla.sa/twilight-theme-engine/common', () => ({
     </a>
   ),
   Image: (props: Record<string, unknown>) => <img alt={String(props.alt ?? '')} src={String(props.src ?? '')} />,
+  CurrencySymbol: ({ currency }: { currency?: string }) => <i data-currency={currency} />,
 }));
 
 vi.mock('@salla.sa/twilight-components-react/menu', () => ({
@@ -327,6 +351,27 @@ describe('MorphHeader', () => {
     state.theme = { settings: { header_layout: 'morph', header_theme_toggle: false } };
     const { queryByTestId } = render(<MorphHeader />);
     expect(queryByTestId('morph-theme-btn')).toBeNull();
+    // and the index does not quietly offer the one the merchant removed
+    expect(queryByTestId('morph-overlay-theme-btn')).toBeNull();
+  });
+
+  /* The phone row cannot hold the pill's 44px chip (measured live: 554px of
+     content in a 317px box), so the same toggle also lives in the burger's
+     index. It must be the SAME switch, not a second state. */
+  it('mirrors the theme toggle inside the burger index (the phone copy)', () => {
+    const { getByTestId } = render(<MorphHeader />);
+    expect(getByTestId('morph-overlay-theme-btn').getAttribute('aria-pressed')).toBe('false');
+    act(() => {
+      fireEvent.click(getByTestId('morph-overlay-theme-btn'));
+    });
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(getByTestId('morph-theme-btn').getAttribute('aria-pressed')).toBe('true');
+    expect(getByTestId('morph-overlay-theme-btn').getAttribute('aria-pressed')).toBe('true');
+    act(() => {
+      fireEvent.click(getByTestId('morph-theme-btn'));
+    });
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(getByTestId('morph-overlay-theme-btn').getAttribute('aria-pressed')).toBe('false');
   });
 
   it('lifts the first home block when it opted into the under-header layer', async () => {

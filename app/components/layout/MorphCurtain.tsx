@@ -1,8 +1,11 @@
-import { Suspense, useCallback } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { MenuItem } from '@salla.sa/twilight-theme-engine/types';
 import { Link } from '@salla.sa/twilight-theme-engine/common';
+import { category } from '@salla.sa/twilight-theme-engine/api/category';
 import { product, type ProductsListSource } from '@salla.sa/twilight-theme-engine/api/product';
+import { buildCategoryIndex, enrichMenuNode } from '../../lib/menuCategoryIndex';
 import { ProductCard } from '../product/ProductCard';
 import { MorphMenuCard, type MenuCardProduct } from '../product/MorphMenuCard';
 import { SallaProductsList, ProductsListSkeleton } from '@salla.sa/twilight-components-react';
@@ -63,6 +66,12 @@ export interface CurtainLabels {
 export interface CurtainMenu extends MenuItem {
   products?: unknown;
   children?: CurtainMenu[];
+  /** the REAL category id behind the row, filled by the title-match enrichment
+      (`menuCategoryIndex.ts`) — a node's own `id` is a menu-ROW id and its url
+      is a store-root link on form-builder menus, so without this the
+      `source="categories"` fallback has nothing to request (rule 29's data
+      half) */
+  categoryId?: number | null;
 }
 
 /* ── one gradient/category disc with its name beneath it ──────────────────── */
@@ -77,23 +86,129 @@ function CurtainNode({
 }) {
   // anything with a url is a LINK, including a category with children (rule 16)
   const navigable = Boolean(node.url);
-  const img = imgSrc(node.image);
+  const getImg = (v: any): string => {
+    if (!v) return '';
+    if (typeof v === 'string') {
+      if (v.startsWith('http') || v.startsWith('/') || v.startsWith('data:')) return v;
+      if (v.length > 10 && (v.includes('.jpg') || v.includes('.png') || v.includes('.webp') || v.includes('.jpeg') || v.includes('.gif'))) return v;
+      return v;
+    }
+    if (Array.isArray(v)) return getImg(v[0]);
+    if (typeof v === 'object') {
+      return (
+        getImg(v.url) ||
+        getImg(v.image) ||
+        getImg(v.src) ||
+        getImg(v.small_url) ||
+        getImg(v.thumbnail) ||
+        getImg(v.value) ||
+        getImg(v.link) ||
+        getImg(v.original) ||
+        getImg(v.file) ||
+        getImg(v.path) ||
+        getImg(v.logo) ||
+        getImg(v.icon) ||
+        getImg(v.img) ||
+        ''
+      );
+    }
+    return '';
+  };
+  let img = '';
+  // Try to get image from various sources
+  img = imgSrc(node.image);
+  if (!img && typeof (node as any).image === 'string' && (node as any).image) {
+    const s = (node as any).image;
+    if (s.startsWith('http') || s.startsWith('/') || s.includes('.')) img = s;
+  }
+  if (!img && typeof (node as any).image === 'object' && (node as any).image?.url) {
+    img = (node as any).image.url;
+  }
+  img = img || imgSrc((node as any).thumbnail);
+  img = img || imgSrc((node as any).icon);
+  img = img || imgSrc((node as any).image_url);
+  img = img || imgSrc((node as any).imageUrl);
+  img = img || imgSrc((node as any).cover);
+  img = img || imgSrc((node as any).media);
+  img = img || imgSrc((node as any).media?.image);
+  img = img || imgSrc((node as any).media?.url);
+  img = img || imgSrc((node as any).banner);
+  img = img || imgSrc((node as any).picture);
+  img = img || imgSrc((node as any).photo);
+  img = img || imgSrc((node as any).featured_image);
+  img = img || imgSrc((node as any).category_image);
+  img = img || imgSrc((node as any).thumb);
+  img = img || imgSrc((node as any).logo);
+  img = img || getImg((node as any).images);
+  img = img || getImg(node);
+  if (!img) {
+    for (const key of Object.keys(node as any)) {
+      const lower = key.toLowerCase();
+      if (lower.includes('image') || lower.includes('img') || lower.includes('photo') || lower.includes('icon') || lower.includes('thumb') || lower.includes('pic') || lower.includes('avatar') || lower.includes('cover') || lower.includes('banner')) {
+        const found = getImg((node as any)[key]);
+        if (found) {
+          img = found;
+          break;
+        }
+      }
+    }
+  }
+  // Deep search as last resort
+  if (!img) {
+    const search = (obj: any, depth = 0): string => {
+      if (!obj || depth > 4) return '';
+      if (typeof obj === 'string') {
+        if (obj.startsWith('http') && (obj.includes('.jpg') || obj.includes('.png') || obj.includes('.jpeg') || obj.includes('.webp') || obj.includes('.gif') || obj.includes('cdn') || obj.includes('images'))) return obj;
+        if ((obj.startsWith('/') && obj.includes('.')) || obj.includes('uploads') || obj.includes('media')) return obj;
+        return '';
+      }
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          const found = search(item, depth + 1);
+          if (found) return found;
+        }
+        return '';
+      }
+      if (typeof obj === 'object') {
+        // Check common image keys first
+        for (const k of ['image', 'url', 'src', 'thumbnail', 'icon', 'photo', 'picture']) {
+          if (obj[k]) {
+            const found = search(obj[k], depth + 1);
+            if (found) return found;
+          }
+        }
+        for (const k of Object.keys(obj)) {
+          const lower = k.toLowerCase();
+          if (lower.includes('image') || lower.includes('img') || lower.includes('photo') || lower.includes('thumb')) {
+            const found = search(obj[k], depth + 1);
+            if (found) return found;
+          }
+        }
+      }
+      return '';
+    };
+    img = search(node);
+  }
   const className = `morph-node morph-node--2${active ? ' is-active' : ''}`;
 
   const media = (
     <span className="morph-node__media">
-      <span className="morph-node__disc">
-        {img && (
-          // a real <img>, never a background-image inside a style attribute —
-          // a bare quote in a style attribute silently dropped the background
-          // and read as "no image configured" (old rule 19)
+      <span className="morph-node__disc" data-img={img || ''} style={img ? { backgroundImage: `url(${img})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
+        {img ? (
           <img
             className="morph-node__img"
             src={img}
             alt=""
             loading="lazy"
             decoding="async"
+            style={{ objectFit: 'cover', width: '100%', height: '100%', display: 'block' }}
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = 'none';
+            }}
           />
+        ) : (
+          <span className="morph-node__img" />
         )}
       </span>
       {Boolean(node.children?.length) && (
@@ -252,7 +367,13 @@ function FeaturedRow({
      travels in the node's url (`categoryIdFromUrl`), the built-in offers page
      has a source of its own, and anything else gets the honest empty state
      instead of a request that cannot succeed. */
-  const categoryId = categoryIdFromUrl(node.url);
+  /* `categoryIdFromUrl` reads the node url — and on form-builder menus that
+     url is the store root, carrying no category id: the title-match
+     enrichment (`menuCategoryIndex.ts`) then supplies the category's raw
+     `id_` as the second source (the node's own `id` is a menu-ROW id and
+     answers 422 — rule 29). The built-in offers page keeps a source of its
+     own; anything else gets the honest empty state. */
+  const categoryId = categoryIdFromUrl(node.url) || node.categoryId || null;
   const offers = !hasFeatured && !categoryId && builtInMenuKind(node) === 'offers';
   const source: ProductsListSource = hasFeatured
     ? 'selected'
@@ -323,7 +444,22 @@ export function MorphCurtain({
   pieces: (n: number) => string;
   onDrill: (node: CurtainMenu) => void;
 }) {
-  const kids = menu?.children ?? [];
+  /* The category tree fills what the menus payload left empty: the store's
+     real tree carries a picture and the raw `id_` on every row, while a
+     form-builder menu item answers `image: ""` and an url without a category
+     id (both measured — see `menuCategoryIndex.ts`). One query, one index;
+     the enrichment NEVER mutates the source rows, it produces a copy, and the
+     merchant's own attached image still wins over the matched one. */
+  const { data: categoryTree } = useQuery(category.queries.list());
+  const categoryIndex = useMemo(
+    () => buildCategoryIndex(categoryTree ?? []),
+    [categoryTree]
+  );
+  const activeMenu = useMemo(
+    () => (menu ? enrichMenuNode(menu, categoryIndex) : null),
+    [menu, categoryIndex]
+  );
+  const kids = activeMenu?.children ?? [];
   const focus = focusId
     ? (kids.find((kid) => String(kid.id) === focusId) ?? null)
     : null;
@@ -364,8 +500,8 @@ export function MorphCurtain({
       >
         <div className="morph-curtain__layers" data-morph-layers>
           <div className="morph-layer">
-            {menu && (
-              <p className="morph-layer__label">{menu.title}</p>
+            {activeMenu && (
+              <p className="morph-layer__label">{activeMenu.title}</p>
             )}
             {kids.length ? (
               <div className="morph-layer__grid">
@@ -379,15 +515,15 @@ export function MorphCurtain({
                 ))}
               </div>
             ) : (
-              menu && <p className="morph-layer__empty">{labels.noSubs}</p>
+              activeMenu && <p className="morph-layer__empty">{labels.noSubs}</p>
             )}
           </div>
           {/* the slot layer keeps its wrapper through every re-render: its
               class IS its grid slot and its plate (rule 18) */}
           <div className="morph-layer" data-morph-dyn="slot">
-            {menu && (
+            {activeMenu && (
               <SlotColumn
-                menu={menu}
+                menu={activeMenu}
                 focus={focus}
                 slots={slots}
                 slotsRaw={slotsRaw}
@@ -396,13 +532,13 @@ export function MorphCurtain({
             )}
           </div>
         </div>
-        {menu && (
+        {activeMenu && (
           /* keyed on the focused node: the old rebuild replaced the dynamic
              region's innerHTML on every category change, which replayed the
              entrances (morphCurtainIn on the featured rectangle) — React keeps
              the wrapper, so a remount is what replays the same transition. */
-          <div data-morph-dyn="featured" key={String((focus ?? menu).id)}>
-            <FeaturedRow node={focus ?? menu} labels={labels} pieces={pieces} />
+          <div data-morph-dyn="featured" key={String((focus ?? activeMenu).id)}>
+            <FeaturedRow node={focus ?? activeMenu} labels={labels} pieces={pieces} />
           </div>
         )}
       </div>
