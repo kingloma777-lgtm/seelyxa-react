@@ -10,6 +10,26 @@ export default defineConfig(async () => ({
     ...(await twilightReact({
       localesDir: './locales',
     })),
+    {
+      // Engine 1.0.133's plugin still lists
+      // "engine > react-i18next > html-parse-stringify > void-elements" as a
+      // client optimizeDeps entry, but html-parse-stringify@4.0.1 has no
+      // dependencies at all — the package is not in the graph, the optimizer
+      // fails to resolve it, and the poisoned pre-bundle then 404s
+      // (the "file does not exist at .vite/deps_ssr/…" overlay on every
+      // restart). Run after the engine's config hook and strip the stale
+      // entry; its parent (html-parse-stringify) is included, so nothing is lost.
+      name: 'seelyxa:strip-stale-optimize-dep',
+      enforce: 'post',
+      config(config) {
+        const include = config.optimizeDeps?.include;
+        if (Array.isArray(include)) {
+          config.optimizeDeps.include = include.filter(
+            (d) => !d.endsWith('> void-elements')
+          );
+        }
+      },
+    },
     visualizer({
       open: false,
       gzipSize: true,
@@ -48,15 +68,17 @@ export default defineConfig(async () => ({
       // optimize the CJS deps that reach SSR: @tanstack/react-query (so the
       // engine's QueryClientProvider and route loaders share one
       // QueryClientContext) and the engine's i18n chain
-      // (react-i18next → html-parse-stringify → void-elements, use-sync-
-      // external-store). Nested paths resolve under pnpm's strict layout.
+      // (react-i18next → html-parse-stringify, use-sync-external-store).
+      // Only the packages resolvable under pnpm's strict layout are listed:
+      // transitive deps (void-elements …) are bundled by the optimizer with
+      // their parent entry automatically — a deeper include path fails to
+      // resolve and poisons the whole pre-bundle (the missing deps_ssr file).
       optimizeDeps: {
         include: [
           '@tanstack/react-query',
           '@salla.sa/twilight-theme-engine > react-i18next',
           '@salla.sa/twilight-theme-engine > i18next',
           '@salla.sa/twilight-theme-engine > react-i18next > html-parse-stringify',
-          '@salla.sa/twilight-theme-engine > react-i18next > html-parse-stringify > void-elements',
           '@salla.sa/twilight-theme-engine > react-i18next > use-sync-external-store',
         ],
       },
