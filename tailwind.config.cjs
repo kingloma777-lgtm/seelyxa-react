@@ -18,6 +18,15 @@ module.exports = {
     // renders them. Twilight web components ship their own CSS since 2.14.538
     // (SallaApp/twilight#2107), so the safelist is no longer compiled here.
     './node_modules/@salla.sa/twilight-components-react/dist/**/*.js',
+    // The web components themselves (salla-modal, salla-localization-modal, …)
+    // render the `s-*` shells (.s-modal-overlay, .s-modal-entering, .s-modal-body,
+    // .s-localization-modal-* …) that the tailwind-theme plugin registers via
+    // addUtilities — and Tailwind compiles a plugin utility only when its class
+    // shows up in the content. Engine 1.0.133's dist no longer carries those
+    // strings and the react wrappers don't either, which is why the localization
+    // modal opened with no styling and never left its "entering" state. Scan the
+    // components' own dist; under pnpm there is no top-level symlink for it.
+    './node_modules/.pnpm/@salla.sa+twilight-componen_*/node_modules/@salla.sa/twilight-components/dist/**/*.js',
   ],
   darkMode: 'class', // or 'media' or 'class'
   theme: {
