@@ -976,21 +976,6 @@ html.theme-transition {
     outline-offset: 2px;
   }
 
-  &__badge {
-    position: absolute;
-    top: -2px;
-    inset-inline-end: -2px;
-    @apply grid place-items-center;
-    min-width: 18px;
-    height: 18px;
-    padding-inline: 4px;
-    border-radius: 999px;
-    background: var(--morph-ink);
-    color: #fff;
-    font-size: 9px;
-    font-weight: 700;
-  }
-
   &__name {
     font-size: 12px;
     line-height: 1.3;
@@ -1088,11 +1073,6 @@ html.theme-transition {
       0 8px 16px -13px rgba(30, 25, 18, 0.45);
   }
 
-  .morph-node__badge {
-    top: 0;
-    inset-inline-end: 0;
-  }
-
   .morph-node__name {
     max-width: 100%;
     padding: 0;
@@ -1160,16 +1140,21 @@ html.theme-transition {
   }
 
   &--product {
-    /* A product slot keeps its own box: the platform card owns its image
-       height, so it must NOT inherit the image card's aspect box (rule 23's
-       slot half). It stays a clamped, centred card. */
+    /* The merchant's PRODUCT slot wears the same mega-menu card the featured
+       rectangle shows (`morph-menu-card`), so the wrapper is a plain
+       transparent seat: the card brings its own white surface, hairline and
+       shadow. `overflow: visible` keeps the half-circle that straddles the
+       card's top edge whole, and the top margin is that circle's clearance —
+       the featured row keeps a 54px one over its grid (rule 23's slot half:
+       the component still owns its internals; we only seat it). */
     aspect-ratio: auto;
-    max-width: 180px;
+    max-width: 210px;
+    margin-block-start: 48px;
     margin-inline: auto;
-    overflow: hidden;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.45);
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
   }
 }
 
@@ -1181,11 +1166,73 @@ html.theme-transition {
 .morph-spotlight--product .s-products-list-wrapper {
   display: block;
   width: 100%;
+  /* the platform list's bottom margin is dead height inside the seat */
+  margin-bottom: 0;
+}
+
+/* ── the featured PRODUCT slot's shine — the "حاجه سبشيل" the merchant asked
+   for. A light band painted INSIDE the card's own face: a background gradient
+   sweeping via `background-position` on a pause-and-repeat cycle, so nothing
+   ever escapes the card box (a transformed band would fly past it) and the
+   highlight never carries a label (rule 28). Scoped to the slot card only —
+   the four featured row cards stay untouched. */
+@keyframes morphSlotSheen {
+  /* RTL store: the band starts past the RIGHT edge and sweeps leftwards */
+  0%,
+  14% {
+    background-position: -40% 0;
+  }
+  46%,
+  100% {
+    background-position: 140% 0;
+  }
+}
+
+.morph-spotlight--product .morph-menu-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 36%,
+    rgba(255, 224, 160, 0.35) 46%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(255, 224, 160, 0.35) 54%,
+    rgba(255, 255, 255, 0) 64%,
+    transparent 100%
+  );
+  background-size: 280% 100%;
+  background-repeat: no-repeat;
+  background-position: -40% 0;
+  animation: morphSlotSheen 6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+  animation-delay: 1.4s;
+}
+
+html.dark .morph-spotlight--product .morph-menu-card::after {
+  /* the dark card is #20262f — the same sweep, a quieter alpha */
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 38%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 62%,
+    transparent 100%
+  );
+  background-size: 280% 100%;
+  background-repeat: no-repeat;
+  background-position: -40% 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .morph-spotlight__img { transition: none; }
   .morph-spotlight:hover .morph-spotlight__img { transform: none; }
+  .morph-spotlight--product .morph-menu-card::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 /* ── featured rectangle — follows the hovered node ───────────────────────── */
@@ -1345,8 +1392,11 @@ html.theme-transition {
 
 /* the mega menu's product card — the merchant's reference design: a circular
    picture breaking out over a white rounded card, the name in bold, two lines
-   of description, the price, then the add-to-cart disc and the wishlist disc */
-.morph-featured .morph-menu-card {
+   of description, the price, then the add-to-cart disc and the wishlist disc.
+   The featured row AND the merchant's product slot (`.morph-spotlight--product`)
+   wear the same card; the slot adds its shine sweep below. */
+.morph-featured .morph-menu-card,
+.morph-spotlight--product .morph-menu-card {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1526,7 +1576,8 @@ html.theme-transition {
   }
 }
 
-html.dark .morph-featured .morph-menu-card {
+html.dark .morph-featured .morph-menu-card,
+html.dark .morph-spotlight--product .morph-menu-card {
   background: #20262f;
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 22px 38px -26px rgba(0, 0, 0, 0.8);
@@ -2591,10 +2642,6 @@ html.dark .morph-node__name {
   color: rgba(255, 255, 255, 0.5);
 }
 
-html.dark .morph-node__badge {
-  color: #14161b;
-}
-
 /* the disc has no surface of its own now (the picture is the surface), so on
    the dark panel the hairline ring is what keeps an unlit photo from bleeding
    into the glass. The hover ring is `--morph-ink`, which is already light here. */
@@ -2620,7 +2667,9 @@ html.dark .morph-featured {
 }
 
 html.dark .morph-spotlight--product {
-  background: #191e26;
+  /* the wrapper is a transparent seat — the dark surface belongs to the card
+     itself (the extended dark `.morph-menu-card` rule above it) */
+  background: transparent;
 }
 
 html.dark .morph-featured .s-product-card-vertical {

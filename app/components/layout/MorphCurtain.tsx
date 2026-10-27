@@ -6,7 +6,6 @@ import { Link } from '@salla.sa/twilight-theme-engine/common';
 import { category } from '@salla.sa/twilight-theme-engine/api/category';
 import { product, type ProductsListSource } from '@salla.sa/twilight-theme-engine/api/product';
 import { buildCategoryIndex, enrichMenuNode } from '../../lib/menuCategoryIndex';
-import { ProductCard } from '../product/ProductCard';
 import { MorphMenuCard, type MenuCardProduct } from '../product/MorphMenuCard';
 import { SallaProductsList, ProductsListSkeleton } from '@salla.sa/twilight-components-react';
 import type { CurtainSlot } from '../../lib/curtainSlots';
@@ -215,9 +214,6 @@ function CurtainNode({
           <span className="morph-node__img" />
         )}
       </span>
-      {Boolean(node.children?.length) && (
-        <span className="morph-node__badge">{node.children!.length}</span>
-      )}
     </span>
   );
   const name = <span className="morph-node__name">{node.title}</span>;
@@ -266,7 +262,10 @@ function SlotProductCard({ productId }: { productId: number }) {
           items
             .slice(0, 1)
             .map((item) => (
-              <ProductCard key={String((item as { id: unknown }).id)} product={item as never} />
+              <MorphMenuCard
+                key={String((item as { id: unknown }).id)}
+                product={item as MenuCardProduct}
+              />
             ))
         }
       </SallaProductsList>
@@ -345,9 +344,11 @@ function SlotColumn({
   if (!id) {
     return <p className="morph-layer__empty">{labels.noSlot}</p>;
   }
-  // The product slot keeps its own card frame — the component owns its image
-  // box, and forcing the aspect box on it is exactly how a platform upgrade
-  // breaks the theme (rule 23's slot half).
+  /* The merchant's PRODUCT slot wears the SAME mega-menu card the featured
+     rectangle shows (`MorphMenuCard`) — plus its own shine, so it reads as a
+     feature and not a stray row card. The wrapper stays inside the spotlight
+     frame (a platform card owns its own internals; forcing the aspect box on
+     it is how a platform upgrade breaks the theme — rule 23's slot half). */
   return (
     <div className="morph-spotlight morph-spotlight--product" data-morph-slot="product">
       <SlotProductCard productId={Number(id)} />

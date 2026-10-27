@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type UserConfig } from 'vite';
 import { twilightReact } from '@salla.sa/twilight-theme-engine/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
@@ -21,8 +21,9 @@ export default defineConfig(async () => ({
       // entry; its parent (html-parse-stringify) is included, so nothing is lost.
       name: 'seelyxa:strip-stale-optimize-dep',
       enforce: 'post',
-      config(config) {
-        const include = config.optimizeDeps?.include;
+      config(config: UserConfig) {
+        config.optimizeDeps ??= {};
+        const include = config.optimizeDeps.include;
         if (Array.isArray(include)) {
           config.optimizeDeps.include = include.filter(
             (d) => !d.endsWith('> void-elements')
