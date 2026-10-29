@@ -29,7 +29,7 @@
       "type": "static",
       "format": "title",
       "id": "static-label2",
-      "value": "<div class='rounded-lg' style='background-color: #21636d; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'> خيارات الهيدر</h6></div>",
+      "value": "<div class='rounded-lg' style='background-color: #21636d; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'> Ø®ÙŠØ§Ø±Ø§Øª Ø§Ù„Ù‡ÙŠØ¯Ø±</h6></div>",
       "variant": "h6"
     },
     {
@@ -37,30 +37,30 @@
       "type": "items",
       "format": "dropdown-list",
       "icon": "sicon-layout-01",
-      "label": "تخطيط الهيدر",
-      "description": "الافتراضي: شريط علوي (روابط + اللغة والعملة والفروع) وقائمة رئيسية أفقية. المبسّط: لوجو في المنتصف وزر قائمة منسدلة. السينمائي (MorphPill): حبة دواء مموهة تتحول عند التمرير مع قائمة كاملة سينمائية.",
+      "label": "ØªØ®Ø·ÙŠØ· Ø§Ù„Ù‡ÙŠØ¯Ø±",
+      "description": "Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠ: Ø´Ø±ÙŠØ· Ø¹Ù„ÙˆÙŠ (Ø±ÙˆØ§Ø¨Ø· + Ø§Ù„Ù„ØºØ© ÙˆØ§Ù„Ø¹Ù…Ù„Ø© ÙˆØ§Ù„ÙØ±ÙˆØ¹) ÙˆÙ‚Ø§Ø¦Ù…Ø© Ø±Ø¦ÙŠØ³ÙŠØ© Ø£ÙÙ‚ÙŠØ©. Ø§Ù„Ù…Ø¨Ø³Ù‘Ø·: Ù„ÙˆØ¬Ùˆ ÙÙŠ Ø§Ù„Ù…Ù†ØªØµÙ ÙˆØ²Ø± Ù‚Ø§Ø¦Ù…Ø© Ù…Ù†Ø³Ø¯Ù„Ø©. Ø§Ù„Ø³ÙŠÙ†Ù…Ø§Ø¦ÙŠ (MorphPill): Ø­Ø¨Ø© Ø¯ÙˆØ§Ø¡ Ù…Ù…ÙˆÙ‡Ø© ØªØªØ­ÙˆÙ„ Ø¹Ù†Ø¯ Ø§Ù„ØªÙ…Ø±ÙŠØ± Ù…Ø¹ Ù‚Ø§Ø¦Ù…Ø© ÙƒØ§Ù…Ù„Ø© Ø³ÙŠÙ†Ù…Ø§Ø¦ÙŠØ©.",
       "source": "Manual",
       "required": true,
       "selected": [
         {
-          "label": "المبسّط (Lite)",
+          "label": "Ø§Ù„Ù…Ø¨Ø³Ù‘Ø· (Lite)",
           "value": "lite",
           "key": "header-layout-lite"
         }
       ],
       "options": [
         {
-          "label": "المبسّط (Lite)",
+          "label": "Ø§Ù„Ù…Ø¨Ø³Ù‘Ø· (Lite)",
           "value": "lite",
           "key": "header-layout-lite"
         },
         {
-          "label": "الافتراضي (Default)",
+          "label": "Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠ (Default)",
           "value": "default",
           "key": "header-layout-default"
         },
         {
-          "label": "السينمائي (MorphPill)",
+          "label": "Ø§Ù„Ø³ÙŠÙ†Ù…Ø§Ø¦ÙŠ (MorphPill)",
           "value": "morph",
           "key": "header-layout-morph"
         }
@@ -71,7 +71,7 @@
       "id": "static-label-morph-header",
       "format": "title",
       "variant": "h6",
-      "value": "<div class='rounded-lg' style='background-color: #21636d; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'> خيارات الهيدر السينمائي (MorphPill)</h6></div>",
+      "value": "<div class='rounded-lg' style='background-color: #21636d; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'> Ø®ÙŠØ§Ø±Ø§Øª Ø§Ù„Ù‡ÙŠØ¯Ø± Ø§Ù„Ø³ÙŠÙ†Ù…Ø§Ø¦ÙŠ (MorphPill)</h6></div>",
       "conditions": [
         {
           "id": "header_layout",
@@ -85,8 +85,8 @@
       "key": "3dbc16fc-5482-4178-8c83-12a87662fad8",
       "type": "boolean",
       "format": "switch",
-      "label": "زر الوضع الليلي / النهاري",
-      "description": "إظهار زر تبديل الوضع الليلي في الهيدر بجانب زر البحث. الزائر يقدر يبدّل الوضع بنفسه، والاختيار بيتحفظ في متصفحه",
+      "label": "Ø²Ø± Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ù„ÙŠÙ„ÙŠ / Ø§Ù„Ù†Ù‡Ø§Ø±ÙŠ",
+      "description": "Ø¥Ø¸Ù‡Ø§Ø± Ø²Ø± ØªØ¨Ø¯ÙŠÙ„ Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ù„ÙŠÙ„ÙŠ ÙÙŠ Ø§Ù„Ù‡ÙŠØ¯Ø± Ø¨Ø¬Ø§Ù†Ø¨ Ø²Ø± Ø§Ù„Ø¨Ø­Ø«. Ø§Ù„Ø²Ø§Ø¦Ø± ÙŠÙ‚Ø¯Ø± ÙŠØ¨Ø¯Ù‘Ù„ Ø§Ù„ÙˆØ¶Ø¹ Ø¨Ù†ÙØ³Ù‡ØŒ ÙˆØ§Ù„Ø§Ø®ØªÙŠØ§Ø± Ø¨ÙŠØªØ­ÙØ¸ ÙÙŠ Ù…ØªØµÙØ­Ù‡",
       "icon": "sicon-toggle-off",
       "required": false,
       "value": true,
@@ -102,8 +102,8 @@
     {
       "type": "string",
       "icon": "sicon-format-color-text",
-      "label": "اللون الأساسي لخلفية الشريط الزجاجي للهيدر",
-      "description": "اللون الأساسي لخلفية الشريط الزجاجي (شفافيته من الخيار التالي)",
+      "label": "Ø§Ù„Ù„ÙˆÙ† Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ Ù„Ø®Ù„ÙÙŠØ© Ø§Ù„Ø´Ø±ÙŠØ· Ø§Ù„Ø²Ø¬Ø§Ø¬ÙŠ Ù„Ù„Ù‡ÙŠØ¯Ø±",
+      "description": "Ø§Ù„Ù„ÙˆÙ† Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ Ù„Ø®Ù„ÙÙŠØ© Ø§Ù„Ø´Ø±ÙŠØ· Ø§Ù„Ø²Ø¬Ø§Ø¬ÙŠ (Ø´ÙØ§ÙÙŠØªÙ‡ Ù…Ù† Ø§Ù„Ø®ÙŠØ§Ø± Ø§Ù„ØªØ§Ù„ÙŠ)",
       "id": "header_glass_color",
       "format": "color",
       "required": false,
@@ -119,8 +119,8 @@
     {
       "type": "number",
       "icon": "sicon-opacity",
-      "label": "نسبة شفافية خلفية الشريط الزجاجي للهيدر",
-      "description": "كلما زادت القيمة أصبحت الخلفية أغمق وأقل شفافية",
+      "label": "Ù†Ø³Ø¨Ø© Ø´ÙØ§ÙÙŠØ© Ø®Ù„ÙÙŠØ© Ø§Ù„Ø´Ø±ÙŠØ· Ø§Ù„Ø²Ø¬Ø§Ø¬ÙŠ Ù„Ù„Ù‡ÙŠØ¯Ø±",
+      "description": "ÙƒÙ„Ù…Ø§ Ø²Ø§Ø¯Øª Ø§Ù„Ù‚ÙŠÙ…Ø© Ø£ØµØ¨Ø­Øª Ø§Ù„Ø®Ù„ÙÙŠØ© Ø£ØºÙ…Ù‚ ÙˆØ£Ù‚Ù„ Ø´ÙØ§ÙÙŠØ©",
       "id": "header_glass_opacity",
       "format": "slider",
       "required": false,
@@ -139,8 +139,8 @@
     {
       "type": "number",
       "icon": "sicon-brightness",
-      "label": "درجة ضبابية الخلفية خلف الهيدر أثناء التمرير",
-      "description": "درجة تمويه المحتوى الذي يمر خلف الشريط الزجاجي للهيدر",
+      "label": "Ø¯Ø±Ø¬Ø© Ø¶Ø¨Ø§Ø¨ÙŠØ© Ø§Ù„Ø®Ù„ÙÙŠØ© Ø®Ù„Ù Ø§Ù„Ù‡ÙŠØ¯Ø± Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„ØªÙ…Ø±ÙŠØ±",
+      "description": "Ø¯Ø±Ø¬Ø© ØªÙ…ÙˆÙŠÙ‡ Ø§Ù„Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ø°ÙŠ ÙŠÙ…Ø± Ø®Ù„Ù Ø§Ù„Ø´Ø±ÙŠØ· Ø§Ù„Ø²Ø¬Ø§Ø¬ÙŠ Ù„Ù„Ù‡ÙŠØ¯Ø±",
       "id": "header_blur",
       "format": "slider",
       "required": false,
@@ -159,8 +159,8 @@
     {
       "type": "string",
       "icon": "sicon-format-color-text",
-      "label": "لون نصوص الهيدر وأيقوناته وروابط القائمة",
-      "description": "يحدد لون عناوين ونصوص الهيدر وأيقوناته لتنسّق مع ألوان موقعك العام",
+      "label": "Ù„ÙˆÙ† Ù†ØµÙˆØµ Ø§Ù„Ù‡ÙŠØ¯Ø± ÙˆØ£ÙŠÙ‚ÙˆÙ†Ø§ØªÙ‡ ÙˆØ±ÙˆØ§Ø¨Ø· Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©",
+      "description": "ÙŠØ­Ø¯Ø¯ Ù„ÙˆÙ† Ø¹Ù†Ø§ÙˆÙŠÙ† ÙˆÙ†ØµÙˆØµ Ø§Ù„Ù‡ÙŠØ¯Ø± ÙˆØ£ÙŠÙ‚ÙˆÙ†Ø§ØªÙ‡ Ù„ØªÙ†Ø³Ù‘Ù‚ Ù…Ø¹ Ø£Ù„ÙˆØ§Ù† Ù…ÙˆÙ‚Ø¹Ùƒ Ø§Ù„Ø¹Ø§Ù…",
       "id": "header_text_color",
       "format": "color",
       "required": false,
@@ -176,8 +176,8 @@
     {
       "type": "number",
       "icon": "sicon-font-size",
-      "label": "حجم خط روابط القائمة الرئيسية في الهيدر",
-      "description": "يحدد الحجم المناسب لخط روابط القائمة الرئيسية داخل الشريط العلوي للهيدر",
+      "label": "Ø­Ø¬Ù… Ø®Ø· Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© ÙÙŠ Ø§Ù„Ù‡ÙŠØ¯Ø±",
+      "description": "ÙŠØ­Ø¯Ø¯ Ø§Ù„Ø­Ø¬Ù… Ø§Ù„Ù…Ù†Ø§Ø³Ø¨ Ù„Ø®Ø· Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© Ø¯Ø§Ø®Ù„ Ø§Ù„Ø´Ø±ÙŠØ· Ø§Ù„Ø¹Ù„ÙˆÙŠ Ù„Ù„Ù‡ÙŠØ¯Ø±",
       "id": "header_nav_font_size",
       "format": "slider",
       "required": false,
@@ -198,40 +198,40 @@
       "key": "7f3c62b1-99ad-4e8c-b4d0-7f19ae0d2a11",
       "type": "items",
       "format": "dropdown-list",
-      "label": "وزن خط روابط القائمة الرئيسية (سمك الحروف)",
-      "description": "يحدد سمك خط روابط القائمة الرئيسية مثل عريض أو نحيف لإبراز العناوين",
+      "label": "ÙˆØ²Ù† Ø®Ø· Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© (Ø³Ù…Ùƒ Ø§Ù„Ø­Ø±ÙˆÙ)",
+      "description": "ÙŠØ­Ø¯Ø¯ Ø³Ù…Ùƒ Ø®Ø· Ø±ÙˆØ§Ø¨Ø· Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© Ù…Ø«Ù„ Ø¹Ø±ÙŠØ¶ Ø£Ùˆ Ù†Ø­ÙŠÙ Ù„Ø¥Ø¨Ø±Ø§Ø² Ø§Ù„Ø¹Ù†Ø§ÙˆÙŠÙ†",
       "icon": "sicon-format-bold",
       "required": false,
       "selected": [
         {
-          "label": "عريض (افتراضي)",
+          "label": "Ø¹Ø±ÙŠØ¶ (Ø§ÙØªØ±Ø§Ø¶ÙŠ)",
           "value": "700",
           "key": "c8e4a9d0-11be-47c6-9e52-3a6b70d1f4c2"
         }
       ],
       "options": [
         {
-          "label": "نحيف",
+          "label": "Ù†Ø­ÙŠÙ",
           "value": "400",
           "key": "0f8d3c1e-7c9a-4d2f-b8a5-66e10b93f7d1"
         },
         {
-          "label": "متوسط",
+          "label": "Ù…ØªÙˆØ³Ø·",
           "value": "500",
           "key": "539ebd62-19c4-4a81-8d7f-2b4c8e5a6d0e"
         },
         {
-          "label": "عريض (افتراضي)",
+          "label": "Ø¹Ø±ÙŠØ¶ (Ø§ÙØªØ±Ø§Ø¶ÙŠ)",
           "value": "700",
           "key": "c8e4a9d0-11be-47c6-9e52-3a6b70d1f4c2"
         },
         {
-          "label": "أثقل",
+          "label": "Ø£Ø«Ù‚Ù„",
           "value": "800",
           "key": "ea7c91f4-8b2e-41d3-9c60-5f8a6d2e71b3"
         },
         {
-          "label": "أسود",
+          "label": "Ø£Ø³ÙˆØ¯",
           "value": "900",
           "key": "42f9b78e-3a6d-4f5b-81c9-7e0a4d2b8a65"
         }
@@ -250,30 +250,30 @@
       "key": "0bba5753-b10b-4925-b58d-c4339adaf988",
       "type": "items",
       "format": "dropdown-list",
-      "label": "أيقونة زر قائمة الموبايل",
-      "description": "أيقونة زر القائمة (برجر) الذي يفتح الفهرس السينمائي الكامل على الشاشات الصغيرة",
+      "label": "Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø²Ø± Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…ÙˆØ¨Ø§ÙŠÙ„",
+      "description": "Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø²Ø± Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© (Ø¨Ø±Ø¬Ø±) Ø§Ù„Ø°ÙŠ ÙŠÙØªØ­ Ø§Ù„ÙÙ‡Ø±Ø³ Ø§Ù„Ø³ÙŠÙ†Ù…Ø§Ø¦ÙŠ Ø§Ù„ÙƒØ§Ù…Ù„ Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø§Ø´Ø§Øª Ø§Ù„ØµØºÙŠØ±Ø©",
       "icon": "sicon-menu",
       "required": false,
       "selected": [
         {
-          "label": "التصميم — ثلاثة خطوط",
+          "label": "Ø§Ù„ØªØµÙ…ÙŠÙ… â€” Ø«Ù„Ø§Ø«Ø© Ø®Ø·ÙˆØ·",
           "value": "menu",
           "key": "44672624-30a8-405d-b9d5-65743f64634f"
         }
       ],
       "options": [
         {
-          "label": "التصميم — ثلاثة خطوط",
+          "label": "Ø§Ù„ØªØµÙ…ÙŠÙ… â€” Ø«Ù„Ø§Ø«Ø© Ø®Ø·ÙˆØ·",
           "value": "menu",
           "key": "44672624-30a8-405d-b9d5-65743f64634f"
         },
         {
-          "label": "Salla — قائمة",
+          "label": "Salla â€” Ù‚Ø§Ø¦Ù…Ø©",
           "value": "sicon-menu",
           "key": "e7cfe599-9a63-4064-92f1-a551be688002"
         },
         {
-          "label": "Salla — كيبورد",
+          "label": "Salla â€” ÙƒÙŠØ¨ÙˆØ±Ø¯",
           "value": "sicon-keyboard",
           "key": "91891bc2-5085-4b9f-8ce0-4f0cafb529a8"
         }
@@ -292,30 +292,30 @@
       "key": "b92d9f76-d676-4bbd-9dc2-2651e0694fed",
       "type": "items",
       "format": "dropdown-list",
-      "label": "أيقونة حسابي",
-      "description": "أيقونة زر حساب العميل (الإشعارات والطلبات والمفضلة) في الهيدر",
+      "label": "Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø­Ø³Ø§Ø¨ÙŠ",
+      "description": "Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø²Ø± Ø­Ø³Ø§Ø¨ Ø§Ù„Ø¹Ù…ÙŠÙ„ (Ø§Ù„Ø¥Ø´Ø¹Ø§Ø±Ø§Øª ÙˆØ§Ù„Ø·Ù„Ø¨Ø§Øª ÙˆØ§Ù„Ù…ÙØ¶Ù„Ø©) ÙÙŠ Ø§Ù„Ù‡ÙŠØ¯Ø±",
       "icon": "sicon-user",
       "required": false,
       "selected": [
         {
-          "label": "التصميم — مستخدم",
+          "label": "Ø§Ù„ØªØµÙ…ÙŠÙ… â€” Ù…Ø³ØªØ®Ø¯Ù…",
           "value": "user",
           "key": "700deef8-a0ed-4b5c-b828-402159ba5e44"
         }
       ],
       "options": [
         {
-          "label": "التصميم — مستخدم",
+          "label": "Ø§Ù„ØªØµÙ…ÙŠÙ… â€” Ù…Ø³ØªØ®Ø¯Ù…",
           "value": "user",
           "key": "700deef8-a0ed-4b5c-b828-402159ba5e44"
         },
         {
-          "label": "التصميم — قلب",
+          "label": "Ø§Ù„ØªØµÙ…ÙŠÙ… â€” Ù‚Ù„Ø¨",
           "value": "heart",
           "key": "1ba78aac-002e-48ce-832b-d44d47579723"
         },
         {
-          "label": "Salla — مستخدم",
+          "label": "Salla â€” Ù…Ø³ØªØ®Ø¯Ù…",
           "value": "sicon-user",
           "key": "db9e51a9-4341-4077-8957-b7b2a13e67b1"
         }
@@ -334,25 +334,25 @@
       "key": "1e943c67-cf9d-4e60-8d7d-26298fb8b3e8",
       "type": "items",
       "format": "dropdown-list",
-      "label": "أيقونة زر البحث",
-      "description": "أيقونة زر البحث في الهيدر، وهي التي تتحول لحقل عند الضغط",
+      "label": "Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø²Ø± Ø§Ù„Ø¨Ø­Ø«",
+      "description": "Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø²Ø± Ø§Ù„Ø¨Ø­Ø« ÙÙŠ Ø§Ù„Ù‡ÙŠØ¯Ø±ØŒ ÙˆÙ‡ÙŠ Ø§Ù„ØªÙŠ ØªØªØ­ÙˆÙ„ Ù„Ø­Ù‚Ù„ Ø¹Ù†Ø¯ Ø§Ù„Ø¶ØºØ·",
       "icon": "sicon-search",
       "required": false,
       "selected": [
         {
-          "label": "التصميم — عدسة",
+          "label": "Ø§Ù„ØªØµÙ…ÙŠÙ… â€” Ø¹Ø¯Ø³Ø©",
           "value": "search",
           "key": "4281d682-892d-47c4-a397-506abe8ef752"
         }
       ],
       "options": [
         {
-          "label": "التصميم — عدسة",
+          "label": "Ø§Ù„ØªØµÙ…ÙŠÙ… â€” Ø¹Ø¯Ø³Ø©",
           "value": "search",
           "key": "4281d682-892d-47c4-a397-506abe8ef752"
         },
         {
-          "label": "Salla — بحث",
+          "label": "Salla â€” Ø¨Ø­Ø«",
           "value": "sicon-search",
           "key": "62ded55c-f050-415a-a711-0bfde3f94cbe"
         }
@@ -371,30 +371,30 @@
       "key": "583fe25d-3150-49f7-9ad8-8e6859a3d7ee",
       "type": "items",
       "format": "dropdown-list",
-      "label": "أيقونة الإغلاق",
-      "description": "أيقونة الإغلاق (×) المستخدمة في البحث والقائمة الكاملة",
+      "label": "Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ø¥ØºÙ„Ø§Ù‚",
+      "description": "Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ø¥ØºÙ„Ø§Ù‚ (Ã—) Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…Ø© ÙÙŠ Ø§Ù„Ø¨Ø­Ø« ÙˆØ§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„ÙƒØ§Ù…Ù„Ø©",
       "icon": "sicon-cancel",
       "required": false,
       "selected": [
         {
-          "label": "التصميم — ×",
+          "label": "Ø§Ù„ØªØµÙ…ÙŠÙ… â€” Ã—",
           "value": "x",
           "key": "19ec4764-1157-4a6f-9a4c-aea53d010dba"
         }
       ],
       "options": [
         {
-          "label": "التصميم — ×",
+          "label": "Ø§Ù„ØªØµÙ…ÙŠÙ… â€” Ã—",
           "value": "x",
           "key": "19ec4764-1157-4a6f-9a4c-aea53d010dba"
         },
         {
-          "label": "Salla — إلغاء",
+          "label": "Salla â€” Ø¥Ù„ØºØ§Ø¡",
           "value": "sicon-cancel",
           "key": "fb9bbe38-0195-4ab6-8b2c-15165c98623f"
         },
         {
-          "label": "Salla — دائرة إلغاء",
+          "label": "Salla â€” Ø¯Ø§Ø¦Ø±Ø© Ø¥Ù„ØºØ§Ø¡",
           "value": "sicon-cancel-circle",
           "key": "64068bbd-9653-405d-be80-e95ba62561c3"
         }
@@ -412,14 +412,14 @@
       "type": "static",
       "format": "title",
       "id": "static-title-hf-curtain",
-      "value": "خانات الميجا منيو (الدائرة الثالثة)",
+      "value": "Ø®Ø§Ù†Ø§Øª Ø§Ù„Ù…ÙŠØ¬Ø§ Ù…Ù†ÙŠÙˆ (Ø§Ù„Ø¯Ø§Ø¦Ø±Ø© Ø§Ù„Ø«Ø§Ù„Ø«Ø©)",
       "variant": "h6"
     },
     {
       "type": "static",
       "format": "description",
       "id": "static-desc-hf-curtain",
-      "value": "سلة تدعم مستويين من التصنيفات فقط، لذلك الدائرة الثالثة لا تُبنى من التصنيفات. اربط كل خانة بتصنيف، وستظهر تلقائياً في الميجا منيو عند التمرير على ذلك التصنيف أو على أحد فروعه. الخانة إما منتج مميز أو صورة."
+      "value": "Ø³Ù„Ø© ØªØ¯Ø¹Ù… Ù…Ø³ØªÙˆÙŠÙŠÙ† Ù…Ù† Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª ÙÙ‚Ø·ØŒ Ù„Ø°Ù„Ùƒ Ø§Ù„Ø¯Ø§Ø¦Ø±Ø© Ø§Ù„Ø«Ø§Ù„Ø«Ø© Ù„Ø§ ØªÙØ¨Ù†Ù‰ Ù…Ù† Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª. Ø§Ø±Ø¨Ø· ÙƒÙ„ Ø®Ø§Ù†Ø© Ø¨ØªØµÙ†ÙŠÙØŒ ÙˆØ³ØªØ¸Ù‡Ø± ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ ÙÙŠ Ø§Ù„Ù…ÙŠØ¬Ø§ Ù…Ù†ÙŠÙˆ Ø¹Ù†Ø¯ Ø§Ù„ØªÙ…Ø±ÙŠØ± Ø¹Ù„Ù‰ Ø°Ù„Ùƒ Ø§Ù„ØªØµÙ†ÙŠÙ Ø£Ùˆ Ø¹Ù„Ù‰ Ø£Ø­Ø¯ ÙØ±ÙˆØ¹Ù‡. Ø§Ù„Ø®Ø§Ù†Ø© Ø¥Ù…Ø§ Ù…Ù†ØªØ¬ Ù…Ù…ÙŠØ² Ø£Ùˆ ØµÙˆØ±Ø©."
     },
     {
       "id": "curtain_slots",
@@ -429,8 +429,8 @@
       "required": false,
       "minLength": 0,
       "maxLength": 12,
-      "label": "خانات مميزة",
-      "item_label": "خانة مميزة",
+      "label": "Ø®Ø§Ù†Ø§Øª Ù…Ù…ÙŠØ²Ø©",
+      "item_label": "Ø®Ø§Ù†Ø© Ù…Ù…ÙŠØ²Ø©",
       "value": [],
       "fields": [
         {
@@ -439,14 +439,14 @@
           "format": "variable-list",
           "searchable": true,
           "source": "custom",
-          "label": "التصنيف",
+          "label": "Ø§Ù„ØªØµÙ†ÙŠÙ",
           "icon": "sicon-categories",
           "required": true,
           "value": null,
-          "description": "التصنيف الذي تظهر عنده هذه الخانة. يقبل التصنيف الرئيسي أو أي تصنيف فرعي.",
+          "description": "Ø§Ù„ØªØµÙ†ÙŠÙ Ø§Ù„Ø°ÙŠ ØªØ¸Ù‡Ø± Ø¹Ù†Ø¯Ù‡ Ù‡Ø°Ù‡ Ø§Ù„Ø®Ø§Ù†Ø©. ÙŠÙ‚Ø¨Ù„ Ø§Ù„ØªØµÙ†ÙŠÙ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ Ø£Ùˆ Ø£ÙŠ ØªØµÙ†ÙŠÙ ÙØ±Ø¹ÙŠ.",
           "sources": [
             {
-              "label": "تصنيف",
+              "label": "ØªØµÙ†ÙŠÙ",
               "key": "categories",
               "value": "categories"
             }
@@ -456,24 +456,24 @@
           "id": "curtain_slots.type",
           "type": "items",
           "format": "dropdown-list",
-          "label": "نوع الخانة",
+          "label": "Ù†ÙˆØ¹ Ø§Ù„Ø®Ø§Ù†Ø©",
           "icon": "sicon-list",
           "required": true,
           "selected": [
             {
-              "label": "منتج مميز",
+              "label": "Ù…Ù†ØªØ¬ Ù…Ù…ÙŠØ²",
               "value": "product",
               "key": "ac95b47d-f001-4c71-a6ad-2d4dd4303b57"
             }
           ],
           "options": [
             {
-              "label": "منتج مميز",
+              "label": "Ù…Ù†ØªØ¬ Ù…Ù…ÙŠØ²",
               "value": "product",
               "key": "ac95b47d-f001-4c71-a6ad-2d4dd4303b57"
             },
             {
-              "label": "صورة",
+              "label": "ØµÙˆØ±Ø©",
               "value": "image",
               "key": "4c2ad549-4122-4398-b1a6-65ba5548358c"
             }
@@ -486,14 +486,14 @@
           "format": "variable-list",
           "searchable": true,
           "source": "custom",
-          "label": "المنتج المميز",
+          "label": "Ø§Ù„Ù…Ù†ØªØ¬ Ø§Ù„Ù…Ù…ÙŠØ²",
           "icon": "sicon-product",
           "required": false,
           "value": null,
-          "description": "يُستخدم عندما يكون النوع «منتج مميز».",
+          "description": "ÙŠÙØ³ØªØ®Ø¯Ù… Ø¹Ù†Ø¯Ù…Ø§ ÙŠÙƒÙˆÙ† Ø§Ù„Ù†ÙˆØ¹ Â«Ù…Ù†ØªØ¬ Ù…Ù…ÙŠØ²Â».",
           "sources": [
             {
-              "label": "منتج",
+              "label": "Ù…Ù†ØªØ¬",
               "key": "products",
               "value": "products"
             }
@@ -503,32 +503,32 @@
           "id": "curtain_slots.image",
           "type": "string",
           "format": "image",
-          "label": "صورة الخانة",
+          "label": "ØµÙˆØ±Ø© Ø§Ù„Ø®Ø§Ù†Ø©",
           "icon": "sicon-image",
           "required": false,
           "value": null,
-          "description": "تُستخدم عندما يكون النوع «صورة»."
+          "description": "ØªÙØ³ØªØ®Ø¯Ù… Ø¹Ù†Ø¯Ù…Ø§ ÙŠÙƒÙˆÙ† Ø§Ù„Ù†ÙˆØ¹ Â«ØµÙˆØ±Ø©Â»."
         },
         {
           "id": "curtain_slots.title",
           "type": "string",
           "format": "text",
-          "label": "عنوان الخانة (للصور فقط)",
+          "label": "Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø®Ø§Ù†Ø© (Ù„Ù„ØµÙˆØ± ÙÙ‚Ø·)",
           "icon": "sicon-typography",
           "required": false,
           "value": null,
           "minLength": 0,
           "maxLength": 60,
-          "placeholder": "مثال: الأكثر مبيعاً",
-          "description": "يظهر أسفل الصورة. عند اختيار نوع «منتج مميز» يتجاهل هذا الحقل ويعرض اسم المنتج نفسه."
+          "placeholder": "Ù…Ø«Ø§Ù„: Ø§Ù„Ø£ÙƒØ«Ø± Ù…Ø¨ÙŠØ¹Ø§Ù‹",
+          "description": "ÙŠØ¸Ù‡Ø± Ø£Ø³ÙÙ„ Ø§Ù„ØµÙˆØ±Ø©. Ø¹Ù†Ø¯ Ø§Ø®ØªÙŠØ§Ø± Ù†ÙˆØ¹ Â«Ù…Ù†ØªØ¬ Ù…Ù…ÙŠØ²Â» ÙŠØªØ¬Ø§Ù‡Ù„ Ù‡Ø°Ø§ Ø§Ù„Ø­Ù‚Ù„ ÙˆÙŠØ¹Ø±Ø¶ Ø§Ø³Ù… Ø§Ù„Ù…Ù†ØªØ¬ Ù†ÙØ³Ù‡."
         }
       ]
     },
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "عرض القائمة الرئيسية في سطر واحد مع قائمة «المزيد»",
-      "description": "الروابط التي لا تتسع في السطر تنتقل إلى قائمة منسدلة باسم «المزيد» في آخر القائمة. عند الإيقاف تمتد القائمة على أكثر من سطر.",
+      "label": "Ø¹Ø±Ø¶ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© ÙÙŠ Ø³Ø·Ø± ÙˆØ§Ø­Ø¯ Ù…Ø¹ Ù‚Ø§Ø¦Ù…Ø© Â«Ø§Ù„Ù…Ø²ÙŠØ¯Â»",
+      "description": "Ø§Ù„Ø±ÙˆØ§Ø¨Ø· Ø§Ù„ØªÙŠ Ù„Ø§ ØªØªØ³Ø¹ ÙÙŠ Ø§Ù„Ø³Ø·Ø± ØªÙ†ØªÙ‚Ù„ Ø¥Ù„Ù‰ Ù‚Ø§Ø¦Ù…Ø© Ù…Ù†Ø³Ø¯Ù„Ø© Ø¨Ø§Ø³Ù… Â«Ø§Ù„Ù…Ø²ÙŠØ¯Â» ÙÙŠ Ø¢Ø®Ø± Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©. Ø¹Ù†Ø¯ Ø§Ù„Ø¥ÙŠÙ‚Ø§Ù ØªÙ…ØªØ¯ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø¹Ù„Ù‰ Ø£ÙƒØ«Ø± Ù…Ù† Ø³Ø·Ø±.",
       "id": "enable_more_menu",
       "format": "switch",
       "required": false,
@@ -545,8 +545,8 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "عرض معلومات المتجر أسفل الشريط الرئيسي",
-      "description": "اسم المتجر ووصفه وروابط التواصل الاجتماعي وبيانات التواصل أسفل اللوجو (في الهيدر المبسّط فقط)",
+      "label": "Ø¹Ø±Ø¶ Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ù…ØªØ¬Ø± Ø£Ø³ÙÙ„ Ø§Ù„Ø´Ø±ÙŠØ· Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ",
+      "description": "Ø§Ø³Ù… Ø§Ù„Ù…ØªØ¬Ø± ÙˆÙˆØµÙÙ‡ ÙˆØ±ÙˆØ§Ø¨Ø· Ø§Ù„ØªÙˆØ§ØµÙ„ Ø§Ù„Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠ ÙˆØ¨ÙŠØ§Ù†Ø§Øª Ø§Ù„ØªÙˆØ§ØµÙ„ Ø£Ø³ÙÙ„ Ø§Ù„Ù„ÙˆØ¬Ùˆ (ÙÙŠ Ø§Ù„Ù‡ÙŠØ¯Ø± Ø§Ù„Ù…Ø¨Ø³Ù‘Ø· ÙÙ‚Ø·)",
       "id": "header_show_store_info",
       "format": "switch",
       "required": false,
@@ -563,8 +563,8 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "عرض معلومات المتجر في الصفحة الرئيسية فقط",
-      "description": "عند إلغاء التفعيل تظهر معلومات المتجر في جميع الصفحات",
+      "label": "Ø¹Ø±Ø¶ Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ù…ØªØ¬Ø± ÙÙŠ Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© ÙÙ‚Ø·",
+      "description": "Ø¹Ù†Ø¯ Ø¥Ù„ØºØ§Ø¡ Ø§Ù„ØªÙØ¹ÙŠÙ„ ØªØ¸Ù‡Ø± Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ù…ØªØ¬Ø± ÙÙŠ Ø¬Ù…ÙŠØ¹ Ø§Ù„ØµÙØ­Ø§Øª",
       "id": "header_store_info_home_only",
       "format": "switch",
       "required": false,
@@ -585,8 +585,8 @@
     },
     {
       "id": "header_is_sticky",
-      "label": "تثبت القائمة الرئيسية أعلى الصفحة عند التمرير لأسفل",
-      "description": "يُنصح بالغاء تفعيلها في حالة وجود عناصر كثيرة في القائمة المنسدلة",
+      "label": "ØªØ«Ø¨Øª Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© Ø£Ø¹Ù„Ù‰ Ø§Ù„ØµÙØ­Ø© Ø¹Ù†Ø¯ Ø§Ù„ØªÙ…Ø±ÙŠØ± Ù„Ø£Ø³ÙÙ„",
+      "description": "ÙŠÙÙ†ØµØ­ Ø¨Ø§Ù„ØºØ§Ø¡ ØªÙØ¹ÙŠÙ„Ù‡Ø§ ÙÙŠ Ø­Ø§Ù„Ø© ÙˆØ¬ÙˆØ¯ Ø¹Ù†Ø§ØµØ± ÙƒØ«ÙŠØ±Ø© ÙÙŠ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…Ù†Ø³Ø¯Ù„Ø©",
       "type": "boolean",
       "icon": "sicon-toggle-off",
       "format": "switch",
@@ -597,7 +597,7 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "شريط علوي داكن",
+      "label": "Ø´Ø±ÙŠØ· Ø¹Ù„ÙˆÙŠ Ø¯Ø§ÙƒÙ†",
       "description": null,
       "id": "topnav_is_dark",
       "format": "switch",
@@ -614,25 +614,25 @@
       "id": "squar_photo_bg_image_size",
       "type": "items",
       "format": "dropdown-list",
-      "label": "طريقة عرض الصور في قسم قائمة عناصر ",
+      "label": "Ø·Ø±ÙŠÙ‚Ø© Ø¹Ø±Ø¶ Ø§Ù„ØµÙˆØ± ÙÙŠ Ù‚Ø³Ù… Ù‚Ø§Ø¦Ù…Ø© Ø¹Ù†Ø§ØµØ± ",
       "description": null,
       "labelHTML": null,
       "icon": "sicon-list",
       "selected": [
         {
-          "label": "اظهار الصورة كاملةً في المنتصف (Contain)",
+          "label": "Ø§Ø¸Ù‡Ø§Ø± Ø§Ù„ØµÙˆØ±Ø© ÙƒØ§Ù…Ù„Ø©Ù‹ ÙÙŠ Ø§Ù„Ù…Ù†ØªØµÙ (Contain)",
           "value": "contain",
           "key": "f4adec13-6e4c-654b-b978-b2807935ced9"
         }
       ],
       "options": [
         {
-          "label": "تغطية الصورة كامل المساحة مع المحافظة على أبعاد الصورة (Cover)",
+          "label": "ØªØºØ·ÙŠØ© Ø§Ù„ØµÙˆØ±Ø© ÙƒØ§Ù…Ù„ Ø§Ù„Ù…Ø³Ø§Ø­Ø© Ù…Ø¹ Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø© Ø¹Ù„Ù‰ Ø£Ø¨Ø¹Ø§Ø¯ Ø§Ù„ØµÙˆØ±Ø© (Cover)",
           "value": "cover",
           "key": "e9c8ea8f-c5c6-234e-935-3bce269afde4"
         },
         {
-          "label": "اظهار الصورة كاملةً في المنتصف (Contain)",
+          "label": "Ø§Ø¸Ù‡Ø§Ø± Ø§Ù„ØµÙˆØ±Ø© ÙƒØ§Ù…Ù„Ø©Ù‹ ÙÙŠ Ø§Ù„Ù…Ù†ØªØµÙ (Contain)",
           "value": "contain",
           "key": "f4adec13-6e4c-654b-b978-b2807935ced9"
         }
@@ -643,7 +643,7 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "وضع عمودي للمنتجات في مربع المنتجات الثابتة في الصفحة الرئيسية",
+      "label": "ÙˆØ¶Ø¹ Ø¹Ù…ÙˆØ¯ÙŠ Ù„Ù„Ù…Ù†ØªØ¬Ø§Øª ÙÙŠ Ù…Ø±Ø¨Ø¹ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ø«Ø§Ø¨ØªØ© ÙÙŠ Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©",
       "description": null,
       "id": "vertical_fixed_products",
       "format": "switch",
@@ -654,7 +654,7 @@
     {
       "type": "boolean",
       "id": "is_more_button_enabled",
-      "label": "عرض (زر الكل) في الصفحة الرئيسية",
+      "label": "Ø¹Ø±Ø¶ (Ø²Ø± Ø§Ù„ÙƒÙ„) ÙÙŠ Ø§Ù„ØµÙØ­Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©",
       "format": "switch"
     },
     {
@@ -666,13 +666,13 @@
       "type": "static",
       "format": "title",
       "id": "static-label4",
-      "value": "<div class='rounded-lg' style='background-color: #21636d; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'> خيارات أسفل الصفحة</h6></div>",
+      "value": "<div class='rounded-lg' style='background-color: #21636d; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'> Ø®ÙŠØ§Ø±Ø§Øª Ø£Ø³ÙÙ„ Ø§Ù„ØµÙØ­Ø©</h6></div>",
       "variant": "h6"
     },
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "الوضع الداكن",
+      "label": "Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ø¯Ø§ÙƒÙ†",
       "description": null,
       "id": "footer_is_dark",
       "format": "switch",
@@ -689,13 +689,13 @@
       "type": "static",
       "format": "title",
       "id": "static-label6",
-      "value": "<div class='rounded-lg' style='background-color: #21636d; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'> خيارات صفحة المنتج</h6></div>",
+      "value": "<div class='rounded-lg' style='background-color: #21636d; display: flex; justify-content: center; align-items: center;padding: 15px;margin-bottom: 20px !important; flex-direction: column;gap: 15px;'><h6 style='color: #ffffff;font-size: 15px; font-weight: bold;'> Ø®ÙŠØ§Ø±Ø§Øª ØµÙØ­Ø© Ø§Ù„Ù…Ù†ØªØ¬</h6></div>",
       "variant": "h6"
     },
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "إظهار مسار التنقل في صفحة المنتج",
+      "label": "Ø¥Ø¸Ù‡Ø§Ø± Ù…Ø³Ø§Ø± Ø§Ù„ØªÙ†Ù‚Ù„ ÙÙŠ ØµÙØ­Ø© Ø§Ù„Ù…Ù†ØªØ¬",
       "description": null,
       "id": "product_show_breadcrumbs",
       "format": "switch",
@@ -706,7 +706,7 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "إظهار مسار التنقل في صفحة قائمة المنتجات",
+      "label": "Ø¥Ø¸Ù‡Ø§Ø± Ù…Ø³Ø§Ø± Ø§Ù„ØªÙ†Ù‚Ù„ ÙÙŠ ØµÙØ­Ø© Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª",
       "description": null,
       "id": "product_index_show_breadcrumbs",
       "format": "switch",
@@ -717,7 +717,7 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "تفعيل إشعار الإضافة للسلة المحسن",
+      "label": "ØªÙØ¹ÙŠÙ„ Ø¥Ø´Ø¹Ø§Ø± Ø§Ù„Ø¥Ø¶Ø§ÙØ© Ù„Ù„Ø³Ù„Ø© Ø§Ù„Ù…Ø­Ø³Ù†",
       "description": null,
       "id": "enable_add_product_toast",
       "format": "switch",
@@ -728,8 +728,8 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "إظهار زر \"أعلمني عند التوفر\" في بطاقة المنتج",
-      "description": "يظهر زر إشعار التوفر في بطاقات المنتجات التي نفذت كميتها",
+      "label": "Ø¥Ø¸Ù‡Ø§Ø± Ø²Ø± \"Ø£Ø¹Ù„Ù…Ù†ÙŠ Ø¹Ù†Ø¯ Ø§Ù„ØªÙˆÙØ±\" ÙÙŠ Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ù…Ù†ØªØ¬",
+      "description": "ÙŠØ¸Ù‡Ø± Ø²Ø± Ø¥Ø´Ø¹Ø§Ø± Ø§Ù„ØªÙˆÙØ± ÙÙŠ Ø¨Ø·Ø§Ù‚Ø§Øª Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„ØªÙŠ Ù†ÙØ°Øª ÙƒÙ…ÙŠØªÙ‡Ø§",
       "id": "notify_when_available_in_card",
       "format": "switch",
       "required": false,
@@ -739,7 +739,7 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "تثبيت زر الإضافة والكمية أسفل شاشة الجوال",
+      "label": "ØªØ«Ø¨ÙŠØª Ø²Ø± Ø§Ù„Ø¥Ø¶Ø§ÙØ© ÙˆØ§Ù„ÙƒÙ…ÙŠØ© Ø£Ø³ÙÙ„ Ø´Ø§Ø´Ø© Ø§Ù„Ø¬ÙˆØ§Ù„",
       "description": null,
       "id": "sticky_add_to_cart",
       "format": "switch",
@@ -750,7 +750,7 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "اظهار الوسوم",
+      "label": "Ø§Ø¸Ù‡Ø§Ø± Ø§Ù„ÙˆØ³ÙˆÙ…",
       "description": null,
       "id": "show_tags",
       "format": "switch",
@@ -762,25 +762,25 @@
       "id": "slider_background_size",
       "type": "items",
       "format": "dropdown-list",
-      "label": "طريقة عرض الصور في سليدر صور المنتج",
+      "label": "Ø·Ø±ÙŠÙ‚Ø© Ø¹Ø±Ø¶ Ø§Ù„ØµÙˆØ± ÙÙŠ Ø³Ù„ÙŠØ¯Ø± ØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬",
       "description": null,
       "labelHTML": null,
       "icon": "sicon-list",
       "selected": [
         {
-          "label": "اظهار الصورة كاملةً في المنتصف (Contain)",
+          "label": "Ø§Ø¸Ù‡Ø§Ø± Ø§Ù„ØµÙˆØ±Ø© ÙƒØ§Ù…Ù„Ø©Ù‹ ÙÙŠ Ø§Ù„Ù…Ù†ØªØµÙ (Contain)",
           "value": "contain",
           "key": "f4adec13-6e4c-433b-b141-b2807935ced9"
         }
       ],
       "options": [
         {
-          "label": "تغطية الصورة كامل المساحة مع المحافظة على أبعاد الصورة (Cover)",
+          "label": "ØªØºØ·ÙŠØ© Ø§Ù„ØµÙˆØ±Ø© ÙƒØ§Ù…Ù„ Ø§Ù„Ù…Ø³Ø§Ø­Ø© Ù…Ø¹ Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø© Ø¹Ù„Ù‰ Ø£Ø¨Ø¹Ø§Ø¯ Ø§Ù„ØµÙˆØ±Ø© (Cover)",
           "value": "cover",
           "key": "e9c8ea8f-c5c6-438e-9d45-3bce269afde4"
         },
         {
-          "label": "اظهار الصورة كاملةً في المنتصف (Contain)",
+          "label": "Ø§Ø¸Ù‡Ø§Ø± Ø§Ù„ØµÙˆØ±Ø© ÙƒØ§Ù…Ù„Ø©Ù‹ ÙÙŠ Ø§Ù„Ù…Ù†ØªØµÙ (Contain)",
           "value": "contain",
           "key": "f4adec13-6e4c-433b-b141-b2807935ced9"
         }
@@ -791,8 +791,8 @@
     {
       "type": "boolean",
       "icon": "sicon-toggle-off",
-      "label": "تكبير الصور في سليدر صور المنتج",
-      "description": "هذه الخاصية تمكنك من تكبير الصورة لتسهل رؤية المزيد من التفاصيل بها",
+      "label": "ØªÙƒØ¨ÙŠØ± Ø§Ù„ØµÙˆØ± ÙÙŠ Ø³Ù„ÙŠØ¯Ø± ØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬",
+      "description": "Ù‡Ø°Ù‡ Ø§Ù„Ø®Ø§ØµÙŠØ© ØªÙ…ÙƒÙ†Ùƒ Ù…Ù† ØªÙƒØ¨ÙŠØ± Ø§Ù„ØµÙˆØ±Ø© Ù„ØªØ³Ù‡Ù„ Ø±Ø¤ÙŠØ© Ø§Ù„Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ØªÙØ§ØµÙŠÙ„ Ø¨Ù‡Ø§",
       "id": "imageZoom",
       "format": "switch",
       "required": false,
@@ -805,7 +805,7 @@
       "key": "7f3d29a1-4b6e-4f85-9d2c-1a58c0b7e6f4",
       "title": {
         "en": "Figurines Depth Hero",
-        "ar": "بطل الشخصيات (كاروسيل العمق)"
+        "ar": "Ø¨Ø·Ù„ Ø§Ù„Ø´Ø®ØµÙŠØ§Øª (ÙƒØ§Ø±ÙˆØ³ÙŠÙ„ Ø§Ù„Ø¹Ù…Ù‚)"
       },
       "icon": "sicon-image",
       "path": "home.figurines",
@@ -816,14 +816,14 @@
           "type": "static",
           "format": "title",
           "id": "static-title-figurines",
-          "value": "بطل الشخصيات (كاروسيل العمق)",
+          "value": "Ø¨Ø·Ù„ Ø§Ù„Ø´Ø®ØµÙŠØ§Øª (ÙƒØ§Ø±ÙˆØ³ÙŠÙ„ Ø§Ù„Ø¹Ù…Ù‚)",
           "variant": "h6"
         },
         {
           "type": "static",
           "format": "description",
           "id": "static-desc-figurines",
-          "value": "شاشة كاملة غارقة في اللون: قطع المتجر تقف كأبطال داخلها، والكلمة الضخمة تمتد خلفها. أسهم التنقل والسحب وأزرار لوحة المفاتيح كلها تعمل، وانتقالات المكوّن تحترم إعداد تقليل الحركة. أفضل عرض للصور المقصوصة من خلفيتها (PNG شفاف) — وصور المنتجات ذات الخلفية البيضاء تُقصّ تلقائياً."
+          "value": "Ø´Ø§Ø´Ø© ÙƒØ§Ù…Ù„Ø© ØºØ§Ø±Ù‚Ø© ÙÙŠ Ø§Ù„Ù„ÙˆÙ†: Ù‚Ø·Ø¹ Ø§Ù„Ù…ØªØ¬Ø± ØªÙ‚Ù ÙƒØ£Ø¨Ø·Ø§Ù„ Ø¯Ø§Ø®Ù„Ù‡Ø§ØŒ ÙˆØ§Ù„ÙƒÙ„Ù…Ø© Ø§Ù„Ø¶Ø®Ù…Ø© ØªÙ…ØªØ¯ Ø®Ù„ÙÙ‡Ø§. Ø£Ø³Ù‡Ù… Ø§Ù„ØªÙ†Ù‚Ù„ ÙˆØ§Ù„Ø³Ø­Ø¨ ÙˆØ£Ø²Ø±Ø§Ø± Ù„ÙˆØ­Ø© Ø§Ù„Ù…ÙØ§ØªÙŠØ­ ÙƒÙ„Ù‡Ø§ ØªØ¹Ù…Ù„ØŒ ÙˆØ§Ù†ØªÙ‚Ø§Ù„Ø§Øª Ø§Ù„Ù…ÙƒÙˆÙ‘Ù† ØªØ­ØªØ±Ù… Ø¥Ø¹Ø¯Ø§Ø¯ ØªÙ‚Ù„ÙŠÙ„ Ø§Ù„Ø­Ø±ÙƒØ©. Ø£ÙØ¶Ù„ Ø¹Ø±Ø¶ Ù„Ù„ØµÙˆØ± Ø§Ù„Ù…Ù‚ØµÙˆØµØ© Ù…Ù† Ø®Ù„ÙÙŠØªÙ‡Ø§ (PNG Ø´ÙØ§Ù) â€” ÙˆØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø°Ø§Øª Ø§Ù„Ø®Ù„ÙÙŠØ© Ø§Ù„Ø¨ÙŠØ¶Ø§Ø¡ ØªÙÙ‚ØµÙ‘ ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹."
         },
         {
           "id": "figurines",
@@ -833,8 +833,8 @@
           "required": false,
           "minLength": 1,
           "maxLength": 6,
-          "label": "الشخصيات (القطع)",
-          "item_label": "قطعة",
+          "label": "Ø§Ù„Ø´Ø®ØµÙŠØ§Øª (Ø§Ù„Ù‚Ø·Ø¹)",
+          "item_label": "Ù‚Ø·Ø¹Ø©",
           "value": [
             {
               "figurines.image": "https://r2.motionsites.dev/motionsites/assets/6f8e47d0bc29.png",
@@ -871,9 +871,9 @@
               "type": "string",
               "format": "image",
               "required": true,
-              "label": "الصورة",
+              "label": "Ø§Ù„ØµÙˆØ±Ø©",
               "icon": "sicon-image",
-              "description": "أفضل شكل: صورة مقصوصة (PNG شفاف) القطعة واقفة على حرف الشاشة. صورة بخلفية بيضاء تعمل أيضاً (نمط القص التلقائي).",
+              "description": "Ø£ÙØ¶Ù„ Ø´ÙƒÙ„: ØµÙˆØ±Ø© Ù…Ù‚ØµÙˆØµØ© (PNG Ø´ÙØ§Ù) Ø§Ù„Ù‚Ø·Ø¹Ø© ÙˆØ§Ù‚ÙØ© Ø¹Ù„Ù‰ Ø­Ø±Ù Ø§Ù„Ø´Ø§Ø´Ø©. ØµÙˆØ±Ø© Ø¨Ø®Ù„ÙÙŠØ© Ø¨ÙŠØ¶Ø§Ø¡ ØªØ¹Ù…Ù„ Ø£ÙŠØ¶Ø§Ù‹ (Ù†Ù…Ø· Ø§Ù„Ù‚Øµ Ø§Ù„ØªÙ„Ù‚Ø§Ø¦ÙŠ).",
               "value": null
             },
             {
@@ -881,8 +881,8 @@
               "type": "string",
               "format": "text",
               "required": false,
-              "label": "الاسم",
-              "description": "يظهر أسفل الشاشة مع القطعة الظاهرة.",
+              "label": "Ø§Ù„Ø§Ø³Ù…",
+              "description": "ÙŠØ¸Ù‡Ø± Ø£Ø³ÙÙ„ Ø§Ù„Ø´Ø§Ø´Ø© Ù…Ø¹ Ø§Ù„Ù‚Ø·Ø¹Ø© Ø§Ù„Ø¸Ø§Ù‡Ø±Ø©.",
               "value": "",
               "minLength": 1,
               "maxLength": 60
@@ -892,8 +892,8 @@
               "type": "string",
               "format": "textarea",
               "required": false,
-              "label": "الوصف الصغير",
-              "description": "سطر صغير أسفل الاسم.",
+              "label": "Ø§Ù„ÙˆØµÙ Ø§Ù„ØµØºÙŠØ±",
+              "description": "Ø³Ø·Ø± ØµØºÙŠØ± Ø£Ø³ÙÙ„ Ø§Ù„Ø§Ø³Ù….",
               "value": ""
             },
             {
@@ -901,8 +901,8 @@
               "type": "string",
               "format": "color",
               "required": false,
-              "label": "لون الخلفية",
-              "description": "لون خلفية المكوّن عندما تحوز هذه القطعة الصدارة. يتبدّل بسلاسة مع اللون السابق.",
+              "label": "Ù„ÙˆÙ† Ø§Ù„Ø®Ù„ÙÙŠØ©",
+              "description": "Ù„ÙˆÙ† Ø®Ù„ÙÙŠØ© Ø§Ù„Ù…ÙƒÙˆÙ‘Ù† Ø¹Ù†Ø¯Ù…Ø§ ØªØ­ÙˆØ² Ù‡Ø°Ù‡ Ø§Ù„Ù‚Ø·Ø¹Ø© Ø§Ù„ØµØ¯Ø§Ø±Ø©. ÙŠØªØ¨Ø¯Ù‘Ù„ Ø¨Ø³Ù„Ø§Ø³Ø© Ù…Ø¹ Ø§Ù„Ù„ÙˆÙ† Ø§Ù„Ø³Ø§Ø¨Ù‚.",
               "value": "",
               "conditions": []
             },
@@ -913,12 +913,12 @@
               "searchable": true,
               "source": "custom",
               "required": false,
-              "label": "عند الضغط تذهب إلى",
+              "label": "Ø¹Ù†Ø¯ Ø§Ù„Ø¶ØºØ· ØªØ°Ù‡Ø¨ Ø¥Ù„Ù‰",
               "icon": "sicon-link",
               "value": null,
               "sources": [
-                { "label": "منتجات", "key": "products", "value": "products" },
-                { "label": "تصنيفات", "key": "categories", "value": "categories" }
+                { "label": "Ù…Ù†ØªØ¬Ø§Øª", "key": "products", "value": "products" },
+                { "label": "ØªØµÙ†ÙŠÙØ§Øª", "key": "categories", "value": "categories" }
               ]
             }
           ]
@@ -928,8 +928,8 @@
           "id": "figurines_ghost_text",
           "format": "text",
           "required": false,
-          "label": "الكلمة الضخمة خلف الشخصيات",
-          "description": "الكلمة الضخمة في الخلف. اتركها فارغة إن أحببت إخفاءها.",
+          "label": "Ø§Ù„ÙƒÙ„Ù…Ø© Ø§Ù„Ø¶Ø®Ù…Ø© Ø®Ù„Ù Ø§Ù„Ø´Ø®ØµÙŠØ§Øª",
+          "description": "Ø§Ù„ÙƒÙ„Ù…Ø© Ø§Ù„Ø¶Ø®Ù…Ø© ÙÙŠ Ø§Ù„Ø®Ù„Ù. Ø§ØªØ±ÙƒÙ‡Ø§ ÙØ§Ø±ØºØ© Ø¥Ù† Ø£Ø­Ø¨Ø¨Øª Ø¥Ø®ÙØ§Ø¡Ù‡Ø§.",
           "value": "SHOWROOM",
           "minLength": 1,
           "maxLength": 30
@@ -939,8 +939,8 @@
           "id": "figurines_store_label",
           "format": "text",
           "required": false,
-          "label": "علامة أعلى المكوّن",
-          "description": "الاسم أعلى الشاشة (بأحرف كبيرة أم لا).",
+          "label": "Ø¹Ù„Ø§Ù…Ø© Ø£Ø¹Ù„Ù‰ Ø§Ù„Ù…ÙƒÙˆÙ‘Ù†",
+          "description": "Ø§Ù„Ø§Ø³Ù… Ø£Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø§Ø´Ø© (Ø¨Ø£Ø­Ø±Ù ÙƒØ¨ÙŠØ±Ø© Ø£Ù… Ù„Ø§).",
           "value": "SEELYXA",
           "minLength": 1,
           "maxLength": 30
@@ -950,8 +950,8 @@
           "id": "figurines_cta_text",
           "format": "text",
           "required": false,
-          "label": "نص دعوة (اكتشفها) أسفل الطرف",
-          "value": "اكتشف المتجر",
+          "label": "Ù†Øµ Ø¯Ø¹ÙˆØ© (Ø§ÙƒØªØ´ÙÙ‡Ø§) Ø£Ø³ÙÙ„ Ø§Ù„Ø·Ø±Ù",
+          "value": "Ø§ÙƒØªØ´Ù Ø§Ù„Ù…ØªØ¬Ø±",
           "minLength": 1,
           "maxLength": 30
         },
@@ -962,13 +962,13 @@
           "searchable": true,
           "source": "custom",
           "required": false,
-          "label": "رابط الزر",
+          "label": "Ø±Ø§Ø¨Ø· Ø§Ù„Ø²Ø±",
           "icon": "sicon-link",
           "value": null,
           "sources": [
-            { "label": "تصنيفات", "key": "categories", "value": "categories" },
-            { "label": "منتجات", "key": "products", "value": "products" },
-            { "label": "صفحات", "key": "pages", "value": "pages" }
+            { "label": "ØªØµÙ†ÙŠÙØ§Øª", "key": "categories", "value": "categories" },
+            { "label": "Ù…Ù†ØªØ¬Ø§Øª", "key": "products", "value": "products" },
+            { "label": "ØµÙØ­Ø§Øª", "key": "pages", "value": "pages" }
           ]
         },
         {
@@ -976,8 +976,8 @@
           "id": "figurines_autoplay",
           "format": "switch",
           "required": false,
-          "label": "دوران تلقائي (كل 6 ثوانٍ)",
-          "description": "يتوقف عند المرور بالماوس، ولا يعمل مع تقليل الحركة.",
+          "label": "Ø¯ÙˆØ±Ø§Ù† ØªÙ„Ù‚Ø§Ø¦ÙŠ (ÙƒÙ„ 6 Ø«ÙˆØ§Ù†Ù)",
+          "description": "ÙŠØªÙˆÙ‚Ù Ø¹Ù†Ø¯ Ø§Ù„Ù…Ø±ÙˆØ± Ø¨Ø§Ù„Ù…Ø§ÙˆØ³ØŒ ÙˆÙ„Ø§ ÙŠØ¹Ù…Ù„ Ù…Ø¹ ØªÙ‚Ù„ÙŠÙ„ Ø§Ù„Ø­Ø±ÙƒØ©.",
           "value": false,
           "selected": false
         },
@@ -986,8 +986,8 @@
           "id": "figurines_under_header",
           "format": "switch",
           "required": false,
-          "label": "الظهور تحت الهيدر",
-          "description": "يسحب المكوّن ليبدأ من أعلى الشاشة خلف الهيدر الشفاف — فعّله فقط للمكوّن الأول في الصفحة على الشاشات الكبيرة.",
+          "label": "Ø§Ù„Ø¸Ù‡ÙˆØ± ØªØ­Øª Ø§Ù„Ù‡ÙŠØ¯Ø±",
+          "description": "ÙŠØ³Ø­Ø¨ Ø§Ù„Ù…ÙƒÙˆÙ‘Ù† Ù„ÙŠØ¨Ø¯Ø£ Ù…Ù† Ø£Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø§Ø´Ø© Ø®Ù„Ù Ø§Ù„Ù‡ÙŠØ¯Ø± Ø§Ù„Ø´ÙØ§Ù â€” ÙØ¹Ù‘Ù„Ù‡ ÙÙ‚Ø· Ù„Ù„Ù…ÙƒÙˆÙ‘Ù† Ø§Ù„Ø£ÙˆÙ„ ÙÙŠ Ø§Ù„ØµÙØ­Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø§Ø´Ø§Øª Ø§Ù„ÙƒØ¨ÙŠØ±Ø©.",
           "value": false,
           "selected": false
         },
@@ -996,18 +996,18 @@
           "id": "figurines_auto_seconds",
           "format": "dropdown-list",
           "required": false,
-          "label": "سرعة التمرير التلقائي",
-          "description": "كم ثانية يبقى كل تمثال قبل الانتقال للتمثال التالي، تُطبَّق عند تفعيل التمرير التلقائي.",
+          "label": "Ø³Ø±Ø¹Ø© Ø§Ù„ØªÙ…Ø±ÙŠØ± Ø§Ù„ØªÙ„Ù‚Ø§Ø¦ÙŠ",
+          "description": "ÙƒÙ… Ø«Ø§Ù†ÙŠØ© ÙŠØ¨Ù‚Ù‰ ÙƒÙ„ ØªÙ…Ø«Ø§Ù„ Ù‚Ø¨Ù„ Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ù„Ù„ØªÙ…Ø«Ø§Ù„ Ø§Ù„ØªØ§Ù„ÙŠØŒ ØªÙØ·Ø¨ÙŽÙ‘Ù‚ Ø¹Ù†Ø¯ ØªÙØ¹ÙŠÙ„ Ø§Ù„ØªÙ…Ø±ÙŠØ± Ø§Ù„ØªÙ„Ù‚Ø§Ø¦ÙŠ.",
           "source": "Manual",
           "options": [
-            { "label": "سريع (3 ثوانٍ)", "value": "3", "key": "auto-seconds-3" },
-            { "label": "متوسط (6 ثوانٍ)", "value": "6", "key": "auto-seconds-6" },
-            { "label": "بطيء (10 ثوانٍ)", "value": "10", "key": "auto-seconds-10" },
-            { "label": "هادئ (15 ثانية)", "value": "15", "key": "auto-seconds-15" },
-            { "label": "بطيء جداً (20 ثانية)", "value": "20", "key": "auto-seconds-20" }
+            { "label": "Ø³Ø±ÙŠØ¹ (3 Ø«ÙˆØ§Ù†Ù)", "value": "3", "key": "auto-seconds-3" },
+            { "label": "Ù…ØªÙˆØ³Ø· (6 Ø«ÙˆØ§Ù†Ù)", "value": "6", "key": "auto-seconds-6" },
+            { "label": "Ø¨Ø·ÙŠØ¡ (10 Ø«ÙˆØ§Ù†Ù)", "value": "10", "key": "auto-seconds-10" },
+            { "label": "Ù‡Ø§Ø¯Ø¦ (15 Ø«Ø§Ù†ÙŠØ©)", "value": "15", "key": "auto-seconds-15" },
+            { "label": "Ø¨Ø·ÙŠØ¡ Ø¬Ø¯Ø§Ù‹ (20 Ø«Ø§Ù†ÙŠØ©)", "value": "20", "key": "auto-seconds-20" }
           ],
           "selected": [
-            { "label": "متوسط (6 ثوانٍ)", "value": "6", "key": "auto-seconds-6" }
+            { "label": "Ù…ØªÙˆØ³Ø· (6 Ø«ÙˆØ§Ù†Ù)", "value": "6", "key": "auto-seconds-6" }
           ]
         },
         {
@@ -1015,622 +1015,18 @@
           "id": "figurines_auto_cutout",
           "format": "switch",
           "required": false,
-          "label": "القصّ التلقائي (منتجات على خلفية بيضاء)",
-          "description": "يجعل صور المنتجات ذات الخلفية البيضاء تقف كقطع مقصوصة على لون الخلفية (الخلط الضربي). أطفئه إذا كانت صورك مقصوصة مسبقًا (PNG شفاف).",
+          "label": "Ø§Ù„Ù‚ØµÙ‘ Ø§Ù„ØªÙ„Ù‚Ø§Ø¦ÙŠ (Ù…Ù†ØªØ¬Ø§Øª Ø¹Ù„Ù‰ Ø®Ù„ÙÙŠØ© Ø¨ÙŠØ¶Ø§Ø¡)",
+          "description": "ÙŠØ¬Ø¹Ù„ ØµÙˆØ± Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø°Ø§Øª Ø§Ù„Ø®Ù„ÙÙŠØ© Ø§Ù„Ø¨ÙŠØ¶Ø§Ø¡ ØªÙ‚Ù ÙƒÙ‚Ø·Ø¹ Ù…Ù‚ØµÙˆØµØ© Ø¹Ù„Ù‰ Ù„ÙˆÙ† Ø§Ù„Ø®Ù„ÙÙŠØ© (Ø§Ù„Ø®Ù„Ø· Ø§Ù„Ø¶Ø±Ø¨ÙŠ). Ø£Ø·ÙØ¦Ù‡ Ø¥Ø°Ø§ ÙƒØ§Ù†Øª ØµÙˆØ±Ùƒ Ù…Ù‚ØµÙˆØµØ© Ù…Ø³Ø¨Ù‚Ù‹Ø§ (PNG Ø´ÙØ§Ù).",
           "value": true,
           "selected": true
         }
       ]
     },
     {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405001",
-      "title": { "en": "Dissolve Editorial Hero", "ar": "بطل تحوّل الصورة" },
-      "icon": "sicon-image",
-      "path": "home.dissolve-hero",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-dissolve",
-          "value": "بطل تحريري كامل الشاشة تتحول فيه الصورة تدريجيًا إلى لون خلفية أثناء التمرير، مع عنوان وكلمات تظهر تتابعيًا وقسم تعريفي."
-        },
-        {
-          "type": "string",
-          "id": "dissolve_hero_image",
-          "format": "image",
-          "required": false,
-          "label": "الصورة الرئيسية",
-          "icon": "sicon-image",
-          "value": "/reference/second-skin-wall.jpg"
-        },
-        { "type": "string", "id": "dissolve_hero_eyebrow", "format": "text", "required": false, "label": "السطر العلوي", "value": "FORM / FUNCTION / FEELING" },
-        { "type": "string", "id": "dissolve_hero_title", "format": "text", "required": false, "label": "العنوان الكبير", "value": "SECOND SKIN" },
-        { "type": "string", "id": "dissolve_hero_intro", "format": "textarea", "required": false, "label": "المقدمة", "value": "An independent studio shaping quiet objects for loud lives." },
-        { "type": "string", "id": "dissolve_hero_statement", "format": "textarea", "required": false, "label": "النص المتحرك", "value": "A study in contrast, texture and the quiet confidence of something made to be lived in." },
-        { "type": "string", "id": "dissolve_hero_about_eyebrow", "format": "text", "required": false, "label": "عنوان قسم التعريف", "value": "THE STUDIO" },
-        { "type": "string", "id": "dissolve_hero_about_text", "format": "textarea", "required": false, "label": "نص قسم التعريف", "value": "A small studio working between image, object and atmosphere. We build visual worlds that feel tactile before they are understood." },
-        { "type": "string", "id": "dissolve_hero_about_meta", "format": "text", "required": false, "label": "بيانات أسفل التعريف", "value": "EST. 2018 — MILAN / RIYADH" },
-        { "type": "string", "id": "dissolve_hero_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Enter the studio" },
-        {
-          "type": "items",
-          "id": "dissolve_hero_cta_link",
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "required": false,
-          "label": "رابط الزر",
-          "icon": "sicon-link",
-          "value": null,
-          "sources": [
-            { "label": "صفحات", "key": "pages", "value": "pages" },
-            { "label": "تصنيفات", "key": "categories", "value": "categories" },
-            { "label": "منتجات", "key": "products", "value": "products" }
-          ]
-        },
-        { "type": "string", "id": "dissolve_hero_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#141414" },
-        { "type": "string", "id": "dissolve_hero_accent_color", "format": "color", "required": false, "label": "اللون المميز", "value": "#f04e23" },
-        { "type": "boolean", "id": "dissolve_hero_show_about", "format": "switch", "required": false, "label": "إظهار قسم التعريف", "value": true, "selected": true }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405002",
-      "title": { "en": "Arc Product Gallery", "ar": "معرض المنتجات القوسي" },
-      "icon": "sicon-image-carousel",
-      "path": "home.arc-gallery",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-arc",
-          "value": "معرض لا نهائي يرتب الصور على قوس، مع أسهم وسحب ولوحة مفاتيح وتسمية تتغير مع القطعة النشطة."
-        },
-        {
-          "id": "arc_gallery_items",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 12,
-          "label": "صور المعرض",
-          "item_label": "صورة",
-          "value": [],
-          "fields": [
-            { "id": "arc_gallery.image", "type": "string", "format": "image", "required": true, "label": "الصورة", "icon": "sicon-image", "value": null },
-            { "id": "arc_gallery.title", "type": "string", "format": "text", "required": false, "label": "الاسم", "value": "" },
-            { "id": "arc_gallery.alt", "type": "string", "format": "text", "required": false, "label": "وصف الصورة للوصول", "value": "" },
-            {
-              "id": "arc_gallery.url",
-              "type": "items",
-              "format": "variable-list",
-              "searchable": true,
-              "source": "custom",
-              "required": false,
-              "label": "رابط القطعة",
-              "value": null,
-              "sources": [
-                { "label": "منتجات", "key": "products", "value": "products" },
-                { "label": "تصنيفات", "key": "categories", "value": "categories" }
-              ]
-            }
-          ]
-        },
-        { "type": "string", "id": "arc_gallery_brand", "format": "text", "required": false, "label": "علامة أعلى المعرض", "value": "ATELIER / N° 09" },
-        { "type": "string", "id": "arc_gallery_note", "format": "text", "required": false, "label": "ملاحظة أعلى المعرض", "value": "Objects in orbit — autumn edition" },
-        { "type": "string", "id": "arc_gallery_eyebrow", "format": "text", "required": false, "label": "عنوان المجموعة", "value": "THE COLLECTION" },
-        { "type": "string", "id": "arc_gallery_hint", "format": "text", "required": false, "label": "تلميح الاستخدام", "value": "Scroll, drag or use ← →" },
-        { "type": "number", "id": "arc_gallery_arc_depth", "format": "numeric", "required": false, "label": "عمق القوس", "description": "مقدار هبوط الصور البعيدة بالبكسل.", "value": 190 },
-        { "type": "number", "id": "arc_gallery_center_lift", "format": "numeric", "required": false, "label": "ارتفاع الصورة المركزية", "value": 90 }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405003",
-      "title": { "en": "Stamp Journey", "ar": "رحلة الطوابع" },
-      "icon": "sicon-map",
-      "path": "home.stamp-journey",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-stamps",
-          "value": "مشهد مثبت يتحرك قطريًا بين طوابع بريدية، مع مسار منقط يرتسم أثناء التمرير وملاحظات بخط اليد."
-        },
-        {
-          "id": "stamp_journey_items",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 6,
-          "label": "الطوابع",
-          "item_label": "طابع",
-          "value": [],
-          "fields": [
-            { "id": "stamp_journey.image", "type": "string", "format": "image", "required": true, "label": "الصورة", "value": null },
-            { "id": "stamp_journey.country", "type": "string", "format": "text", "required": false, "label": "اسم البلد", "value": "ITALIA" },
-            { "id": "stamp_journey.symbol", "type": "string", "format": "text", "required": false, "label": "الرمز", "value": "✦" },
-            { "id": "stamp_journey.title", "type": "string", "format": "text", "required": false, "label": "الموقع", "value": "" },
-            { "id": "stamp_journey.note", "type": "string", "format": "text", "required": false, "label": "ملاحظة بخط اليد", "value": "" },
-            {
-              "id": "stamp_journey.url",
-              "type": "items",
-              "format": "variable-list",
-              "searchable": true,
-              "source": "custom",
-              "required": false,
-              "label": "الرابط",
-              "value": null,
-              "sources": [
-                { "label": "صفحات", "key": "pages", "value": "pages" },
-                { "label": "منتجات", "key": "products", "value": "products" }
-              ]
-            }
-          ]
-        },
-        { "type": "string", "id": "stamp_journey_intro", "format": "textarea", "required": false, "label": "نص المقدمة", "value": "A field journal in three postmarks — places collected, folded and kept." },
-        { "type": "string", "id": "stamp_journey_coordinates", "format": "text", "required": false, "label": "الإحداثيات", "value": "CAMPOSILVANO · N 45° 37′ 53.51″ E 11° 5′ 46.01″" },
-        { "type": "string", "id": "stamp_journey_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#000000" },
-        { "type": "string", "id": "stamp_journey_trail_color", "format": "color", "required": false, "label": "لون المسار", "value": "#f5d44f" }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405004",
-      "title": { "en": "Lens Zoom Spotlight", "ar": "تكبير عدسة الشخصية" },
-      "icon": "sicon-search",
-      "path": "home.lens-zoom",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-lens",
-          "value": "مشهد مثبت يقترب فيه رسم الشخصية من نظارتها حتى تتحول العدستان إلى نافذتين على صورة التاجر."
-        },
-        { "type": "string", "id": "lens_zoom_intro_title", "format": "text", "required": false, "label": "عنوان البداية", "value": "LOOK CLOSER" },
-        { "type": "string", "id": "lens_zoom_spotlight_title", "format": "text", "required": false, "label": "عنوان المشهد", "value": "THE WORLD IN THE DETAIL" },
-        { "type": "string", "id": "lens_zoom_outro_title", "format": "text", "required": false, "label": "العنوان الختامي", "value": "EVERY FRAME IS A DOOR" },
-        { "type": "string", "id": "lens_zoom_lens_image", "format": "image", "required": false, "label": "الصورة داخل العدسة", "value": "/reference/larevoltosa-lens.jpg" },
-        { "type": "string", "id": "lens_zoom_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#252627" },
-        { "type": "string", "id": "lens_zoom_accent_color", "format": "color", "required": false, "label": "لون المشهد", "value": "#eb5e55" }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405005",
-      "title": { "en": "3D Product Scroll", "ar": "المنتج ثلاثي الأبعاد" },
-      "icon": "sicon-cube",
-      "path": "home.product-model-scroll",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-model",
-          "value": "مشهد مثبت يدور فيه مجسم GLB للمنتج مع التمرير، مع عنوانين متحركين وخصائص تظهر تدريجيًا. يوجد بديل ثابت عند تعذر WebGL."
-        },
-        { "type": "string", "id": "product_model_model_url", "format": "url", "required": false, "label": "رابط مجسم GLB", "value": "/reference/shaker.glb" },
-        { "type": "string", "id": "product_model_fallback_image", "format": "image", "required": false, "label": "صورة بديلة", "description": "تظهر عند تعذر تشغيل WebGL أو تقليل الحركة.", "value": "" },
-        { "type": "string", "id": "product_model_intro_title", "format": "text", "required": false, "label": "السطر العلوي", "value": "FORM FOLLOWS FEELING" },
-        { "type": "string", "id": "product_model_title_primary", "format": "text", "required": false, "label": "العنوان الأول", "value": "THE DAILY" },
-        { "type": "string", "id": "product_model_title_secondary", "format": "text", "required": false, "label": "العنوان الثاني", "value": "RITUAL" },
-        { "type": "string", "id": "product_model_outro_title", "format": "textarea", "required": false, "label": "العنوان الختامي", "value": "MADE TO DISAPPEAR INTO YOUR DAY" },
-        {
-          "id": "product_model_features",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 4,
-          "label": "خصائص المنتج",
-          "item_label": "خاصية",
-          "value": [],
-          "fields": [
-            { "id": "product_model.icon", "type": "string", "format": "text", "required": false, "label": "الرمز", "value": "✦" },
-            { "id": "product_model.title", "type": "string", "format": "text", "required": false, "label": "العنوان", "value": "" },
-            { "id": "product_model.text", "type": "string", "format": "textarea", "required": false, "label": "الوصف", "value": "" }
-          ]
-        },
-        { "type": "string", "id": "product_model_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Discover the object" },
-        {
-          "type": "items",
-          "id": "product_model_cta_link",
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "required": false,
-          "label": "رابط الزر",
-          "value": null,
-          "sources": [
-            { "label": "منتجات", "key": "products", "value": "products" },
-            { "label": "تصنيفات", "key": "categories", "value": "categories" },
-            { "label": "صفحات", "key": "pages", "value": "pages" }
-          ]
-        },
-        { "type": "string", "id": "product_model_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#0d0d0d" },
-        { "type": "string", "id": "product_model_text_color", "format": "color", "required": false, "label": "لون النص", "value": "#e0dfdf" }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405006",
-      "title": { "en": "Editorial Product Story", "ar": "قصة المنتج التحريرية" },
-      "icon": "sicon-document",
-      "path": "home.editorial-story",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-editorial",
-          "value": "قصة منتج تحريرية داكنة: بطل مصور، فصول متبادلة بين النص والصورة، دعوة ختامية وتذييل."
-        },
-        { "type": "string", "id": "editorial_story_hero_image", "format": "image", "required": false, "label": "صورة البطل", "value": "/reference/oryzo-hero.jpg" },
-        { "type": "string", "id": "editorial_story_brand", "format": "text", "required": false, "label": "اسم العلامة", "value": "ORYZO" },
-        { "type": "string", "id": "editorial_story_tagline", "format": "textarea", "required": false, "label": "الشعار", "value": "Objects with a memory of the hand that made them." },
-        { "type": "string", "id": "editorial_story_hero_card_title", "format": "text", "required": false, "label": "عنوان بطاقة البطل", "value": "The Walnut Series" },
-        { "type": "string", "id": "editorial_story_hero_card_text", "format": "textarea", "required": false, "label": "نص بطاقة البطل", "value": "Turned from a single block. Finished with oil, wax and time." },
-        {
-          "id": "editorial_story_sections",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 6,
-          "label": "فصول القصة",
-          "item_label": "فصل",
-          "value": [],
-          "fields": [
-            { "id": "editorial_story.title", "type": "string", "format": "text", "required": false, "label": "عنوان الفصل", "value": "" },
-            { "id": "editorial_story.text", "type": "string", "format": "textarea", "required": false, "label": "نص الفصل", "value": "" },
-            { "id": "editorial_story.image", "type": "string", "format": "image", "required": false, "label": "صورة الفصل", "value": null },
-            { "id": "editorial_story.cta_text", "type": "string", "format": "text", "required": false, "label": "نص الرابط", "value": "Discover" },
-            {
-              "id": "editorial_story.cta_link",
-              "type": "items",
-              "format": "variable-list",
-              "searchable": true,
-              "source": "custom",
-              "required": false,
-              "label": "رابط الفصل",
-              "value": null,
-              "sources": [
-                { "label": "منتجات", "key": "products", "value": "products" },
-                { "label": "تصنيفات", "key": "categories", "value": "categories" }
-              ]
-            }
-          ]
-        },
-        { "type": "string", "id": "editorial_story_cta_eyebrow", "format": "text", "required": false, "label": "سطر الدعوة", "value": "COMMISSIONS / 2026" },
-        { "type": "string", "id": "editorial_story_cta_title", "format": "textarea", "required": false, "label": "عنوان الدعوة", "value": "Bring a piece of the studio into your home." },
-        { "type": "string", "id": "editorial_story_cta_text", "format": "textarea", "required": false, "label": "نص الدعوة", "value": "The studio works in small runs, made to order." },
-        { "type": "string", "id": "editorial_story_cta_link_text", "format": "text", "required": false, "label": "نص زر الدعوة", "value": "Start a conversation" },
-        {
-          "type": "items",
-          "id": "editorial_story_cta_link",
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "required": false,
-          "label": "رابط الدعوة",
-          "value": null,
-          "sources": [
-            { "label": "صفحات", "key": "pages", "value": "pages" },
-            { "label": "منتجات", "key": "products", "value": "products" }
-          ]
-        },
-        { "type": "string", "id": "editorial_story_footer_text", "format": "text", "required": false, "label": "نص التذييل", "value": "ORYZO STUDIO — MILAN / RIYADH" },
-        { "type": "string", "id": "editorial_story_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#100904" },
-        { "type": "string", "id": "editorial_story_accent_color", "format": "color", "required": false, "label": "اللون المميز", "value": "#dc5000" }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405007",
-      "title": { "en": "Portal Worlds", "ar": "عوالم البوابة" },
-      "icon": "sicon-globe",
-      "path": "home.portal-worlds",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-portal",
-          "value": "بطل بوابة يتوسع مع التمرير فوق عالم خلفي، تليه آراء العملاء في كاروسيل قوسي زجاجي."
-        },
-        { "type": "string", "id": "portal_worlds_portal_image", "format": "image", "required": false, "label": "صورة البوابة", "value": "/reference/auragate-portal.jpg" },
-        { "type": "string", "id": "portal_worlds_world_image", "format": "image", "required": false, "label": "صورة العالم الخلفي", "value": "/reference/auragate-world.jpg" },
-        { "type": "string", "id": "portal_worlds_brand", "format": "text", "required": false, "label": "اسم العلامة", "value": "AURAGATE" },
-        { "type": "string", "id": "portal_worlds_hero_title", "format": "text", "required": false, "label": "العنوان الرئيسي", "value": "Step beyond the" },
-        { "type": "string", "id": "portal_worlds_hero_accent", "format": "text", "required": false, "label": "الكلمة المميزة", "value": "ordinary." },
-        { "type": "string", "id": "portal_worlds_hero_text", "format": "textarea", "required": false, "label": "نص البطل", "value": "Objects and atmospheres for people who prefer the edge of the map." },
-        { "type": "string", "id": "portal_worlds_secondary_note", "format": "text", "required": false, "label": "ملاحظة الهيدر", "value": "A new world every season" },
-        { "type": "string", "id": "portal_worlds_testimonials_title", "format": "text", "required": false, "label": "عنوان الآراء", "value": "Real wonders. Real worlds." },
-        { "type": "string", "id": "portal_worlds_testimonials_text", "format": "textarea", "required": false, "label": "وصف الآراء", "value": "Notes from the people who stepped through first." },
-        {
-          "id": "portal_worlds_items",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 9,
-          "label": "آراء العملاء",
-          "item_label": "رأي",
-          "value": [],
-          "fields": [
-            { "id": "portal_worlds.name", "type": "string", "format": "text", "required": false, "label": "الاسم", "value": "" },
-            { "id": "portal_worlds.role", "type": "string", "format": "text", "required": false, "label": "الصفة", "value": "" },
-            { "id": "portal_worlds.text", "type": "string", "format": "textarea", "required": false, "label": "النص", "value": "" }
-          ]
-        },
-        { "type": "string", "id": "portal_worlds_footer_text", "format": "text", "required": false, "label": "نص التذييل", "value": "AURAGATE © 2026 — ALL WORLDS RESERVED" },
-        { "type": "string", "id": "portal_worlds_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#071018" },
-        { "type": "string", "id": "portal_worlds_accent_color", "format": "color", "required": false, "label": "لون التمييز", "value": "#f7fbff" }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405008",
-      "title": { "en": "Video Power Hero", "ar": "بطل الفيديو المتحرك" },
-      "icon": "sicon-video",
-      "path": "home.video-hero",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-video",
-          "value": "فيديو MP4 يُفرَّغ مع التمرير، عنوان كبير يتفرق حرفًا بحرف، ولوحة زجاجية تصعد من الأسفل."
-        },
-        { "type": "string", "id": "video_hero_video_url", "format": "url", "required": false, "label": "رابط فيديو MP4", "value": "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260709_080129_da34b00e-a5db-47dd-81a1-cccad79ac1ac.mp4" },
-        { "type": "string", "id": "video_hero_poster", "format": "image", "required": false, "label": "صورة الغلاف", "value": "/reference/second-skin-wall.jpg" },
-        { "type": "string", "id": "video_hero_eyebrow", "format": "text", "required": false, "label": "السطر العلوي", "value": "THE NEXT CHAPTER" },
-        { "type": "string", "id": "video_hero_title", "format": "textarea", "required": false, "label": "العنوان", "description": "استخدم سطرًا جديدًا لفصل السطور.", "value": "Unleash The\nFull Power" },
-        { "type": "string", "id": "video_hero_about_title", "format": "text", "required": false, "label": "عنوان اللوحة", "value": "About the house" },
-        { "type": "string", "id": "video_hero_about_text", "format": "textarea", "required": false, "label": "نص اللوحة", "value": "We make objects for the space between work and rest. Considered forms, honest materials, and a little bit of theatre." },
-        { "type": "string", "id": "video_hero_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Explore the collection" },
-        {
-          "type": "items",
-          "id": "video_hero_cta_link",
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "required": false,
-          "label": "رابط الزر",
-          "value": null,
-          "sources": [
-            { "label": "تصنيفات", "key": "categories", "value": "categories" },
-            { "label": "صفحات", "key": "pages", "value": "pages" }
-          ]
-        },
-        {
-          "id": "video_hero_brands",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 8,
-          "label": "أسماء الشريط المتحرك",
-          "item_label": "اسم",
-          "value": [],
-          "fields": [
-            { "id": "video_hero.name", "type": "string", "format": "text", "required": false, "label": "الاسم", "value": "" }
-          ]
-        },
-        { "type": "string", "id": "video_hero_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#000000" },
-        { "type": "string", "id": "video_hero_text_color", "format": "color", "required": false, "label": "لون النص", "value": "#ffffff" }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405009",
-      "title": { "en": "Gesture Manifesto", "ar": "بيان الحركة" },
-      "icon": "sicon-mouse",
-      "path": "home.gesture-manifesto",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-gesture",
-          "value": "مشهدان متتاليان: شاشة وردية بعنوان يتفرق وبطاقات، ثم لوحة داكنة تصعد بأسطوانة نصوص ثلاثية الأبعاد وشريط شعارات."
-        },
-        { "type": "string", "id": "gesture_manifesto_video_url", "format": "url", "required": false, "label": "فيديو المشهد الأول", "value": "" },
-        { "type": "string", "id": "gesture_manifesto_secondary_video_url", "format": "url", "required": false, "label": "فيديو المشهد الثاني", "value": "" },
-        { "type": "string", "id": "gesture_manifesto_brand", "format": "text", "required": false, "label": "اسم العلامة", "value": "INNER CIRCLE" },
-        { "type": "string", "id": "gesture_manifesto_title", "format": "text", "required": false, "label": "العنوان", "value": "INNER CIRCLE" },
-        { "type": "string", "id": "gesture_manifesto_eyebrow", "format": "text", "required": false, "label": "السطر العلوي", "value": "A STUDY IN PRESENCE" },
-        {
-          "id": "gesture_manifesto_tiles",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 3,
-          "label": "البطاقات",
-          "item_label": "بطاقة",
-          "value": [],
-          "fields": [
-            { "id": "gesture_manifesto.title", "type": "string", "format": "text", "required": false, "label": "العنوان", "value": "" },
-            { "id": "gesture_manifesto.text", "type": "string", "format": "textarea", "required": false, "label": "النص", "value": "" }
-          ]
-        },
-        {
-          "id": "gesture_manifesto_manifesto",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 20,
-          "label": "عبارات البيان",
-          "item_label": "عبارة",
-          "value": [],
-          "fields": [
-            { "id": "gesture_manifesto.text", "type": "string", "format": "text", "required": false, "label": "العبارة", "value": "" }
-          ]
-        },
-        {
-          "id": "gesture_manifesto_logos",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 8,
-          "label": "الشعارات",
-          "item_label": "شعار",
-          "value": [],
-          "fields": [
-            { "id": "gesture_manifesto.name", "type": "string", "format": "text", "required": false, "label": "الاسم", "value": "" }
-          ]
-        },
-        { "type": "string", "id": "gesture_manifesto_manifesto_text", "format": "textarea", "required": false, "label": "نص البيان", "value": "A quiet refusal of the disposable. Twelve notes on making, keeping and living with objects." },
-        { "type": "string", "id": "gesture_manifesto_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Enter the circle" },
-        {
-          "type": "items",
-          "id": "gesture_manifesto_cta_link",
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "required": false,
-          "label": "رابط الزر",
-          "value": null,
-          "sources": [
-            { "label": "صفحات", "key": "pages", "value": "pages" },
-            { "label": "تصنيفات", "key": "categories", "value": "categories" }
-          ]
-        },
-        { "type": "string", "id": "gesture_manifesto_background_color", "format": "color", "required": false, "label": "لون الخلفية الداكنة", "value": "#11010a" },
-        { "type": "string", "id": "gesture_manifesto_accent_color", "format": "color", "required": false, "label": "لون المشهد الأول", "value": "#ff005e" }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405010",
-      "title": { "en": "Ascend WebGL Landing", "ar": "صفحة Ascend ثلاثية الأبعاد" },
-      "icon": "sicon-rocket",
-      "path": "home.ascend",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-ascend",
-          "value": "صفحة داكنة متكاملة: بطل WebGL بمنتج يدور ونجوم، مزايا، لوحة إحصاءات، دعوة وتذييل."
-        },
-        { "type": "string", "id": "ascend_model_url", "format": "url", "required": false, "label": "رابط مجسم GLB", "value": "/reference/shaker.glb" },
-        { "type": "string", "id": "ascend_brand", "format": "text", "required": false, "label": "اسم العلامة", "value": "ASCEND" },
-        { "type": "string", "id": "ascend_eyebrow", "format": "text", "required": false, "label": "السطر العلوي", "value": "A NEW GRAVITY" },
-        { "type": "string", "id": "ascend_title", "format": "textarea", "required": false, "label": "العنوان", "description": "استخدم سطرًا جديدًا لفصل السطور.", "value": "Objects that\nhold their own orbit." },
-        { "type": "string", "id": "ascend_intro", "format": "textarea", "required": false, "label": "المقدمة", "value": "A product experience built in three dimensions — light, motion and material in one continuous frame." },
-        { "type": "string", "id": "ascend_primary_cta_text", "format": "text", "required": false, "label": "نص الزر الأساسي", "value": "Enter the experience" },
-        {
-          "type": "items",
-          "id": "ascend_primary_cta_link",
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "required": false,
-          "label": "رابط الزر الأساسي",
-          "value": null,
-          "sources": [
-            { "label": "صفحات", "key": "pages", "value": "pages" },
-            { "label": "منتجات", "key": "products", "value": "products" }
-          ]
-        },
-        { "type": "string", "id": "ascend_secondary_cta_text", "format": "text", "required": false, "label": "نص الزر الثانوي", "value": "See how it works" },
-        { "type": "string", "id": "ascend_secondary_cta_link", "format": "url", "required": false, "label": "رابط الزر الثانوي", "value": "#ascend-features" },
-        {
-          "id": "ascend_features",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 8,
-          "label": "المزايا",
-          "item_label": "ميزة",
-          "value": [],
-          "fields": [
-            { "id": "ascend.title", "type": "string", "format": "text", "required": false, "label": "العنوان", "value": "" },
-            { "id": "ascend.text", "type": "string", "format": "textarea", "required": false, "label": "الوصف", "value": "" }
-          ]
-        },
-        { "type": "string", "id": "ascend_showcase_title", "format": "text", "required": false, "label": "عنوان العرض", "value": "Every angle considered." },
-        { "type": "string", "id": "ascend_showcase_text", "format": "textarea", "required": false, "label": "نص العرض", "value": "The same object, re-composed for every surface. Scroll, orbit and inspect without leaving the story." },
-        {
-          "id": "ascend_stats",
-          "type": "collection",
-          "format": "collection",
-          "required": false,
-          "minLength": 1,
-          "maxLength": 6,
-          "label": "الإحصاءات",
-          "item_label": "إحصائية",
-          "value": [],
-          "fields": [
-            { "id": "ascend.value", "type": "string", "format": "text", "required": false, "label": "القيمة", "value": "" },
-            { "id": "ascend.label", "type": "string", "format": "text", "required": false, "label": "الوصف", "value": "" }
-          ]
-        },
-        { "type": "string", "id": "ascend_cta_title", "format": "text", "required": false, "label": "عنوان الدعوة", "value": "Ready to leave the ground?" },
-        { "type": "string", "id": "ascend_cta_text", "format": "text", "required": false, "label": "نص زر الدعوة", "value": "Start your project" },
-        { "type": "string", "id": "ascend_footer_text", "format": "text", "required": false, "label": "نص التذييل", "value": "ASCEND — A DIGITAL OBJECT STUDIO" },
-        { "type": "string", "id": "ascend_accent_color", "format": "color", "required": false, "label": "اللون المميز", "value": "#5df0a8" },
-        { "type": "string", "id": "ascend_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#04060f" }
-      ]
-    },
-    {
-      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405011",
-      "title": { "en": "Composite Landing", "ar": "الصفحة المركبة" },
-      "icon": "sicon-layers",
-      "path": "home.composite-landing",
-      "image": "",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc-composite",
-          "value": "تجميعة من أربعة مشاهد: بطل التحول، المعرض القوسي، الشخصيات، ورحلة الطوابع، مع شريط تنقل وكتل نصية."
-        },
-        { "type": "string", "id": "composite_brand", "format": "text", "required": false, "label": "اسم التجميعة", "value": "SEELYXA / COMPOSITE" },
-        { "type": "string", "id": "composite_manifesto_eyebrow", "format": "text", "required": false, "label": "سطر البيان", "value": "MANIFESTO / 01" },
-        { "type": "string", "id": "composite_manifesto_title", "format": "text", "required": false, "label": "عنوان البيان", "value": "A store is a sequence of feelings." },
-        { "type": "string", "id": "composite_manifesto_text", "format": "textarea", "required": false, "label": "نص البيان", "value": "Four scenes, one continuous atmosphere. Each block can stand alone; together they form a single walk through the brand." },
-        { "type": "string", "id": "composite_footer_title", "format": "text", "required": false, "label": "عنوان الختام", "value": "Begin with a single object." },
-        { "type": "string", "id": "composite_footer_text", "format": "textarea", "required": false, "label": "نص الختام", "value": "The collection is released in small editions, made to be lived with." },
-        { "type": "string", "id": "composite_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Enter the store" },
-        {
-          "type": "items",
-          "id": "composite_cta_link",
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "required": false,
-          "label": "رابط الزر",
-          "value": null,
-          "sources": [
-            { "label": "تصنيفات", "key": "categories", "value": "categories" },
-            { "label": "صفحات", "key": "pages", "value": "pages" }
-          ]
-        },
-        { "type": "string", "id": "composite_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#141414" },
-        { "type": "string", "id": "composite_accent_color", "format": "color", "required": false, "label": "اللون المميز", "value": "#f04e23" },
-        { "type": "boolean", "id": "composite_show_dissolve", "format": "switch", "required": false, "label": "إظهار بطل التحول", "value": true, "selected": true },
-        { "type": "boolean", "id": "composite_show_gallery", "format": "switch", "required": false, "label": "إظهار المعرض القوسي", "value": true, "selected": true },
-        { "type": "boolean", "id": "composite_show_figurines", "format": "switch", "required": false, "label": "إظهار الشخصيات", "value": true, "selected": true },
-        { "type": "boolean", "id": "composite_show_stamps", "format": "switch", "required": false, "label": "إظهار رحلة الطوابع", "value": true, "selected": true }
-      ]
-    },
-    {
       "key": "186b3f4f-25cf-4d3c-abca-cef7eed6f0ab",
       "title": {
         "en": "Enhances Animated Images",
-        "ar": " صور متحركة (محسنة)"
+        "ar": " ØµÙˆØ± Ù…ØªØ­Ø±ÙƒØ© (Ù…Ø­Ø³Ù†Ø©)"
       },
       "icon": "sicon-image-carousel",
       "path": "home.enhanced-slider",
@@ -1647,13 +1043,13 @@
           "type": "static",
           "format": "description",
           "id": "enhance-slider-note",
-          "value": "<div >هذا العنصر غير مناسب لعرض البنرات، يمكنك استخدام عنصر <strong>صور متحركة</strong> بدلاً منه لتظهر صورة البنر بشكل كامل</div>"
+          "value": "<div >Ù‡Ø°Ø§ Ø§Ù„Ø¹Ù†ØµØ± ØºÙŠØ± Ù…Ù†Ø§Ø³Ø¨ Ù„Ø¹Ø±Ø¶ Ø§Ù„Ø¨Ù†Ø±Ø§ØªØŒ ÙŠÙ…ÙƒÙ†Ùƒ Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø¹Ù†ØµØ± <strong>ØµÙˆØ± Ù…ØªØ­Ø±ÙƒØ©</strong> Ø¨Ø¯Ù„Ø§Ù‹ Ù…Ù†Ù‡ Ù„ØªØ¸Ù‡Ø± ØµÙˆØ±Ø© Ø§Ù„Ø¨Ù†Ø± Ø¨Ø´ÙƒÙ„ ÙƒØ§Ù…Ù„</div>"
         },
         {
           "type": "boolean",
           "icon": "sicon-layout-grid",
-          "label": "عرض داخل حاوية",
-          "description": "يعرض المعرض بعرض محتوى الصفحة مع زوايا دائرية، بدلاً من امتداده على كامل عرض الشاشة.",
+          "label": "Ø¹Ø±Ø¶ Ø¯Ø§Ø®Ù„ Ø­Ø§ÙˆÙŠØ©",
+          "description": "ÙŠØ¹Ø±Ø¶ Ø§Ù„Ù…Ø¹Ø±Ø¶ Ø¨Ø¹Ø±Ø¶ Ù…Ø­ØªÙˆÙ‰ Ø§Ù„ØµÙØ­Ø© Ù…Ø¹ Ø²ÙˆØ§ÙŠØ§ Ø¯Ø§Ø¦Ø±ÙŠØ©ØŒ Ø¨Ø¯Ù„Ø§Ù‹ Ù…Ù† Ø§Ù…ØªØ¯Ø§Ø¯Ù‡ Ø¹Ù„Ù‰ ÙƒØ§Ù…Ù„ Ø¹Ø±Ø¶ Ø§Ù„Ø´Ø§Ø´Ø©.",
           "id": "in_container",
           "format": "switch",
           "required": false,
@@ -1663,8 +1059,8 @@
         {
           "type": "boolean",
           "icon": "sicon-play",
-          "label": "التنقل التلقائي بين الصور",
-          "description": "ينتقل المعرض إلى الصورة التالية تلقائياً كل بضع ثوانٍ. عند إيقافه يتنقل الزائر بالأسهم أو بالسحب.",
+          "label": "Ø§Ù„ØªÙ†Ù‚Ù„ Ø§Ù„ØªÙ„Ù‚Ø§Ø¦ÙŠ Ø¨ÙŠÙ† Ø§Ù„ØµÙˆØ±",
+          "description": "ÙŠÙ†ØªÙ‚Ù„ Ø§Ù„Ù…Ø¹Ø±Ø¶ Ø¥Ù„Ù‰ Ø§Ù„ØµÙˆØ±Ø© Ø§Ù„ØªØ§Ù„ÙŠØ© ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ ÙƒÙ„ Ø¨Ø¶Ø¹ Ø«ÙˆØ§Ù†Ù. Ø¹Ù†Ø¯ Ø¥ÙŠÙ‚Ø§ÙÙ‡ ÙŠØªÙ†Ù‚Ù„ Ø§Ù„Ø²Ø§Ø¦Ø± Ø¨Ø§Ù„Ø£Ø³Ù‡Ù… Ø£Ùˆ Ø¨Ø§Ù„Ø³Ø­Ø¨.",
           "id": "auto_play",
           "format": "switch",
           "required": false,
@@ -1679,18 +1075,18 @@
           "minLength": 1,
           "maxLength": 10,
           "label": null,
-          "item_label": "صورة",
+          "item_label": "ØµÙˆØ±Ø©",
           "value": [
             {
               "slides.image": "https://cdn.salla.sa/ZrBEO/MopzhoqpTkDObcKc8Q8n77AuydanfsGXdZO7iinH.jpg",
-              "slides.title": "روِّج لمنتجاتك كصور متحركة",
-              "slides.description": "اعرض المنتجات التي تود إبرازها لزوّار متجرك في هذه المساحة",
+              "slides.title": "Ø±ÙˆÙÙ‘Ø¬ Ù„Ù…Ù†ØªØ¬Ø§ØªÙƒ ÙƒØµÙˆØ± Ù…ØªØ­Ø±ÙƒØ©",
+              "slides.description": "Ø§Ø¹Ø±Ø¶ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„ØªÙŠ ØªÙˆØ¯ Ø¥Ø¨Ø±Ø§Ø²Ù‡Ø§ Ù„Ø²ÙˆÙ‘Ø§Ø± Ù…ØªØ¬Ø±Ùƒ ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø³Ø§Ø­Ø©",
               "slides.without_overlay": false
             },
             {
               "slides.image": "https://cdn.salla.sa/ZrBEO/3gOhYSaIhaHxhH2IHWxJYDl9JHwxP6dGKiZFSq4K.jpg",
-              "slides.title": "شجّع زوار متجرك على الشراء عبر عروض خاصة",
-              "slides.description": "اعرض المنتجات التي تود إبرازها لزوّار متجرك في هذه المساحة",
+              "slides.title": "Ø´Ø¬Ù‘Ø¹ Ø²ÙˆØ§Ø± Ù…ØªØ¬Ø±Ùƒ Ø¹Ù„Ù‰ Ø§Ù„Ø´Ø±Ø§Ø¡ Ø¹Ø¨Ø± Ø¹Ø±ÙˆØ¶ Ø®Ø§ØµØ©",
+              "slides.description": "Ø§Ø¹Ø±Ø¶ Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„ØªÙŠ ØªÙˆØ¯ Ø¥Ø¨Ø±Ø§Ø²Ù‡Ø§ Ù„Ø²ÙˆÙ‘Ø§Ø± Ù…ØªØ¬Ø±Ùƒ ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ù…Ø³Ø§Ø­Ø©",
               "slides.without_overlay": false
             }
           ],
@@ -1700,34 +1096,34 @@
               "icon": "sicon-image",
               "value": null,
               "id": "slides.image",
-              "label": "صورة البنر",
+              "label": "ØµÙˆØ±Ø© Ø§Ù„Ø¨Ù†Ø±",
               "format": "image",
               "required": true,
               "placeholder": null,
-              "description": "* المقاس المناسب للصورة هو 900×600 بكسل"
+              "description": "* Ø§Ù„Ù…Ù‚Ø§Ø³ Ø§Ù„Ù…Ù†Ø§Ø³Ø¨ Ù„Ù„ØµÙˆØ±Ø© Ù‡Ùˆ 900Ã—600 Ø¨ÙƒØ³Ù„"
             },
             {
               "type": "string",
               "icon": "sicon-video",
-              "label": "فيديو الخلفية (اختياري)",
+              "label": "ÙÙŠØ¯ÙŠÙˆ Ø§Ù„Ø®Ù„ÙÙŠØ© (Ø§Ø®ØªÙŠØ§Ø±ÙŠ)",
               "id": "slides.video",
               "value": null,
               "format": "url",
               "required": false,
               "placeholder": "https://www.youtube.com/watch?v=...",
-              "description": "رابط يوتيوب أو رابط ملف فيديو (MP4 أو WebM) يُعرض بدلاً من الصورة كخلفية متحركة بدون صوت. تبقى الصورة ظاهرة حتى يبدأ الفيديو، وتُعرض بدلاً منه للزوار الذين فعّلوا تقليل الحركة."
+              "description": "Ø±Ø§Ø¨Ø· ÙŠÙˆØªÙŠÙˆØ¨ Ø£Ùˆ Ø±Ø§Ø¨Ø· Ù…Ù„Ù ÙÙŠØ¯ÙŠÙˆ (MP4 Ø£Ùˆ WebM) ÙŠÙØ¹Ø±Ø¶ Ø¨Ø¯Ù„Ø§Ù‹ Ù…Ù† Ø§Ù„ØµÙˆØ±Ø© ÙƒØ®Ù„ÙÙŠØ© Ù…ØªØ­Ø±ÙƒØ© Ø¨Ø¯ÙˆÙ† ØµÙˆØª. ØªØ¨Ù‚Ù‰ Ø§Ù„ØµÙˆØ±Ø© Ø¸Ø§Ù‡Ø±Ø© Ø­ØªÙ‰ ÙŠØ¨Ø¯Ø£ Ø§Ù„ÙÙŠØ¯ÙŠÙˆØŒ ÙˆØªÙØ¹Ø±Ø¶ Ø¨Ø¯Ù„Ø§Ù‹ Ù…Ù†Ù‡ Ù„Ù„Ø²ÙˆØ§Ø± Ø§Ù„Ø°ÙŠÙ† ÙØ¹Ù‘Ù„ÙˆØ§ ØªÙ‚Ù„ÙŠÙ„ Ø§Ù„Ø­Ø±ÙƒØ©."
             },
             {
               "type": "string",
               "icon": "sicon-format-text-alt",
-              "label": "عنوان رئيسي",
+              "label": "Ø¹Ù†ÙˆØ§Ù† Ø±Ø¦ÙŠØ³ÙŠ",
               "multilanguage": true,
               "id": "slides.title",
               "value": null,
               "required": false,
               "format": "text",
-              "description": "يتم عرضه على الصورة بحجم بارز جداً، مع إضافة تأثير دخول للنص يضيف لمسة جمالية على معرض الصور.",
-              "placeholder": "يمكنك إضافة عنوان بارز هنا...",
+              "description": "ÙŠØªÙ… Ø¹Ø±Ø¶Ù‡ Ø¹Ù„Ù‰ Ø§Ù„ØµÙˆØ±Ø© Ø¨Ø­Ø¬Ù… Ø¨Ø§Ø±Ø² Ø¬Ø¯Ø§Ù‹ØŒ Ù…Ø¹ Ø¥Ø¶Ø§ÙØ© ØªØ£Ø«ÙŠØ± Ø¯Ø®ÙˆÙ„ Ù„Ù„Ù†Øµ ÙŠØ¶ÙŠÙ Ù„Ù…Ø³Ø© Ø¬Ù…Ø§Ù„ÙŠØ© Ø¹Ù„Ù‰ Ù…Ø¹Ø±Ø¶ Ø§Ù„ØµÙˆØ±.",
+              "placeholder": "ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ø¶Ø§ÙØ© Ø¹Ù†ÙˆØ§Ù† Ø¨Ø§Ø±Ø² Ù‡Ù†Ø§...",
               "hide": false,
               "minLength": 0,
               "maxLength": 100
@@ -1735,21 +1131,21 @@
             {
               "type": "string",
               "icon": "sicon-typography",
-              "label": "نص إضافي",
+              "label": "Ù†Øµ Ø¥Ø¶Ø§ÙÙŠ",
               "multilanguage": true,
               "id": "slides.description",
               "value": null,
-              "description": "يتم عرضه على الصورة بحجم أصغر من العنوان الرئيسي، مع إضافة تأثير دخول للنص يضيف لمسة جمالية على معرض الصور.",
+              "description": "ÙŠØªÙ… Ø¹Ø±Ø¶Ù‡ Ø¹Ù„Ù‰ Ø§Ù„ØµÙˆØ±Ø© Ø¨Ø­Ø¬Ù… Ø£ØµØºØ± Ù…Ù† Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØŒ Ù…Ø¹ Ø¥Ø¶Ø§ÙØ© ØªØ£Ø«ÙŠØ± Ø¯Ø®ÙˆÙ„ Ù„Ù„Ù†Øµ ÙŠØ¶ÙŠÙ Ù„Ù…Ø³Ø© Ø¬Ù…Ø§Ù„ÙŠØ© Ø¹Ù„Ù‰ Ù…Ø¹Ø±Ø¶ Ø§Ù„ØµÙˆØ±.",
               "format": "textarea",
               "required": false,
-              "placeholder": "يمكنك إضافة تفاصيل إضافية هنا",
+              "placeholder": "ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ø¶Ø§ÙØ© ØªÙØ§ØµÙŠÙ„ Ø¥Ø¶Ø§ÙÙŠØ© Ù‡Ù†Ø§",
               "minLength": 0,
               "maxLength": 255
             },
             {
               "type": "boolean",
               "icon": "sicon-toggle-off",
-              "label": "إزالة طبقة التعتم",
+              "label": "Ø¥Ø²Ø§Ù„Ø© Ø·Ø¨Ù‚Ø© Ø§Ù„ØªØ¹ØªÙ…",
               "description": null,
               "id": "slides.without_overlay",
               "format": "switch",
@@ -1765,7 +1161,7 @@
       "key": "2b1b130b-5b37-422a-9683-e0fd367460c0",
       "title": {
         "en": "Quick Links",
-        "ar": "روابط سريعة"
+        "ar": "Ø±ÙˆØ§Ø¨Ø· Ø³Ø±ÙŠØ¹Ø©"
       },
       "icon": "sicon-layout-grid-rearrange",
       "path": "home.main-links",
@@ -1789,7 +1185,7 @@
           "type": "static",
           "format": "description",
           "id": "without-bg",
-          "value": "<div ><h6 >معاينة العنصر</h6><img class='w-full' src='https://cdn.salla.network/images/themes/raed/preview-images/main-links.png?v=1.1'></div>",
+          "value": "<div ><h6 >Ù…Ø¹Ø§ÙŠÙ†Ø© Ø§Ù„Ø¹Ù†ØµØ±</h6><img class='w-full' src='https://cdn.salla.network/images/themes/raed/preview-images/main-links.png?v=1.1'></div>",
           "conditions": [
             {
               "id": "merge_with_top_component",
@@ -1801,21 +1197,21 @@
         {
           "type": "string",
           "icon": "sicon-format-text-alt",
-          "label": "العنوان",
+          "label": "Ø§Ù„Ø¹Ù†ÙˆØ§Ù†",
           "multilanguage": true,
           "id": "title",
           "value": null,
           "required": false,
           "format": "text",
           "description": null,
-          "placeholder": "أدخل العنوان هنا...",
+          "placeholder": "Ø£Ø¯Ø®Ù„ Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ù‡Ù†Ø§...",
           "minLength": 0,
           "maxLength": 100
         },
         {
           "type": "boolean",
           "icon": "sicon-toggle-off",
-          "label": "دمج مع العنصر السابق",
+          "label": "Ø¯Ù…Ø¬ Ù…Ø¹ Ø§Ù„Ø¹Ù†ØµØ± Ø§Ù„Ø³Ø§Ø¨Ù‚",
           "description": null,
           "id": "merge_with_top_component",
           "format": "switch",
@@ -1827,12 +1223,12 @@
           "type": "static",
           "format": "description",
           "id": "static-desc",
-          "value": "<small >* إزاحة كامل العنصر ومحتوياته مع العنصر السابق، وجعلهما يظهران كعنصر واحد متناسق، يكون ذا فائدة في حالة كان العنصر السابق هو (صور متحركة محسنة). </small>"
+          "value": "<small >* Ø¥Ø²Ø§Ø­Ø© ÙƒØ§Ù…Ù„ Ø§Ù„Ø¹Ù†ØµØ± ÙˆÙ…Ø­ØªÙˆÙŠØ§ØªÙ‡ Ù…Ø¹ Ø§Ù„Ø¹Ù†ØµØ± Ø§Ù„Ø³Ø§Ø¨Ù‚ØŒ ÙˆØ¬Ø¹Ù„Ù‡Ù…Ø§ ÙŠØ¸Ù‡Ø±Ø§Ù† ÙƒØ¹Ù†ØµØ± ÙˆØ§Ø­Ø¯ Ù…ØªÙ†Ø§Ø³Ù‚ØŒ ÙŠÙƒÙˆÙ† Ø°Ø§ ÙØ§Ø¦Ø¯Ø© ÙÙŠ Ø­Ø§Ù„Ø© ÙƒØ§Ù† Ø§Ù„Ø¹Ù†ØµØ± Ø§Ù„Ø³Ø§Ø¨Ù‚ Ù‡Ùˆ (ØµÙˆØ± Ù…ØªØ­Ø±ÙƒØ© Ù…Ø­Ø³Ù†Ø©). </small>"
         },
         {
           "type": "boolean",
           "icon": "sicon-toggle-off",
-          "label": "عرض أسهم التحرك",
+          "label": "Ø¹Ø±Ø¶ Ø£Ø³Ù‡Ù… Ø§Ù„ØªØ­Ø±Ùƒ",
           "description": null,
           "id": "show_controls",
           "format": "switch",
@@ -1843,8 +1239,8 @@
         {
           "type": "boolean",
           "icon": "sicon-toggle-off",
-          "label": "عرض روابط التصنيفات",
-          "description": "يمكنك تحديد التصنيفات بدل العناصر الخاصة، مع امكانية عرض صورة التصنيف مع العنصر",
+          "label": "Ø¹Ø±Ø¶ Ø±ÙˆØ§Ø¨Ø· Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª",
+          "description": "ÙŠÙ…ÙƒÙ†Ùƒ ØªØ­Ø¯ÙŠØ¯ Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª Ø¨Ø¯Ù„ Ø§Ù„Ø¹Ù†Ø§ØµØ± Ø§Ù„Ø®Ø§ØµØ©ØŒ Ù…Ø¹ Ø§Ù…ÙƒØ§Ù†ÙŠØ© Ø¹Ø±Ø¶ ØµÙˆØ±Ø© Ø§Ù„ØªØµÙ†ÙŠÙ Ù…Ø¹ Ø§Ù„Ø¹Ù†ØµØ±",
           "id": "show_cats",
           "format": "switch",
           "required": false,
@@ -1855,7 +1251,7 @@
           "id": "categories",
           "type": "items",
           "format": "dropdown-list",
-          "label": "حدد التصنيفات",
+          "label": "Ø­Ø¯Ø¯ Ø§Ù„ØªØµÙ†ÙŠÙØ§Øª",
           "labelHTML": null,
           "icon": "sicon-keyboard_arrow_down",
           "selected": [],
@@ -1879,41 +1275,41 @@
           "required": true,
           "minLength": 3,
           "maxLength": 100,
-          "item_label": "رابط",
+          "item_label": "Ø±Ø§Ø¨Ø·",
           "value": [
             {
               "links.icon": "sicon-packed-box",
-              "links.title": "منتج جاهز",
+              "links.title": "Ù…Ù†ØªØ¬ Ø¬Ø§Ù‡Ø²",
               "links.url__type": "offers_link"
             },
             {
               "links.icon": "sicon-fabric-swatch",
-              "links.title": "خدمة حسب الطلب",
+              "links.title": "Ø®Ø¯Ù…Ø© Ø­Ø³Ø¨ Ø§Ù„Ø·Ù„Ø¨",
               "links.url__type": "offers_link"
             },
             {
               "links.icon": "sicon-cake",
-              "links.title": "أكل ومشروبات",
+              "links.title": "Ø£ÙƒÙ„ ÙˆÙ…Ø´Ø±ÙˆØ¨Ø§Øª",
               "links.url__type": "offers_link"
             },
             {
               "links.icon": "sicon-game-controller-alt",
-              "links.title": "منتج رقمي",
+              "links.title": "Ù…Ù†ØªØ¬ Ø±Ù‚Ù…ÙŠ",
               "links.url__type": "offers_link"
             },
             {
               "links.icon": "sicon-barcode-scan",
-              "links.title": "بطاقة رقمية",
+              "links.title": "Ø¨Ø·Ø§Ù‚Ø© Ø±Ù‚Ù…ÙŠØ©",
               "links.url__type": "offers_link"
             },
             {
               "links.icon": "sicon-inbox-full",
-              "links.title": "مجموعة منتجات",
+              "links.title": "Ù…Ø¬Ù…ÙˆØ¹Ø© Ù…Ù†ØªØ¬Ø§Øª",
               "links.url__type": "offers_link"
             },
             {
               "links.icon": "sicon-calendar-date",
-              "links.title": "حجوزات",
+              "links.title": "Ø­Ø¬ÙˆØ²Ø§Øª",
               "links.url__type": "offers_link"
             }
           ],
@@ -1921,24 +1317,24 @@
             {
               "type": "string",
               "icon": "sicon-format-text-alt",
-              "label": "أيقونة الرابط",
+              "label": "Ø£ÙŠÙ‚ÙˆÙ†Ø© Ø§Ù„Ø±Ø§Ø¨Ø·",
               "id": "links.icon",
               "value": "sicon-store2",
               "required": false,
               "format": "icon",
               "class": "form--inline",
-              "description": "تظهر عند عدم إضافة صورة للرابط"
+              "description": "ØªØ¸Ù‡Ø± Ø¹Ù†Ø¯ Ø¹Ø¯Ù… Ø¥Ø¶Ø§ÙØ© ØµÙˆØ±Ø© Ù„Ù„Ø±Ø§Ø¨Ø·"
             },
             {
               "type": "string",
               "icon": "sicon-image",
-              "label": "صورة الرابط",
+              "label": "ØµÙˆØ±Ø© Ø§Ù„Ø±Ø§Ø¨Ø·",
               "id": "links.image",
               "value": null,
               "required": false,
               "format": "image",
               "placeholder": null,
-              "description": "تظهر بدل الأيقونة وتملأ الدائرة. المقاس المناسب 200×200 بكسل (صورة مربعة)"
+              "description": "ØªØ¸Ù‡Ø± Ø¨Ø¯Ù„ Ø§Ù„Ø£ÙŠÙ‚ÙˆÙ†Ø© ÙˆØªÙ…Ù„Ø£ Ø§Ù„Ø¯Ø§Ø¦Ø±Ø©. Ø§Ù„Ù…Ù‚Ø§Ø³ Ø§Ù„Ù…Ù†Ø§Ø³Ø¨ 200Ã—200 Ø¨ÙƒØ³Ù„ (ØµÙˆØ±Ø© Ù…Ø±Ø¨Ø¹Ø©)"
             },
             {
               "type": "string",
@@ -1949,14 +1345,14 @@
               "required": false,
               "format": "text",
               "description": null,
-              "placeholder": "أدخل عنوان للرابط هنا...",
+              "placeholder": "Ø£Ø¯Ø®Ù„ Ø¹Ù†ÙˆØ§Ù† Ù„Ù„Ø±Ø§Ø¨Ø· Ù‡Ù†Ø§...",
               "minLength": 2,
               "maxLength": 80
             },
             {
               "type": "items",
               "icon": "sicon-link",
-              "label": "الرابط",
+              "label": "Ø§Ù„Ø±Ø§Ø¨Ø·",
               "id": "links.url",
               "value": null,
               "description": null,
@@ -1966,57 +1362,57 @@
               "source": "custom",
               "sources": [
                 {
-                  "label": "منتج",
+                  "label": "Ù…Ù†ØªØ¬",
                   "key": "products",
                   "value": "products"
                 },
                 {
-                  "label": "منتجات مع وسم",
+                  "label": "Ù…Ù†ØªØ¬Ø§Øª Ù…Ø¹ ÙˆØ³Ù…",
                   "key": "products_tags",
                   "value": "products_tags"
                 },
                 {
-                  "label": "تصنيف",
+                  "label": "ØªØµÙ†ÙŠÙ",
                   "key": "categories",
                   "value": "categories"
                 },
                 {
-                  "label": "ماركة تجارية",
+                  "label": "Ù…Ø§Ø±ÙƒØ© ØªØ¬Ø§Ø±ÙŠØ©",
                   "key": "brands",
                   "value": "brands"
                 },
                 {
-                  "label": "صفحة تعريفية",
+                  "label": "ØµÙØ­Ø© ØªØ¹Ø±ÙŠÙÙŠØ©",
                   "key": "pages",
                   "value": "pages"
                 },
                 {
-                  "label": "مقالة",
+                  "label": "Ù…Ù‚Ø§Ù„Ø©",
                   "key": "blog_articles",
                   "value": "blog_articles"
                 },
                 {
-                  "label": "تصنيف ضمن المدونة",
+                  "label": "ØªØµÙ†ÙŠÙ Ø¶Ù…Ù† Ø§Ù„Ù…Ø¯ÙˆÙ†Ø©",
                   "key": "blog_categories",
                   "value": "blog_categories"
                 },
                 {
-                  "label": "التخفيضات",
+                  "label": "Ø§Ù„ØªØ®ÙÙŠØ¶Ø§Øª",
                   "key": "offers_link",
                   "value": "offers_link"
                 },
                 {
-                  "label": "الماركات التجارية",
+                  "label": "Ø§Ù„Ù…Ø§Ø±ÙƒØ§Øª Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ©",
                   "key": "brands_link",
                   "value": "brands_link"
                 },
                 {
-                  "label": "المدونة",
+                  "label": "Ø§Ù„Ù…Ø¯ÙˆÙ†Ø©",
                   "key": "blog_link",
                   "value": "blog_link"
                 },
                 {
-                  "label": "رابط خارجي",
+                  "label": "Ø±Ø§Ø¨Ø· Ø®Ø§Ø±Ø¬ÙŠ",
                   "key": "custom",
                   "value": "custom"
                 }
@@ -2037,7 +1433,7 @@
       "key": "6a73e723-1357-43a3-ac70-de94a15280ef",
       "title": {
         "en": "Featured products",
-        "ar": "منتجات مميزة"
+        "ar": "Ù…Ù†ØªØ¬Ø§Øª Ù…Ù…ÙŠØ²Ø©"
       },
       "icon": "sicon-list-play",
       "path": "home.featured-products",
@@ -2086,23 +1482,23 @@
           "id": "show_method",
           "icon": "sicon-settings",
           "type": "items",
-          "label": "طريقة العرض",
+          "label": "Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¹Ø±Ø¶",
           "format": "dropdown-list",
           "source": "Manual",
           "options": [
             {
               "key": "special_offer_with_products",
-              "label": "عرض خاص + منتجات",
+              "label": "Ø¹Ø±Ø¶ Ø®Ø§Øµ + Ù…Ù†ØªØ¬Ø§Øª",
               "value": "special_offer_with_products"
             },
             {
               "key": "products_without_special_product",
-              "label": "منتجات بدون منتج مميز",
+              "label": "Ù…Ù†ØªØ¬Ø§Øª Ø¨Ø¯ÙˆÙ† Ù…Ù†ØªØ¬ Ù…Ù…ÙŠØ²",
               "value": "products_without_special_product"
             },
             {
               "key": "products_with_special_product",
-              "label": "منتج مميز + منتجات",
+              "label": "Ù…Ù†ØªØ¬ Ù…Ù…ÙŠØ² + Ù…Ù†ØªØ¬Ø§Øª",
               "value": "products_with_special_product"
             }
           ],
@@ -2110,7 +1506,7 @@
           "selected": [
             {
               "key": "products_without_special_product",
-              "label": "منتجات بدون منتج مميز",
+              "label": "Ù…Ù†ØªØ¬Ø§Øª Ø¨Ø¯ÙˆÙ† Ù…Ù†ØªØ¬ Ù…Ù…ÙŠØ²",
               "value": "products_without_special_product"
             }
           ],
@@ -2121,7 +1517,7 @@
           "id": "static-desc",
           "type": "static",
           "format": "description",
-          "value": "\nيفضل إضافة مجموعتان (تبويبان) من المنتجات لطريقة العرض هذه\n",
+          "value": "\nÙŠÙØ¶Ù„ Ø¥Ø¶Ø§ÙØ© Ù…Ø¬Ù…ÙˆØ¹ØªØ§Ù† (ØªØ¨ÙˆÙŠØ¨Ø§Ù†) Ù…Ù† Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ù„Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¹Ø±Ø¶ Ù‡Ø°Ù‡\n",
           "conditions": [
             {
               "id": "show_method",
@@ -2134,7 +1530,7 @@
           "id": "main_product_title",
           "icon": "sicon-type-square",
           "type": "string",
-          "label": "المنتج الرئيسي",
+          "label": "Ø§Ù„Ù…Ù†ØªØ¬ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ",
           "value": "",
           "format": "text",
           "required": true,
@@ -2148,14 +1544,14 @@
             }
           ],
           "description": "",
-          "placeholder": "العنوان الرئيسي",
+          "placeholder": "Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ",
           "multilanguage": true
         },
         {
           "id": "main_product",
           "icon": "sicon-keyboard_arrow_down",
           "type": "items",
-          "label": "منتج عليه عرض تخفيض",
+          "label": "Ù…Ù†ØªØ¬ Ø¹Ù„ÙŠÙ‡ Ø¹Ø±Ø¶ ØªØ®ÙÙŠØ¶",
           "format": "dropdown-list",
           "source": "products",
           "options": [],
@@ -2168,21 +1564,21 @@
             }
           ],
           "searchable": true,
-          "description": "في حال إختيار منتج، سيتم عرضه بشكل بارز وبجواره بطاقات لأربعة منتجات"
+          "description": "ÙÙŠ Ø­Ø§Ù„ Ø¥Ø®ØªÙŠØ§Ø± Ù…Ù†ØªØ¬ØŒ Ø³ÙŠØªÙ… Ø¹Ø±Ø¶Ù‡ Ø¨Ø´ÙƒÙ„ Ø¨Ø§Ø±Ø² ÙˆØ¨Ø¬ÙˆØ§Ø±Ù‡ Ø¨Ø·Ø§Ù‚Ø§Øª Ù„Ø£Ø±Ø¨Ø¹Ø© Ù…Ù†ØªØ¬Ø§Øª"
         },
         {
           "id": "items",
           "type": "collection",
           "format": "collection",
-          "label": "تبويبات المنتجات",
+          "label": "ØªØ¨ÙˆÙŠØ¨Ø§Øª Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª",
           "required": true,
           "minLength": 1,
           "maxLength": 4,
-          "item_label": "تبويب ",
-          "description": "يمكن إضافة عدة منتجات على شكل مجموعات (تبويبات)، ويمكن للزائر التنقل بينها عن طريق النقر على اسماء التبويبات",
+          "item_label": "ØªØ¨ÙˆÙŠØ¨ ",
+          "description": "ÙŠÙ…ÙƒÙ† Ø¥Ø¶Ø§ÙØ© Ø¹Ø¯Ø© Ù…Ù†ØªØ¬Ø§Øª Ø¹Ù„Ù‰ Ø´ÙƒÙ„ Ù…Ø¬Ù…ÙˆØ¹Ø§Øª (ØªØ¨ÙˆÙŠØ¨Ø§Øª)ØŒ ÙˆÙŠÙ…ÙƒÙ† Ù„Ù„Ø²Ø§Ø¦Ø± Ø§Ù„ØªÙ†Ù‚Ù„ Ø¨ÙŠÙ†Ù‡Ø§ Ø¹Ù† Ø·Ø±ÙŠÙ‚ Ø§Ù„Ù†Ù‚Ø± Ø¹Ù„Ù‰ Ø§Ø³Ù…Ø§Ø¡ Ø§Ù„ØªØ¨ÙˆÙŠØ¨Ø§Øª",
           "value": [
             {
-              "items.name": "أحدث المنتجات",
+              "items.name": "Ø£Ø­Ø¯Ø« Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª",
               "items.type": "latest_products",
               "items.category": "",
               "items.chosen_products": null,
@@ -2194,52 +1590,52 @@
               "id": "items.name",
               "icon": "sicon-type-square",
               "type": "string",
-              "label": "عنوان التبويب",
+              "label": "Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ØªØ¨ÙˆÙŠØ¨",
               "value": "",
               "format": "text",
               "required": true,
               "maxLength": 40,
               "minLength": 1,
               "description": "",
-              "placeholder": "عنوان التبويب",
+              "placeholder": "Ø¹Ù†ÙˆØ§Ù† Ø§Ù„ØªØ¨ÙˆÙŠØ¨",
               "multilanguage": true
             },
             {
               "id": "items.type",
               "icon": "sicon-t-shirt",
               "type": "items",
-              "label": "مجموعة منتجات من:",
+              "label": "Ù…Ø¬Ù…ÙˆØ¹Ø© Ù…Ù†ØªØ¬Ø§Øª Ù…Ù†:",
               "format": "dropdown-list",
               "source": "Manual",
               "options": [
                 {
                   "key": "category",
-                  "label": "تصنيف",
+                  "label": "ØªØµÙ†ÙŠÙ",
                   "value": "category"
                 },
                 {
                   "key": "most_sales",
-                  "label": "الأكثر مبيعا",
+                  "label": "Ø§Ù„Ø£ÙƒØ«Ø± Ù…Ø¨ÙŠØ¹Ø§",
                   "value": "most_sales"
                 },
                 {
                   "key": "latest_products",
-                  "label": "أحدث المنتجات",
+                  "label": "Ø£Ø­Ø¯Ø« Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª",
                   "value": "latest_products"
                 },
                 {
                   "key": "chosen_products",
-                  "label": "منتجات مختارة",
+                  "label": "Ù…Ù†ØªØ¬Ø§Øª Ù…Ø®ØªØ§Ø±Ø©",
                   "value": "chosen_products"
                 },
                 {
                   "key": "top_rated_products",
-                  "label": "الأعلى تقييما",
+                  "label": "Ø§Ù„Ø£Ø¹Ù„Ù‰ ØªÙ‚ÙŠÙŠÙ…Ø§",
                   "value": "top_rated_products"
                 },
                 {
                   "key": "tag",
-                  "label": "منتجات مع وسم",
+                  "label": "Ù…Ù†ØªØ¬Ø§Øª Ù…Ø¹ ÙˆØ³Ù…",
                   "value": "tag"
                 }
               ],
@@ -2247,7 +1643,7 @@
               "selected": [
                 {
                   "key": "latest_products",
-                  "label": "أحدث المنتجات",
+                  "label": "Ø£Ø­Ø¯Ø« Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª",
                   "value": "latest_products"
                 }
               ],
@@ -2257,7 +1653,7 @@
               "id": "items.chosen_products",
               "icon": "sicon-keyboard_arrow_down",
               "type": "items",
-              "label": "المنتجات المختارة",
+              "label": "Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„Ù…Ø®ØªØ§Ø±Ø©",
               "format": "dropdown-list",
               "source": "products",
               "options": [],
@@ -2280,7 +1676,7 @@
               "id": "items.category",
               "icon": "sicon-keyboard_arrow_down",
               "type": "items",
-              "label": "التصنيف",
+              "label": "Ø§Ù„ØªØµÙ†ÙŠÙ",
               "format": "dropdown-list",
               "source": "categories",
               "options": [],
@@ -2301,7 +1697,7 @@
               "id": "items.tag",
               "icon": "sicon-tag",
               "type": "items",
-              "label": "الوسم",
+              "label": "Ø§Ù„ÙˆØ³Ù…",
               "format": "dropdown-list",
               "source": "products_tags",
               "options": [],
@@ -2317,13 +1713,13 @@
                 }
               ],
               "searchable": true,
-              "description": "اختر وسم المنتجات التي تريد عرضها"
+              "description": "Ø§Ø®ØªØ± ÙˆØ³Ù… Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª Ø§Ù„ØªÙŠ ØªØ±ÙŠØ¯ Ø¹Ø±Ø¶Ù‡Ø§"
             },
             {
               "id": "items.special_product",
               "icon": "sicon-keyboard_arrow_down",
               "type": "items",
-              "label": "منتج مميز",
+              "label": "Ù…Ù†ØªØ¬ Ù…Ù…ÙŠØ²",
               "format": "dropdown-list",
               "source": "products",
               "options": [],
@@ -2336,7 +1732,7 @@
                 }
               ],
               "searchable": true,
-              "description": "في حال إختيار منتج، سيتم عرضه بشكل بارز وبجواره بطاقات لثلاثة منتجات"
+              "description": "ÙÙŠ Ø­Ø§Ù„ Ø¥Ø®ØªÙŠØ§Ø± Ù…Ù†ØªØ¬ØŒ Ø³ÙŠØªÙ… Ø¹Ø±Ø¶Ù‡ Ø¨Ø´ÙƒÙ„ Ø¨Ø§Ø±Ø² ÙˆØ¨Ø¬ÙˆØ§Ø±Ù‡ Ø¨Ø·Ø§Ù‚Ø§Øª Ù„Ø«Ù„Ø§Ø«Ø© Ù…Ù†ØªØ¬Ø§Øª"
             }
           ]
         }
@@ -2346,7 +1742,7 @@
       "key": "9a758d20-2ce4-4782-91fe-c04466464588",
       "title": {
         "en": "Animated products with a background",
-        "ar": "منتجات متحركة مع خلفية"
+        "ar": "Ù…Ù†ØªØ¬Ø§Øª Ù…ØªØ­Ø±ÙƒØ© Ù…Ø¹ Ø®Ù„ÙÙŠØ©"
       },
       "icon": "sicon-list-play",
       "path": "home.slider-products-with-header",
@@ -2362,12 +1758,12 @@
           "type": "string",
           "icon": "sicon-image",
           "value": "https://cdn.salla.sa/form-builder/D7bG3pgSit43TheOejBOZV7LIfG1y1Cj0hWLmgIh.jpg",
-          "label": "صورة الخلفية",
+          "label": "ØµÙˆØ±Ø© Ø§Ù„Ø®Ù„ÙÙŠØ©",
           "id": "background",
           "format": "image",
           "required": true,
           "placeholder": null,
-          "description": "* المقاس المناسب للصورة هو 1233×500 بكسل",
+          "description": "* Ø§Ù„Ù…Ù‚Ø§Ø³ Ø§Ù„Ù…Ù†Ø§Ø³Ø¨ Ù„Ù„ØµÙˆØ±Ø© Ù‡Ùˆ 1233Ã—500 Ø¨ÙƒØ³Ù„",
           "settings": {
             "height": 580,
             "width": 1400
@@ -2376,14 +1772,14 @@
         {
           "type": "string",
           "icon": "sicon-format-text-alt",
-          "label": "عنوان رئيسي",
+          "label": "Ø¹Ù†ÙˆØ§Ù† Ø±Ø¦ÙŠØ³ÙŠ",
           "multilanguage": true,
           "id": "title",
           "value": null,
           "required": false,
           "format": "text",
           "description": null,
-          "placeholder": "يمكنك إضافة العنوان الرئيسي هنا...",
+          "placeholder": "ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ Ù‡Ù†Ø§...",
           "hide": false,
           "minLength": 0,
           "maxLength": "80"
@@ -2391,21 +1787,21 @@
         {
           "type": "string",
           "icon": "sicon-typography",
-          "label": "نص توضيحي",
+          "label": "Ù†Øµ ØªÙˆØ¶ÙŠØ­ÙŠ",
           "multilanguage": true,
           "id": "description",
           "value": null,
           "description": null,
           "format": "textarea",
           "required": false,
-          "placeholder": "يمكنك إضافة وصف لهذا القسم هنا...",
+          "placeholder": "ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ø¶Ø§ÙØ© ÙˆØµÙ Ù„Ù‡Ø°Ø§ Ø§Ù„Ù‚Ø³Ù… Ù‡Ù†Ø§...",
           "minLength": 0,
           "maxLength": "256"
         },
         {
           "type": "items",
           "icon": "sicon-keyboard_arrow_down",
-          "label": "منتجات",
+          "label": "Ù…Ù†ØªØ¬Ø§Øª",
           "id": "products",
           "format": "dropdown-list",
           "description": null,
@@ -2422,67 +1818,67 @@
         {
           "type": "items",
           "icon": "sicon-link",
-          "label": "رابط عرض الكل",
+          "label": "Ø±Ø§Ø¨Ø· Ø¹Ø±Ø¶ Ø§Ù„ÙƒÙ„",
           "id": "display_all_url",
           "value": [],
-          "description": "عند إختيار رابط فارغ سيتم إخفاء زر 'عرض الكل'",
+          "description": "Ø¹Ù†Ø¯ Ø¥Ø®ØªÙŠØ§Ø± Ø±Ø§Ø¨Ø· ÙØ§Ø±Øº Ø³ÙŠØªÙ… Ø¥Ø®ÙØ§Ø¡ Ø²Ø± 'Ø¹Ø±Ø¶ Ø§Ù„ÙƒÙ„'",
           "required": false,
           "format": "variable-list",
           "searchable": true,
           "source": "custom",
           "sources": [
             {
-              "label": "منتج",
+              "label": "Ù…Ù†ØªØ¬",
               "key": "products",
               "value": "products"
             },
             {
-              "label": "منتجات مع وسم",
+              "label": "Ù…Ù†ØªØ¬Ø§Øª Ù…Ø¹ ÙˆØ³Ù…",
               "key": "products_tags",
               "value": "products_tags"
             },
             {
-              "label": "تصنيف",
+              "label": "ØªØµÙ†ÙŠÙ",
               "key": "categories",
               "value": "categories"
             },
             {
-              "label": "ماركة تجارية",
+              "label": "Ù…Ø§Ø±ÙƒØ© ØªØ¬Ø§Ø±ÙŠØ©",
               "key": "brands",
               "value": "brands"
             },
             {
-              "label": "صفحة تعريفية",
+              "label": "ØµÙØ­Ø© ØªØ¹Ø±ÙŠÙÙŠØ©",
               "key": "pages",
               "value": "pages"
             },
             {
-              "label": "مقالة",
+              "label": "Ù…Ù‚Ø§Ù„Ø©",
               "key": "blog_articles",
               "value": "blog_articles"
             },
             {
-              "label": "تصنيف ضمن المدونة",
+              "label": "ØªØµÙ†ÙŠÙ Ø¶Ù…Ù† Ø§Ù„Ù…Ø¯ÙˆÙ†Ø©",
               "key": "blog_categories",
               "value": "blog_categories"
             },
             {
-              "label": "التخفيضات",
+              "label": "Ø§Ù„ØªØ®ÙÙŠØ¶Ø§Øª",
               "key": "offers_link",
               "value": "offers_link"
             },
             {
-              "label": "الماركات التجارية",
+              "label": "Ø§Ù„Ù…Ø§Ø±ÙƒØ§Øª Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ©",
               "key": "brands_link",
               "value": "brands_link"
             },
             {
-              "label": "المدونة",
+              "label": "Ø§Ù„Ù…Ø¯ÙˆÙ†Ø©",
               "key": "blog_link",
               "value": "blog_link"
             },
             {
-              "label": "رابط خارجي",
+              "label": "Ø±Ø§Ø¨Ø· Ø®Ø§Ø±Ø¬ÙŠ",
               "key": "custom",
               "value": "custom"
             }
@@ -2494,7 +1890,7 @@
       "key": "b89edc4a-ce0b-468f-8323-2da48147bb32",
       "title": {
         "en": "Enhanced square images",
-        "ar": "صور مربعة (محسنة)"
+        "ar": "ØµÙˆØ± Ù…Ø±Ø¨Ø¹Ø© (Ù…Ø­Ø³Ù†Ø©)"
       },
       "icon": "sicon-image",
       "path": "home.enhanced-square-banners",
@@ -2511,7 +1907,7 @@
           "type": "static",
           "format": "description",
           "id": "banners-note",
-          "value": "<div style='background-color:#f5f5f5;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#333;font-size:14px;line-height:1.6;direction:inherit;text-align:inherit;'><strong style='color:#e53e3e;'>تنبيه:</strong> يتم اقتصاص الصور من الأطراف لتناسب مقاسات الشاشات، لذا يُرجى مراعاة الأجزاء المقتصّة طولاً وعرضاً عند التصميم لتظهر الصورة كاملة قدر الإمكان.</div>"
+          "value": "<div style='background-color:#f5f5f5;border-radius:8px;padding:12px 16px;margin-bottom:16px;color:#333;font-size:14px;line-height:1.6;direction:inherit;text-align:inherit;'><strong style='color:#e53e3e;'>ØªÙ†Ø¨ÙŠÙ‡:</strong> ÙŠØªÙ… Ø§Ù‚ØªØµØ§Øµ Ø§Ù„ØµÙˆØ± Ù…Ù† Ø§Ù„Ø£Ø·Ø±Ø§Ù Ù„ØªÙ†Ø§Ø³Ø¨ Ù…Ù‚Ø§Ø³Ø§Øª Ø§Ù„Ø´Ø§Ø´Ø§ØªØŒ Ù„Ø°Ø§ ÙŠÙØ±Ø¬Ù‰ Ù…Ø±Ø§Ø¹Ø§Ø© Ø§Ù„Ø£Ø¬Ø²Ø§Ø¡ Ø§Ù„Ù…Ù‚ØªØµÙ‘Ø© Ø·ÙˆÙ„Ø§Ù‹ ÙˆØ¹Ø±Ø¶Ø§Ù‹ Ø¹Ù†Ø¯ Ø§Ù„ØªØµÙ…ÙŠÙ… Ù„ØªØ¸Ù‡Ø± Ø§Ù„ØµÙˆØ±Ø© ÙƒØ§Ù…Ù„Ø© Ù‚Ø¯Ø± Ø§Ù„Ø¥Ù…ÙƒØ§Ù†.</div>"
         },
         {
           "id": "banners",
@@ -2520,38 +1916,38 @@
           "required": true,
           "minLength": 1,
           "maxLength": 5,
-          "label": "قائمة الصور",
-          "item_label": "صورة",
+          "label": "Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„ØµÙˆØ±",
+          "item_label": "ØµÙˆØ±Ø©",
           "value": [
             {
               "banners.image": "https://cdn.salla.sa/mQgZlG/pzOCEw10wCfXeVSpKnL0Ifd1O9ZkTfnZ17RkE14R.jpg",
               "banners.url": null,
-              "banners.title": "تصفَّح حسب التصنيف",
-              "banners.description": "سهِّل تجربة التسوُّق والوصول لمنتجاتك"
+              "banners.title": "ØªØµÙÙ‘ÙŽØ­ Ø­Ø³Ø¨ Ø§Ù„ØªØµÙ†ÙŠÙ",
+              "banners.description": "Ø³Ù‡ÙÙ‘Ù„ ØªØ¬Ø±Ø¨Ø© Ø§Ù„ØªØ³ÙˆÙ‘ÙÙ‚ ÙˆØ§Ù„ÙˆØµÙˆÙ„ Ù„Ù…Ù†ØªØ¬Ø§ØªÙƒ"
             },
             {
               "banners.image": "https://cdn.salla.sa/mQgZlG/lkyDjYwvWJNmAQoGnLALLcUkm66rCCDbTyVlSGdH.jpg",
               "banners.url": null,
-              "banners.title": "تصفَّح حسب التصنيف",
-              "banners.description": "سهِّل تجربة التسوُّق والوصول لمنتجاتك"
+              "banners.title": "ØªØµÙÙ‘ÙŽØ­ Ø­Ø³Ø¨ Ø§Ù„ØªØµÙ†ÙŠÙ",
+              "banners.description": "Ø³Ù‡ÙÙ‘Ù„ ØªØ¬Ø±Ø¨Ø© Ø§Ù„ØªØ³ÙˆÙ‘ÙÙ‚ ÙˆØ§Ù„ÙˆØµÙˆÙ„ Ù„Ù…Ù†ØªØ¬Ø§ØªÙƒ"
             },
             {
               "banners.image": "https://cdn.salla.sa/mQgZlG/lkyDjYwvWJNmAQoGnLALLcUkm66rCCDbTyVlSGdH.jpg",
               "banners.url": null,
-              "banners.title": "تصفَّح حسب التصنيف",
-              "banners.description": "سهِّل تجربة التسوُّق والوصول لمنتجاتك"
+              "banners.title": "ØªØµÙÙ‘ÙŽØ­ Ø­Ø³Ø¨ Ø§Ù„ØªØµÙ†ÙŠÙ",
+              "banners.description": "Ø³Ù‡ÙÙ‘Ù„ ØªØ¬Ø±Ø¨Ø© Ø§Ù„ØªØ³ÙˆÙ‘ÙÙ‚ ÙˆØ§Ù„ÙˆØµÙˆÙ„ Ù„Ù…Ù†ØªØ¬Ø§ØªÙƒ"
             },
             {
               "banners.image": "https://cdn.salla.sa/mQgZlG/lkyDjYwvWJNmAQoGnLALLcUkm66rCCDbTyVlSGdH.jpg",
               "banners.url": null,
-              "banners.title": "تصفَّح حسب التصنيف",
-              "banners.description": "سهِّل تجربة التسوُّق والوصول لمنتجاتك"
+              "banners.title": "ØªØµÙÙ‘ÙŽØ­ Ø­Ø³Ø¨ Ø§Ù„ØªØµÙ†ÙŠÙ",
+              "banners.description": "Ø³Ù‡ÙÙ‘Ù„ ØªØ¬Ø±Ø¨Ø© Ø§Ù„ØªØ³ÙˆÙ‘ÙÙ‚ ÙˆØ§Ù„ÙˆØµÙˆÙ„ Ù„Ù…Ù†ØªØ¬Ø§ØªÙƒ"
             },
             {
               "banners.image": "https://cdn.salla.sa/mQgZlG/lkyDjYwvWJNmAQoGnLALLcUkm66rCCDbTyVlSGdH.jpg",
               "banners.url": null,
-              "banners.title": "تصفَّح حسب التصنيف",
-              "banners.description": "سهِّل تجربة التسوُّق والوصول لمنتجاتك"
+              "banners.title": "ØªØµÙÙ‘ÙŽØ­ Ø­Ø³Ø¨ Ø§Ù„ØªØµÙ†ÙŠÙ",
+              "banners.description": "Ø³Ù‡ÙÙ‘Ù„ ØªØ¬Ø±Ø¨Ø© Ø§Ù„ØªØ³ÙˆÙ‘ÙÙ‚ ÙˆØ§Ù„ÙˆØµÙˆÙ„ Ù„Ù…Ù†ØªØ¬Ø§ØªÙƒ"
             }
           ],
           "fields": [
@@ -2559,12 +1955,12 @@
               "type": "string",
               "icon": "sicon-image",
               "value": null,
-              "label": "صورة البنر",
+              "label": "ØµÙˆØ±Ø© Ø§Ù„Ø¨Ù†Ø±",
               "id": "banners.image",
               "format": "image",
               "required": true,
               "placeholder": null,
-              "description": "* المقاس المناسب للصورة هو 640×427 بكسل",
+              "description": "* Ø§Ù„Ù…Ù‚Ø§Ø³ Ø§Ù„Ù…Ù†Ø§Ø³Ø¨ Ù„Ù„ØµÙˆØ±Ø© Ù‡Ùˆ 640Ã—427 Ø¨ÙƒØ³Ù„",
               "settings": {
                 "height": 427,
                 "width": 640
@@ -2573,7 +1969,7 @@
             {
               "type": "items",
               "icon": "sicon-link",
-              "label": "الرابط",
+              "label": "Ø§Ù„Ø±Ø§Ø¨Ø·",
               "id": "banners.url",
               "value": null,
               "description": null,
@@ -2583,57 +1979,57 @@
               "source": "custom",
               "sources": [
                 {
-                  "label": "منتج",
+                  "label": "Ù…Ù†ØªØ¬",
                   "key": "products",
                   "value": "products"
                 },
                 {
-                  "label": "منتجات مع وسم",
+                  "label": "Ù…Ù†ØªØ¬Ø§Øª Ù…Ø¹ ÙˆØ³Ù…",
                   "key": "products_tags",
                   "value": "products_tags"
                 },
                 {
-                  "label": "تصنيف",
+                  "label": "ØªØµÙ†ÙŠÙ",
                   "key": "categories",
                   "value": "categories"
                 },
                 {
-                  "label": "ماركة تجارية",
+                  "label": "Ù…Ø§Ø±ÙƒØ© ØªØ¬Ø§Ø±ÙŠØ©",
                   "key": "brands",
                   "value": "brands"
                 },
                 {
-                  "label": "صفحة تعريفية",
+                  "label": "ØµÙØ­Ø© ØªØ¹Ø±ÙŠÙÙŠØ©",
                   "key": "pages",
                   "value": "pages"
                 },
                 {
-                  "label": "مقالة",
+                  "label": "Ù…Ù‚Ø§Ù„Ø©",
                   "key": "blog_articles",
                   "value": "blog_articles"
                 },
                 {
-                  "label": "تصنيف ضمن المدونة",
+                  "label": "ØªØµÙ†ÙŠÙ Ø¶Ù…Ù† Ø§Ù„Ù…Ø¯ÙˆÙ†Ø©",
                   "key": "blog_categories",
                   "value": "blog_categories"
                 },
                 {
-                  "label": "التخفيضات",
+                  "label": "Ø§Ù„ØªØ®ÙÙŠØ¶Ø§Øª",
                   "key": "offers_link",
                   "value": "offers_link"
                 },
                 {
-                  "label": "الماركات التجارية",
+                  "label": "Ø§Ù„Ù…Ø§Ø±ÙƒØ§Øª Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ©",
                   "key": "brands_link",
                   "value": "brands_link"
                 },
                 {
-                  "label": "المدونة",
+                  "label": "Ø§Ù„Ù…Ø¯ÙˆÙ†Ø©",
                   "key": "blog_link",
                   "value": "blog_link"
                 },
                 {
-                  "label": "رابط خارجي",
+                  "label": "Ø±Ø§Ø¨Ø· Ø®Ø§Ø±Ø¬ÙŠ",
                   "key": "custom",
                   "value": "custom"
                 }
@@ -2642,14 +2038,14 @@
             {
               "type": "string",
               "icon": "sicon-format-text-alt",
-              "label": "عنوان رئيسي",
+              "label": "Ø¹Ù†ÙˆØ§Ù† Ø±Ø¦ÙŠØ³ÙŠ",
               "multilanguage": true,
               "id": "banners.title",
               "value": null,
               "required": false,
               "format": "text",
-              "description": "نص يتم إضافته على الصورة بنمط خط كبير",
-              "placeholder": "أدخل النص هنا...",
+              "description": "Ù†Øµ ÙŠØªÙ… Ø¥Ø¶Ø§ÙØªÙ‡ Ø¹Ù„Ù‰ Ø§Ù„ØµÙˆØ±Ø© Ø¨Ù†Ù…Ø· Ø®Ø· ÙƒØ¨ÙŠØ±",
+              "placeholder": "Ø£Ø¯Ø®Ù„ Ø§Ù„Ù†Øµ Ù‡Ù†Ø§...",
               "hide": false,
               "minLength": 0,
               "maxLength": 100
@@ -2657,11 +2053,11 @@
             {
               "type": "string",
               "icon": "sicon-typography",
-              "label": "نص توضيحي",
+              "label": "Ù†Øµ ØªÙˆØ¶ÙŠØ­ÙŠ",
               "multilanguage": true,
               "id": "banners.description",
               "value": null,
-              "description": "نص يتم إضافته على الصورة بخط أصغر من العنوان الرئيسي",
+              "description": "Ù†Øµ ÙŠØªÙ… Ø¥Ø¶Ø§ÙØªÙ‡ Ø¹Ù„Ù‰ Ø§Ù„ØµÙˆØ±Ø© Ø¨Ø®Ø· Ø£ØµØºØ± Ù…Ù† Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ",
               "format": "textarea",
               "required": false,
               "placeholder": "Your text here",
@@ -2676,7 +2072,7 @@
       "key": "25f6cf26-a53f-4954-9b32-739b311b32c7",
       "title": {
         "en": "Brands",
-        "ar": "الماركات التجارية"
+        "ar": "Ø§Ù„Ù…Ø§Ø±ÙƒØ§Øª Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ©"
       },
       "icon": "sicon-award-ribbon",
       "path": "home.brands",
@@ -2691,21 +2087,21 @@
         {
           "type": "string",
           "icon": "sicon-format-text-alt",
-          "label": "العنوان",
+          "label": "Ø§Ù„Ø¹Ù†ÙˆØ§Ù†",
           "multilanguage": true,
           "id": "title",
           "required": false,
           "format": "text",
           "description": null,
-          "placeholder": "أدخل العنوان هنا...",
+          "placeholder": "Ø£Ø¯Ø®Ù„ Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ù‡Ù†Ø§...",
           "minLength": 0,
           "maxLength": 200,
-          "value": "تصفح من خلال العلامات التجارية"
+          "value": "ØªØµÙØ­ Ù…Ù† Ø®Ù„Ø§Ù„ Ø§Ù„Ø¹Ù„Ø§Ù…Ø§Øª Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ©"
         },
         {
           "type": "items",
           "icon": "sicon-keyboard_arrow_down",
-          "label": "الماركات التجارية",
+          "label": "Ø§Ù„Ù…Ø§Ø±ÙƒØ§Øª Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ©",
           "id": "brands",
           "format": "dropdown-list",
           "description": null,
@@ -2722,7 +2118,7 @@
       "key": "541cc423-90c7-4230-8a33-a0342cfde4ad",
       "title": {
         "en": "Custom testimonials",
-        "ar": "آراء عملاء مخصصة"
+        "ar": "Ø¢Ø±Ø§Ø¡ Ø¹Ù…Ù„Ø§Ø¡ Ù…Ø®ØµØµØ©"
       },
       "icon": "sicon-chat-bubbles",
       "path": "home.custom-testimonials",
@@ -2740,35 +2136,35 @@
           "key": "0473eb46-c7f5-44c5-bd6f-b1fe716a5e64",
           "type": "collection",
           "format": "collection",
-          "label": "التقييمات",
+          "label": "Ø§Ù„ØªÙ‚ÙŠÙŠÙ…Ø§Øª",
           "description": null,
           "labelHTML": null,
-          "item_label": "التقييم",
+          "item_label": "Ø§Ù„ØªÙ‚ÙŠÙŠÙ…",
           "icon": "sicon-list-add",
           "value": [
             {
-              "items.name": "ندى الحسيني",
+              "items.name": "Ù†Ø¯Ù‰ Ø§Ù„Ø­Ø³ÙŠÙ†ÙŠ",
               "items.avatar": "https://cdn.assets.salla.network/prod/stores/themes/default/assets/images/avatar_female.png",
               "items.stars": 5,
-              "items.text": "وصلتني اليوم  وطلعت جميلة متحمسة أجربها ❤️"
+              "items.text": "ÙˆØµÙ„ØªÙ†ÙŠ Ø§Ù„ÙŠÙˆÙ…  ÙˆØ·Ù„Ø¹Øª Ø¬Ù…ÙŠÙ„Ø© Ù…ØªØ­Ù…Ø³Ø© Ø£Ø¬Ø±Ø¨Ù‡Ø§ â¤ï¸"
             },
             {
-              "items.name": "خالد الأحمد",
+              "items.name": "Ø®Ø§Ù„Ø¯ Ø§Ù„Ø£Ø­Ù…Ø¯",
               "items.avatar": "https://cdn.assets.salla.network/prod/stores/themes/default/assets/images/avatar_male.png",
               "items.stars": 5,
-              "items.text": "اشتريت من هنا لعيالي وصراحة شئ لا يعلى عليه 👏"
+              "items.text": "Ø§Ø´ØªØ±ÙŠØª Ù…Ù† Ù‡Ù†Ø§ Ù„Ø¹ÙŠØ§Ù„ÙŠ ÙˆØµØ±Ø§Ø­Ø© Ø´Ø¦ Ù„Ø§ ÙŠØ¹Ù„Ù‰ Ø¹Ù„ÙŠÙ‡ ðŸ‘"
             },
             {
-              "items.name": "خالد المسعودي",
+              "items.name": "Ø®Ø§Ù„Ø¯ Ø§Ù„Ù…Ø³Ø¹ÙˆØ¯ÙŠ",
               "items.avatar": "https://cdn.assets.salla.network/prod/stores/themes/default/assets/images/avatar_male.png",
               "items.stars": 5,
-              "items.text": "رهيبين يفكون أزمة. 👌"
+              "items.text": "Ø±Ù‡ÙŠØ¨ÙŠÙ† ÙŠÙÙƒÙˆÙ† Ø£Ø²Ù…Ø©. ðŸ‘Œ"
             },
             {
-              "items.name": "عبدالعزيز اليامي",
+              "items.name": "Ø¹Ø¨Ø¯Ø§Ù„Ø¹Ø²ÙŠØ² Ø§Ù„ÙŠØ§Ù…ÙŠ",
               "items.avatar": "https://cdn.assets.salla.network/prod/stores/themes/default/assets/images/avatar_male.png",
               "items.stars": 5,
-              "items.text": "أحب هذا المتجر وتعاملهم الراقي مع العملاء ❤️"
+              "items.text": "Ø£Ø­Ø¨ Ù‡Ø°Ø§ Ø§Ù„Ù…ØªØ¬Ø± ÙˆØªØ¹Ø§Ù…Ù„Ù‡Ù… Ø§Ù„Ø±Ø§Ù‚ÙŠ Ù…Ø¹ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ â¤ï¸"
             }
           ],
           "fields": [
@@ -2777,10 +2173,10 @@
               "key": "04e34d04-d1c3-4b75-b1d6-4e5b4ed22623",
               "type": "string",
               "format": "text",
-              "label": "اسم العميل",
+              "label": "Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„",
               "description": null,
               "labelHTML": null,
-              "placeholder": "اسم العميل",
+              "placeholder": "Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„",
               "icon": "sicon-format-text-alt",
               "value": null,
               "multilanguage": false,
@@ -2791,8 +2187,8 @@
               "key": "9ae4a6cc-7d20-4ae9-8bc0-33b2452502ca",
               "type": "string",
               "format": "image",
-              "label": "صورة العميل",
-              "description": "المقاس المناسب للصورة هو 68*68 بكسل",
+              "label": "ØµÙˆØ±Ø© Ø§Ù„Ø¹Ù…ÙŠÙ„",
+              "description": "Ø§Ù„Ù…Ù‚Ø§Ø³ Ø§Ù„Ù…Ù†Ø§Ø³Ø¨ Ù„Ù„ØµÙˆØ±Ø© Ù‡Ùˆ 68*68 Ø¨ÙƒØ³Ù„",
               "labelHTML": null,
               "placeholder": "e.g. https://hostname.com/image.png",
               "icon": "sicon-image",
@@ -2803,11 +2199,11 @@
               "id": "items.stars",
               "type": "number",
               "format": "integer",
-              "label": "عدد النجوم",
+              "label": "Ø¹Ø¯Ø¯ Ø§Ù„Ù†Ø¬ÙˆÙ…",
               "description": null,
               "key": "f0caf793-88f8-4178-b1cc-a7ace5c09ff6",
-              "labelHTML": "من 1 إلى 5",
-              "placeholder": "القيمة",
+              "labelHTML": "Ù…Ù† 1 Ø¥Ù„Ù‰ 5",
+              "placeholder": "Ø§Ù„Ù‚ÙŠÙ…Ø©",
               "icon": "sicon-pencil-ruler",
               "value": 5,
               "required": false,
@@ -2819,10 +2215,10 @@
               "key": "0d474cc4-39f6-4495-8e24-a8eb10d4bbab",
               "type": "string",
               "format": "textarea",
-              "label": "نص التقييم",
+              "label": "Ù†Øµ Ø§Ù„ØªÙ‚ÙŠÙŠÙ…",
               "description": null,
               "labelHTML": null,
-              "placeholder": "نص التقييم",
+              "placeholder": "Ù†Øµ Ø§Ù„ØªÙ‚ÙŠÙŠÙ…",
               "icon": "sicon-format-text-alt",
               "value": null,
               "multilanguage": true,
@@ -2838,7 +2234,7 @@
   ],
   "support_url": "https://salla.com/",
   "description": {
-    "ar": "مجموعة كبيرة من المزايا لدعم تجارتك وتقديم تجربة تسوق مثيرة لعملائك",
+    "ar": "Ù…Ø¬Ù…ÙˆØ¹Ø© ÙƒØ¨ÙŠØ±Ø© Ù…Ù† Ø§Ù„Ù…Ø²Ø§ÙŠØ§ Ù„Ø¯Ø¹Ù… ØªØ¬Ø§Ø±ØªÙƒ ÙˆØªÙ‚Ø¯ÙŠÙ… ØªØ¬Ø±Ø¨Ø© ØªØ³ÙˆÙ‚ Ù…Ø«ÙŠØ±Ø© Ù„Ø¹Ù…Ù„Ø§Ø¦Ùƒ",
     "en": "A wide range of features to support your business and provide an exciting shopping experience for your customers"
   }
 }

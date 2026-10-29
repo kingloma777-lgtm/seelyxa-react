@@ -20,17 +20,6 @@ import {
   ProductsSlider,
   SliderProductsWithHeader,
   EnhancedSquareBanners,
-  DissolveHero,
-  ArcProductGallery,
-  StampJourney,
-  LensZoomSpotlight,
-  ProductModelScroll,
-  EditorialProductStory,
-  PortalWorlds,
-  VideoPowerHero,
-  GestureManifesto,
-  AscendWebglLanding,
-  CompositeLanding,
 } from './components/home';
 import { registerThemeHooks } from './hooks';
 import { ProductListSkeleton } from './components/product/ProductListSkeleton';
@@ -82,20 +71,6 @@ registerHomeComponents({
   // component: colour, position, scale, blur and opacity of every figure
   // crossfade together under one 650ms easing.
   figurines: Figurines,
-  // Reference-library adaptations. Each is a merchant block, scoped to its own
-  // section, and registered by the same `home.<path>` key declared in
-  // twilight.json.
-  'dissolve-hero': DissolveHero,
-  'arc-gallery': ArcProductGallery,
-  'stamp-journey': StampJourney,
-  'lens-zoom': LensZoomSpotlight,
-  'product-model-scroll': ProductModelScroll,
-  'editorial-story': EditorialProductStory,
-  'portal-worlds': PortalWorlds,
-  'video-hero': VideoPowerHero,
-  'gesture-manifesto': GestureManifesto,
-  ascend: AscendWebglLanding,
-  'composite-landing': CompositeLanding,
 });
 
 // Wrapper `<section>` classes for `featured-products` — the engine only styles
@@ -156,17 +131,6 @@ registerHomeComponentConfig({
       's-block s-block--figurines' +
       (data.under_header ?? data.figurines_under_header ? ' s-block--under-header' : ''),
   },
-  'dissolve-hero': { className: 's-block s-block--dissolve-hero' },
-  'arc-gallery': { className: 's-block s-block--arc-gallery' },
-  'stamp-journey': { className: 's-block s-block--stamp-journey' },
-  'lens-zoom': { className: 's-block s-block--lens-zoom' },
-  'product-model-scroll': { className: 's-block s-block--product-model-scroll' },
-  'editorial-story': { className: 's-block s-block--editorial-story' },
-  'portal-worlds': { className: 's-block s-block--portal-worlds' },
-  'video-hero': { className: 's-block s-block--video-hero' },
-  'gesture-manifesto': { className: 's-block s-block--gesture-manifesto' },
-  ascend: { className: 's-block s-block--ascend' },
-  'composite-landing': { className: 's-block s-block--composite' },
 });
 
 // Singleton for client-side (preserves QueryClient cache across navigations)
