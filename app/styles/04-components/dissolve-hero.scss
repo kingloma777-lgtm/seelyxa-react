@@ -1,262 +1,221 @@
-/* Dissolve hero — editorial scroll portrait (Second Skin adaptation). */
+/* Dissolve hero — faithful port of the Second Skin reference.
+   A 175svh hero: full-bleed wall portrait + ember multiply grade +
+   transparent WebGL dissolve canvas + header (first 100svh) + statement
+   content (bottom 125svh), then a centered 100svh dark about section. */
+
 .dissolve-hero {
+  --dh-bg: #141414;
+  --dh-ivory: #efece3;
+  --dh-accent: #f04e23;
+}
+
+.dissolve-hero__hero {
   position: relative;
-  min-height: 175svh;
-  overflow: clip;
-  background: var(--dh-bg, #141414);
-  color: #efece3;
-  isolation: isolate;
-}
-
-.dissolve-hero__sticky {
-  position: sticky;
-  top: 0;
-  height: 100svh;
-  min-height: 560px;
+  width: 100%;
+  height: 175svh;
   overflow: hidden;
+  background: var(--dh-bg);
+  color: var(--dh-ivory);
 }
 
-.dissolve-hero__photo {
+.dissolve-hero__wall {
   position: absolute;
-  inset: -4%;
-  background-image: var(--dh-image);
-  background-position: center 28%;
-  background-size: cover;
-  filter: saturate(0.8) contrast(1.08);
-  transform: scale(calc(1.04 + var(--block-progress, 0) * 0.06));
-  will-change: transform;
+  width: 100%;
+  height: 100%;
 }
 
-.dissolve-hero__grade {
+.dissolve-hero__wall img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dissolve-hero__wall::after {
+  content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(20, 20, 20, 0.45) 0%, transparent 34%),
-    linear-gradient(0deg, rgba(20, 20, 20, 0.7) 0%, transparent 42%),
-    linear-gradient(135deg, color-mix(in srgb, var(--dh-accent, #f04e23) 48%, transparent), transparent 58%);
+  background: linear-gradient(
+    180deg,
+    var(--dh-accent) 0%,
+    color-mix(in srgb, var(--dh-accent) 92%, black) 55%,
+    color-mix(in srgb, var(--dh-accent) 48%, #2a0a00) 130%
+  );
   mix-blend-mode: multiply;
 }
 
-.dissolve-hero__veil {
+.dissolve-hero__canvas {
   position: absolute;
-  inset: auto 0 0;
-  height: calc(var(--block-progress, 0) * 112%);
-  min-height: 0;
-  background: var(--dh-bg, #141414);
+  bottom: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-}
-
-.dissolve-hero__veil span {
-  position: absolute;
-  inset: -22px 0 auto;
-  height: 48px;
-  background:
-    radial-gradient(ellipse at 12% 100%, var(--dh-bg, #141414) 0 62%, transparent 64%) 0 0 / 19% 100% repeat-x,
-    var(--dh-bg, #141414);
-  filter: blur(7px);
-}
-
-.dissolve-hero__grain {
-  position: absolute;
-  inset: 0;
-  opacity: 0.16;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
 }
 
 .dissolve-hero__header {
-  position: relative;
+  position: absolute;
   z-index: 2;
-  max-width: 1020px;
-  margin-inline: auto;
-  padding: clamp(96px, 17vh, 180px) 24px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  height: 100svh;
   text-align: center;
 }
 
 .dissolve-hero__eyebrow {
-  margin: 0 0 20px;
-  font: 600 11px/1.4 'Space Mono', ui-monospace, monospace;
-  letter-spacing: 0.22em;
+  margin: 0;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
   text-transform: uppercase;
-  color: #efece3;
 }
 
-.dissolve-hero__header h2 {
+.dissolve-hero__eyebrow--light {
+  color: var(--dh-accent);
+}
+
+.dissolve-hero__title {
   margin: 0;
-  font-family: 'Space Grotesk', 'Twilight', sans-serif;
+  font-family: 'Space Grotesk', sans-serif;
   font-size: clamp(3.75rem, 12vw, 11rem);
   font-weight: 700;
-  line-height: 0.86;
-  letter-spacing: -0.075em;
-  text-wrap: balance;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
-.dissolve-hero__intro {
-  max-width: 430px;
-  margin: 28px auto 0;
-  font: 400 clamp(15px, 1.4vw, 19px)/1.55 'Inter', 'Twilight', sans-serif;
-  color: rgba(239, 236, 227, 0.82);
-  text-wrap: pretty;
+.dissolve-hero__lede {
+  width: 75%;
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .dissolve-hero__content {
   position: absolute;
   z-index: 3;
-  inset: auto 0 0;
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
-  align-items: end;
-  gap: clamp(16px, 3vw, 40px);
-  width: min(1180px, calc(100% - 48px));
-  margin-inline: auto;
-  padding-bottom: clamp(34px, 7vh, 76px);
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  height: 125svh;
+  text-align: center;
+}
+
+.dissolve-hero__content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--dh-bg) 72%, transparent) 0%,
+    transparent 70%
+  );
 }
 
 .dissolve-hero__mark {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid rgba(239, 236, 227, 0.32);
-  border-radius: 999px;
-  color: var(--dh-accent, #f04e23);
-  font-size: 18px;
+  position: relative;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  color: var(--dh-ivory);
+  opacity: 0.55;
 }
 
 .dissolve-hero__statement {
-  max-width: 830px;
+  position: relative;
+  max-width: 18ch;
   margin: 0;
-  font-family: 'Space Grotesk', 'Twilight', sans-serif;
-  font-size: clamp(1.65rem, 3.1vw, 3.1rem);
-  font-weight: 500;
-  line-height: 1.04;
-  letter-spacing: -0.045em;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(2rem, 4.2vw, 4.25rem);
+  font-weight: 600;
+  line-height: 1.06;
+  color: var(--dh-ivory);
 }
 
-.dissolve-hero__statement span {
-  opacity: clamp(
-    0,
-    calc(var(--block-progress, 0) * 3.4 - (var(--word-index) / var(--word-total)) * 2.1),
-    1
-  );
-  transition: opacity 0.35s linear;
+.dissolve-hero__word {
+  opacity: 1;
+  transition: opacity 0.12s linear;
 }
 
+/* Merchant-only extra: a small mono link beneath the statement. */
 .dissolve-hero__cta {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-height: 48px;
-  padding: 0 22px;
-  border: 1px solid rgba(239, 236, 227, 0.5);
-  border-radius: 999px;
-  color: #efece3;
-  font: 600 12px/1 'Inter', 'Twilight', sans-serif;
-  letter-spacing: 0.08em;
+  gap: 8px;
+  position: relative;
+  margin-top: 0.5rem;
+  color: var(--dh-ivory);
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   text-decoration: none;
-  white-space: nowrap;
-  transition: background 0.25s ease, color 0.25s ease;
+  opacity: 0.85;
 }
 
 .dissolve-hero__cta:hover,
 .dissolve-hero__cta:focus-visible {
-  background: #efece3;
-  color: var(--dh-bg, #141414);
+  opacity: 1;
+  text-decoration: underline;
 }
 
 .dissolve-hero__about {
   position: relative;
-  z-index: 4;
-  display: grid;
-  grid-template-columns: 0.7fr 1.6fr 0.7fr;
-  gap: clamp(24px, 6vw, 96px);
-  align-items: start;
-  min-height: 75svh;
-  padding: clamp(72px, 12vh, 150px) max(24px, calc((100vw - 1180px) / 2));
-  background: var(--dh-bg, #141414);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100svh;
+  background: var(--dh-bg);
+  color: var(--dh-ivory);
 }
 
-.dissolve-hero__about-eyebrow,
-.dissolve-hero__about-meta {
-  margin: 0;
-  font: 500 11px/1.5 'Space Mono', ui-monospace, monospace;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(239, 236, 227, 0.6);
-}
-
-.dissolve-hero__rule {
-  display: block;
-  width: 56px;
-  height: 1px;
-  margin-top: 16px;
-  background: var(--dh-accent, #f04e23);
+.dissolve-hero__about-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 52rem;
+  padding: 2rem;
+  text-align: center;
 }
 
 .dissolve-hero__about-copy {
   margin: 0;
-  max-width: 650px;
-  font: 400 clamp(1.5rem, 2.5vw, 2.4rem)/1.25 'Space Grotesk', 'Twilight', sans-serif;
-  letter-spacing: -0.035em;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.6;
 }
 
 .dissolve-hero__about-meta {
-  justify-self: end;
-  text-align: end;
+  margin: 0;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--dh-accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-@media (max-width: 760px) {
-  .dissolve-hero__content {
-    grid-template-columns: 1fr auto;
-    gap: 18px;
-  }
-
-  .dissolve-hero__mark {
-    display: none;
-  }
-
-  .dissolve-hero__cta {
-    align-self: end;
-    padding-inline: 16px;
-    font-size: 10px;
-  }
-
-  .dissolve-hero__about {
-    grid-template-columns: 1fr;
-    min-height: auto;
-    padding-block: 64px;
-  }
-
-  .dissolve-hero__about-meta {
-    justify-self: start;
-    text-align: start;
+@media (max-width: 1000px) {
+  .dissolve-hero__statement,
+  .dissolve-hero__about-copy {
+    width: calc(100% - 4rem);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dissolve-hero {
-    min-height: auto;
-  }
-
-  .dissolve-hero__sticky {
-    position: relative;
-    height: 92svh;
-  }
-
-  .dissolve-hero__photo {
-    transform: none;
-  }
-
-  .dissolve-hero__veil {
+  .dissolve-hero__canvas {
     display: none;
   }
 
-  .dissolve-hero__statement span {
-    opacity: 1;
-  }
-
-  .dissolve-hero__about {
-    min-height: auto;
+  .dissolve-hero__word {
+    opacity: 1 !important;
   }
 }
