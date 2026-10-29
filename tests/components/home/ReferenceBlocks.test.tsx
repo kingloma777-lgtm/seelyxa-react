@@ -63,10 +63,11 @@ describe('reference home blocks', () => {
   });
 
   it('renders ProductModelScroll headings and CTA', () => {
-    const { getByText } = render(
+    const { getByText, container } = render(
       <ProductModelScroll data={{ product_model_title_primary: 'THE OBJECT' }} />
     );
-    expect(getByText('THE OBJECT')).toBeTruthy();
+    // header-1 is split per char for the reveal; compare its joined text.
+    expect(container.querySelector('#product-model-title')?.textContent?.trim()).toBe('THE OBJECT');
     expect(getByText('Discover the object')).toBeTruthy();
   });
 
