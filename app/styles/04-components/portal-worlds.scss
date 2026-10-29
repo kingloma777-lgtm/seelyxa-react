@@ -1,225 +1,337 @@
-/* Portal worlds — zoom-through hero and fanned voices (Auragate adaptation). */
+/* Portal worlds — faithful port of the Auragate reference.
+   A world backdrop zooms 1 → 1.18 with cursor parallax behind a floating
+   nav, a 160vh intro track pins the portal photo (scale 1 → 7.5, origin
+   52% 38%, fading out past p > 0.66 while the hero copy fades by p / 0.22),
+   then the arc card carousel and a four-column footer. The transforms that
+   need JS easing are written by the component's rAF loop; opacity windows
+   read --pw-progress from the scrubbed intro progress. */
+
 .portal-worlds {
   position: relative;
+  z-index: 0;
   overflow: clip;
   background: var(--pw-bg, #071018);
   color: #f7fbff;
-  isolation: isolate;
+  font-family: 'Inter', 'Twilight', sans-serif;
 }
 
 .portal-worlds__world {
   position: absolute;
-  inset: 0 0 auto;
-  height: 180svh;
-  background-position: center;
-  background-size: cover;
-  opacity: 0.38;
-  transform: scale(1.06) translate3d(var(--pw-px, 0), var(--pw-py, 0), 0);
-  filter: saturate(0.8) blur(1px);
-  transition: transform 0.5s ease-out;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
 }
 
-.portal-worlds__hero {
+.portal-worlds__world-layer {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.portal-worlds__world-layer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portal-worlds__nav {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px 40px;
+}
+
+.portal-worlds__logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  color: white;
+  line-height: 1;
+}
+
+.portal-worlds__logo em {
+  font-family: 'Mr Dafoe', 'Segoe Script', cursive;
+  font-style: normal;
+  font-size: 36px;
+  margin-inline-end: 1px;
+}
+
+.portal-worlds__logo,
+.portal-worlds__logo em {
+  text-transform: capitalize;
+}
+
+.portal-worlds__logo {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.portal-worlds__nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.portal-worlds__nav-demo {
+  padding: 11px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: white;
+  color: #161616;
+  font: 600 13px/1 'Inter', 'Twilight', sans-serif;
+  cursor: pointer;
+  transition: background 0.25s;
+}
+
+.portal-worlds__nav-demo:hover {
+  background: #e6e6e6;
+}
+
+.portal-worlds__nav-menu {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+  transition: background 0.25s;
+}
+
+.portal-worlds__nav-menu:hover {
+  background: #e6e6e6;
+}
+
+.portal-worlds__intro {
   position: relative;
-  height: 165svh;
-  min-height: 900px;
+  z-index: 5;
+  height: 160svh;
 }
 
 .portal-worlds__sticky {
   position: sticky;
   top: 0;
   height: 100svh;
-  min-height: 600px;
   overflow: hidden;
 }
 
-.portal-worlds__nav {
-  position: absolute;
-  z-index: 6;
-  inset: 22px clamp(18px, 4vw, 54px) auto;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  font: 500 11px/1.4 'Inter', 'Twilight', sans-serif;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.portal-worlds__nav-note {
-  color: rgba(247, 251, 255, 0.55);
-}
-
-.portal-worlds__portal-wrap {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  transform: translate3d(calc(var(--pw-px, 0) * -0.4), calc(var(--pw-py, 0) * -0.4), 0);
-}
-
 .portal-worlds__portal {
-  width: min(52vw, 700px);
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  border-radius: 50% 50% 48% 52% / 46% 52% 48% 54%;
-  box-shadow:
-    0 0 0 1px rgba(247, 251, 255, 0.2),
-    0 50px 140px rgba(0, 0, 0, 0.6);
-  transform: scale(calc(1 + var(--block-progress, 0) * 6.5));
-  opacity: clamp(0, calc(1 - (var(--block-progress, 0) - 0.58) * 3.4), 1);
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   will-change: transform, opacity;
+  transform-origin: 52% 38%;
+}
+
+.portal-worlds__portal img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .portal-worlds__hero-copy {
   position: absolute;
+  inset-inline: 0;
+  bottom: 0;
   z-index: 4;
-  top: 50%;
-  left: 50%;
-  width: min(900px, calc(100% - 40px));
-  text-align: center;
-  transform: translate(-50%, -48%);
-  opacity: clamp(0, calc(1 - var(--block-progress, 0) * 6), 1);
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px 80px;
+  padding: 0 44px 52px;
 }
 
-.portal-worlds__script {
-  margin: 0 0 2px;
-  color: var(--pw-accent, #f7fbff);
-  font: 400 clamp(2.6rem, 5vw, 5rem)/1 'Mr Dafoe', 'Segoe Script', cursive;
-  transform: rotate(-4deg);
+.portal-worlds__hero-main {
+  max-width: 560px;
 }
 
-.portal-worlds__hero-copy h2 {
-  margin: 0;
-  font: 500 clamp(3rem, 7.8vw, 8rem)/0.88 'Inter', 'Twilight', sans-serif;
-  letter-spacing: -0.075em;
-  text-wrap: balance;
-}
-
-.portal-worlds__hero-copy h2 em {
+.portal-worlds__hero-main h2 {
   display: block;
-  color: transparent;
+  margin: 0;
+  color: white;
+  font-size: clamp(40px, 4vw, 58px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+
+.portal-worlds__hero-main h2 em {
+  display: inline;
+  font-family: 'Mr Dafoe', 'Segoe Script', cursive;
   font-style: normal;
-  -webkit-text-stroke: 1px rgba(247, 251, 255, 0.8);
+  color: #9a9a9a;
+  font-size: 1.15em;
+  margin-inline-end: 0.12em;
 }
 
-.portal-worlds__hero-text {
-  max-width: 390px;
-  margin: 24px auto 0;
-  color: rgba(247, 251, 255, 0.68);
-  font: 400 13px/1.65 'Inter', 'Twilight', sans-serif;
+.portal-worlds__hero-main h2 span,
+.portal-worlds__hero-main p,
+.portal-worlds__hero-aside {
+  transition:
+    opacity 1s ease,
+    transform 1s ease;
 }
 
-.portal-worlds__scroll {
-  position: absolute;
-  z-index: 5;
-  bottom: 26px;
-  left: 50%;
-  transform: translateX(-50%);
-  font: 500 9px/1 'Inter', 'Twilight', sans-serif;
-  letter-spacing: 0.2em;
-  color: rgba(247, 251, 255, 0.58);
+.portal-worlds__hero-main h2 span {
+  transition-delay: 0.3s;
+}
+
+.portal-worlds__hero-main p {
+  max-width: 340px;
+  margin: 18px 0 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: clamp(13px, 1.2vw, 14px);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.portal-worlds__hero-main h2 span {
+  transition-delay: 0.3s;
+}
+
+.portal-worlds__hero-main p {
+  transition-delay: 0.5s;
+}
+
+.portal-worlds__hero-aside {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  transition-delay: 0.6s;
+}
+
+.portal-worlds__hero-aside span {
+  font-family: 'Mr Dafoe', 'Segoe Script', cursive;
+  font-size: 64px;
+  color: white;
+  line-height: 0.8;
+}
+
+.portal-worlds__hero-aside p {
+  max-width: 150px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .portal-worlds__testimonials {
   position: relative;
-  z-index: 3;
-  padding: clamp(80px, 13vh, 160px) 20px clamp(60px, 10vh, 110px);
-  background: linear-gradient(180deg, rgba(7, 16, 24, 0.15), var(--pw-bg, #071018) 18%);
+  z-index: 10;
+  padding: 14vh 0 60px;
 }
 
 .portal-worlds__testimonials header {
-  max-width: 700px;
-  margin: 0 auto 54px;
+  padding: 0 24px;
   text-align: center;
-}
-
-.portal-worlds__testimonials header > p {
-  margin: 0 0 16px;
-  font: 500 9px/1.4 'Inter', 'Twilight', sans-serif;
-  letter-spacing: 0.2em;
-  color: rgba(247, 251, 255, 0.5);
 }
 
 .portal-worlds__testimonials h3 {
   margin: 0;
-  font: 500 clamp(2.2rem, 5vw, 4.6rem)/1 'Inter', 'Twilight', sans-serif;
-  letter-spacing: -0.06em;
+  color: white;
+  font-size: clamp(34px, 4vw, 52px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.35);
+  transition:
+    opacity 1s ease,
+    transform 1s ease;
 }
 
-.portal-worlds__testimonials header > span {
-  display: block;
-  margin-top: 18px;
-  color: rgba(247, 251, 255, 0.58);
-  font: 400 13px/1.5 'Inter', 'Twilight', sans-serif;
+.portal-worlds__testimonials header p {
+  max-width: 420px;
+  margin: 16px auto 0;
+  color: white;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  transition:
+    opacity 1s ease,
+    transform 1s ease;
+  transition-delay: 0.2s;
 }
 
+/* Arc card carousel — reference layout engine in CSS vars per card. */
 .portal-worlds__cards {
   position: relative;
-  height: 450px;
-  max-width: 1100px;
-  margin-inline: auto;
-  outline: none;
+  margin-top: 80px;
+  padding: 0 24px;
 }
 
 .portal-worlds__card {
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: var(--pw-z);
+  z-index: var(--pw-z, 1);
   display: flex;
-  flex-direction: column;
-  width: min(300px, 70vw);
-  min-height: 390px;
-  padding: 30px 26px 24px;
+  align-items: center;
+  justify-content: center;
+  width: var(--pw-c-w, 300px);
+  height: var(--pw-c-h, 420px);
+  padding: 36px 28px;
   border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 22px;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.19), rgba(255, 255, 255, 0.05));
-  color: #f7fbff;
-  text-align: start;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.24) 100%);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.45);
+  text-align: center;
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
   backdrop-filter: blur(18px) saturate(140%);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.35);
-  transform: translate(-50%, -50%) translateX(var(--pw-x)) translateY(var(--pw-y))
-    rotate(var(--pw-rot)) scale(var(--pw-scale));
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), background 0.35s ease;
-  cursor: pointer;
+  transform: translateX(calc(-50% + var(--pw-x, 0))) translateY(calc(-50% + var(--pw-y, 0))) rotate(var(--pw-rot, 0deg));
+  opacity: var(--pw-op, 1);
+  pointer-events: none;
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.55s ease;
 }
 
 .portal-worlds__card.is-active {
-  background: #f7fbff;
-  color: #071018;
-  box-shadow: 0 34px 100px rgba(247, 251, 255, 0.18);
-  cursor: default;
+  background: rgb(247, 251, 255);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.08),
+    0 0 50px rgba(255, 255, 255, 0.55),
+    0 0 90px rgba(255, 255, 255, 0.35);
+  pointer-events: auto;
 }
 
-.portal-worlds__card:focus-visible {
-  outline: 2px solid #f7fbff;
-  outline-offset: 4px;
+.portal-worlds__card p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
 }
 
-.portal-worlds__quote {
-  color: var(--pw-accent, #f7fbff);
-  font: 400 58px/0.8 Georgia, serif;
-  opacity: 0.55;
-}
-
-.portal-worlds__card.is-active .portal-worlds__quote {
-  color: #071018;
-  opacity: 0.25;
-}
-
-.portal-worlds__card > p {
-  margin: 24px 0 auto;
-  font: 400 clamp(1.2rem, 1.8vw, 1.55rem)/1.32 'Inter', 'Twilight', sans-serif;
-  letter-spacing: -0.03em;
+.portal-worlds__card.is-active p {
+  color: #2c2420;
 }
 
 .portal-worlds__card footer {
+  position: absolute;
+  bottom: 28px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-top: 32px;
-  font: 400 11px/1.4 'Inter', 'Twilight', sans-serif;
+  gap: 2px;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .portal-worlds__card footer strong {
@@ -230,95 +342,208 @@
   opacity: 0.55;
 }
 
+.portal-worlds__card.is-active footer {
+  color: #2c2420;
+}
+
 .portal-worlds__controls {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin-top: 18px;
+  gap: 10px;
+  transform: translateX(-50%);
 }
 
 .portal-worlds__controls button {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid rgba(247, 251, 255, 0.28);
-  border-radius: 999px;
-  background: transparent;
-  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
   cursor: pointer;
+  transition: background 0.25s;
 }
 
-.portal-worlds__controls span {
-  font: 500 10px/1 'Inter', 'Twilight', sans-serif;
-  letter-spacing: 0.15em;
+.portal-worlds__controls-prev {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.portal-worlds__controls-prev svg {
+  filter: drop-shadow(rgba(255, 255, 255, 0.7) 0 0 6px) drop-shadow(rgba(255, 255, 255, 0.4) 0 0 14px);
+}
+
+.portal-worlds__controls-next {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
 .portal-worlds__footer {
+  position: relative;
+  z-index: 10;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 160px 44px 52px;
+}
+
+.portal-worlds__footer-brand {
   display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 24px clamp(20px, 4vw, 56px);
-  border-top: 1px solid rgba(247, 251, 255, 0.13);
-  font: 500 9px/1.4 'Inter', 'Twilight', sans-serif;
-  letter-spacing: 0.16em;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.portal-worlds__footer-brand .portal-worlds__logo {
+  font-size: 20px;
+}
+
+.portal-worlds__footer-brand .portal-worlds__logo em {
+  font-size: 30px;
+}
+
+.portal-worlds__footer-brand p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+}
+
+.portal-worlds__footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.portal-worlds__footer-col h4 {
+  margin: 0 0 6px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-.portal-worlds__footer a {
-  color: inherit;
+.portal-worlds__footer-col a {
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
   text-decoration: none;
+  transition: opacity 0.2s;
 }
 
-@media (max-width: 760px) {
-  .portal-worlds__portal {
-    width: 82vw;
+.portal-worlds__footer-col a:hover {
+  opacity: 0.65;
+}
+
+/* Footer grid — brand cell spans the full row on mobile. */
+.portal-worlds__footer {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: 40px;
+}
+
+@media (max-width: 1000px) {
+  .portal-worlds__footer {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px 20px;
+    padding: 90px 22px 40px;
+  }
+
+  .portal-worlds__footer-brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 767px) {
+  .portal-worlds__nav {
+    padding: 18px 20px;
+  }
+
+  .portal-worlds__logo {
+    font-size: 20px;
+  }
+
+  .portal-worlds__logo em {
+    font-size: 30px;
+  }
+
+  .portal-worlds__nav-demo {
+    padding: 9px 16px;
+  }
+
+  .portal-worlds__nav-menu {
+    width: 38px;
+    height: 38px;
   }
 
   .portal-worlds__hero-copy {
-    top: 54%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0 22px 40px;
+  }
+
+  .portal-worlds__hero-main h2 {
+    font-size: clamp(30px, 9vw, 44px);
+  }
+
+  .portal-worlds__testimonials {
+    padding-top: 12vh;
   }
 
   .portal-worlds__cards {
-    height: 430px;
+    margin-top: 60px;
   }
 
   .portal-worlds__card {
-    min-height: 360px;
-    padding: 24px 22px;
+    border-radius: 22px;
+    padding: 24px 20px;
   }
 
-  .portal-worlds__nav-note {
-    display: none;
+  .portal-worlds__card p {
+    font-size: 15px;
+  }
+
+  .portal-worlds__controls button {
+    width: 42px;
+    height: 42px;
   }
 
   .portal-worlds__footer {
-    flex-direction: column;
+    padding: 70px 22px 40px;
+  }
+
+  .portal-worlds__footer-col a {
+    font-size: 14px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .portal-worlds__hero {
-    height: auto;
-    min-height: 0;
+  .portal-worlds__portal,
+  .portal-worlds__world-layer {
+    transform: none !important;
   }
 
-  .portal-worlds__sticky {
-    position: relative;
-    height: 92svh;
+  .portal-worlds__portal,
+  .portal-worlds__hero-copy,
+  .portal-worlds__hero-main h2 em,
+  .portal-worlds__hero-main h2 span,
+  .portal-worlds__hero-main p,
+  .portal-worlds__hero-aside,
+  .portal-worlds__testimonials h3,
+  .portal-worlds__testimonials header p {
+    opacity: 1 !important;
+    transform: none !important;
   }
 
-  .portal-worlds__portal {
-    transform: scale(1.45);
-    opacity: 1;
+  .portal-worlds__intro {
+    height: 100svh;
   }
 
-  .portal-worlds__hero-copy {
-    opacity: 1;
-  }
-
-  .portal-worlds__card {
+  .portal-worlds__card,
+  .portal-worlds__controls button {
     transition: none;
   }
 }
