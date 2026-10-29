@@ -1,10 +1,13 @@
-/* Infinite arc gallery — cosine coverflow (ArcCoverflow adaptation). */
+/* Arc coverflow gallery — faithful port of the ArcCoverflow reference
+   (infinite cosine-arc slider; the rAF loop writes positions inline). */
+
 .arc-gallery {
   position: relative;
-  min-height: clamp(620px, 92svh, 900px);
+  height: clamp(620px, 100svh, 980px);
   overflow: hidden;
-  background: #e9e7e2;
+  background: radial-gradient(120% 90% at 50% 6%, #e9e7e2 40%, #ded9d1 100%);
   color: #1b1916;
+  font-family: 'Hanken Grotesk', 'Twilight', sans-serif;
   isolation: isolate;
 }
 
@@ -14,56 +17,51 @@
 }
 
 .arc-gallery__masthead {
-  position: relative;
-  z-index: 120;
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 200;
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 24px;
-  padding: 26px clamp(20px, 4vw, 56px);
-  font: 600 10px/1.4 'Hanken Grotesk', 'Twilight', sans-serif;
-  letter-spacing: 0.18em;
+  padding: clamp(1.25rem, 4vw, 3rem) clamp(1.25rem, 5vw, 4rem);
+}
+
+.arc-gallery__brand {
+  font-weight: 700;
+  font-size: clamp(1.1rem, 2vw, 1.6rem);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.arc-gallery__stage {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  touch-action: pan-y;
-  cursor: grab;
-  user-select: none;
+.arc-gallery__note {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #79736a;
 }
 
-.arc-gallery__stage:active {
-  cursor: grabbing;
+.arc-gallery__stage {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
 }
 
 .arc-gallery__slide {
   position: absolute;
-  top: 44%;
-  left: 50%;
-  z-index: var(--arc-z);
-  width: clamp(150px, 17vw, 210px);
-  aspect-ratio: 8 / 11;
+  top: 0;
+  left: 0;
   padding: 0;
   overflow: hidden;
   border: 0;
-  border-radius: 2px;
   background: #0e0d0b;
-  box-shadow: 0 24px 60px -30px rgba(27, 25, 22, 0.55);
-  opacity: var(--arc-opacity);
-  transform: translate(-50%, -50%) translateX(var(--arc-x)) translateY(var(--arc-y))
-    scale(var(--arc-scale)) rotate(var(--arc-rotate));
-  transition:
-    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.35s ease,
-    filter 0.35s ease;
+  box-shadow: 0 24px 60px -30px rgba(27, 25, 22, 0.5);
+  will-change: transform, width, height;
   cursor: pointer;
-}
-
-.arc-gallery__slide:not(.is-active) {
-  filter: saturate(0.72) brightness(0.88);
 }
 
 .arc-gallery__slide img {
@@ -74,11 +72,6 @@
   pointer-events: none;
 }
 
-.arc-gallery__slide.is-active {
-  cursor: default;
-  box-shadow: 0 34px 70px -30px rgba(27, 25, 22, 0.62);
-}
-
 .arc-gallery__slide:focus-visible {
   outline: 2px solid #f04e23;
   outline-offset: 4px;
@@ -86,12 +79,15 @@
 
 .arc-gallery__caption {
   position: absolute;
-  z-index: 130;
-  inset: auto 0 0;
-  display: grid;
-  justify-items: center;
-  gap: 8px;
-  padding: 0 20px clamp(22px, 4vh, 42px);
+  bottom: 22svh;
+  left: 50%;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  width: min(90vw, 640px);
+  transform: translateX(-50%);
   text-align: center;
   pointer-events: none;
 }
@@ -103,17 +99,19 @@
 .arc-gallery__eyebrow {
   display: flex;
   align-items: center;
-  gap: 14px;
-  font: 600 9px/1.4 'Hanken Grotesk', 'Twilight', sans-serif;
-  letter-spacing: 0.24em;
+  gap: 0.9rem;
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
   color: #79736a;
 }
 
 .arc-gallery__eyebrow span {
-  width: 46px;
+  display: block;
+  width: 1.6rem;
   height: 1px;
-  background: #bdb6aa;
+  background: rgba(27, 25, 22, 0.16);
 }
 
 .arc-gallery__eyebrow p {
@@ -124,27 +122,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(18px, 4vw, 54px);
+  gap: clamp(14px, 3vw, 40px);
 }
 
 .arc-gallery__title-row h2 {
-  min-width: 13ch;
+  min-width: 12ch;
   margin: 0;
-  font: 500 clamp(1.8rem, 4vw, 3.5rem)/1 'Hanken Grotesk', 'Twilight', sans-serif;
-  letter-spacing: -0.055em;
+  font-weight: 500;
+  font-size: clamp(1.5rem, 3.4vw, 2.25rem);
+  line-height: 1.1;
   animation: arc-caption-in 0.45s ease both;
 }
 
 .arc-gallery__title-row button {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border: 1px solid rgba(27, 25, 22, 0.25);
   border-radius: 999px;
   background: transparent;
   color: inherit;
-  font-size: 18px;
+  font: inherit;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
 }
@@ -157,20 +157,20 @@
 
 .arc-gallery__hint {
   margin: 0;
-  font: 400 10px/1.4 'Hanken Grotesk', 'Twilight', sans-serif;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
   color: #79736a;
 }
 
 .arc-gallery__cta {
   display: inline-flex;
   gap: 8px;
-  margin-top: 5px;
+  margin-top: 4px;
   padding-bottom: 2px;
   border-bottom: 1px solid currentColor;
   color: #1b1916;
-  font: 600 11px/1.4 'Hanken Grotesk', 'Twilight', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-decoration: none;
   text-transform: uppercase;
@@ -183,27 +183,28 @@
   }
 }
 
-@media (max-width: 640px) {
-  .arc-gallery {
-    min-height: 620px;
+@media (max-width: 768px) {
+  .arc-gallery__masthead {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    text-align: center;
   }
 
-  .arc-gallery__masthead span:last-child {
+  .arc-gallery__note {
     display: none;
   }
 
-  .arc-gallery__slide {
-    top: 41%;
-    width: 142px;
+  .arc-gallery__caption {
+    bottom: 16svh;
   }
 
-  .arc-gallery__title-row {
-    gap: 12px;
+  .arc-gallery__title-row h2 {
+    font-size: 1.55rem;
   }
 
-  .arc-gallery__title-row button {
-    width: 36px;
-    height: 36px;
+  .arc-gallery__eyebrow span {
+    width: 0.9rem;
   }
 
   .arc-gallery__hint {
@@ -213,7 +214,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .arc-gallery__slide {
-    transition: none;
+    transition: none !important;
   }
 
   .arc-gallery__title-row h2 {
