@@ -110,7 +110,7 @@ describe('reference home blocks', () => {
     const { container, getByText } = render(<AscendWebglLanding data={{}} />);
     expect(getByText('A complete visual system.')).toBeTruthy();
     expect(container.querySelectorAll('.ascend__feature-grid article').length).toBe(6);
-    expect(container.querySelectorAll('.ascend__metrics div').length).toBe(4);
+    expect(container.querySelectorAll('.ascend__dash-row').length).toBe(4);
   });
 
   it('composes the four scenes and honours visibility switches', () => {

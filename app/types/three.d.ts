@@ -6,3 +6,9 @@
  */
 declare module 'three';
 declare module 'three/addons/loaders/GLTFLoader.js';
+declare module 'three/addons/postprocessing/EffectComposer.js';
+declare module 'three/addons/postprocessing/RenderPass.js';
+declare module 'three/addons/postprocessing/UnrealBloomPass.js';
+declare module 'three/addons/postprocessing/ShaderPass.js';
+declare module 'three/addons/shaders/GammaCorrectionShader.js';
+declare module 'three/addons/shaders/CopyShader.js';
