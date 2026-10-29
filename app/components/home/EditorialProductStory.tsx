@@ -1,4 +1,4 @@
-import { useId, useMemo, useRef, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import { Link } from '@salla.sa/twilight-theme-engine/common';
 import {
   readRows,
@@ -6,6 +6,7 @@ import {
   rowImage,
   rowLink,
   rowText,
+  prefersReducedMotion,
   useReveal,
   type BlockData,
 } from '../../lib/homeBlock';
@@ -22,66 +23,54 @@ interface StorySection {
   ctaLink: string;
 }
 
+const DEFAULT_PRODUCT_IMAGE = '/reference/oryzo-product.jpg';
+
 const DEFAULT_SECTIONS: StorySection[] = [
   {
-    title: 'A quieter kind of luxury.',
-    text: 'The silhouette is reduced to what matters: weight, warmth and the way a surface catches the afternoon. Nothing added for attention. Nothing removed for economy.',
-    image: '/reference/oryzo-product.jpg',
-    ctaText: 'Explore the finish',
-    ctaLink: '/',
+    title: 'ISN’T JUST\nA COASTER.',
+    text: 'Designed to lift, insulate, and grip in all the right ways. It makes the simplest moment feel considered.',
+    image: DEFAULT_PRODUCT_IMAGE,
+    ctaText: 'EXPLORE',
+    ctaLink: '',
   },
   {
-    title: 'Built around the hand.',
-    text: 'Each piece is turned, sanded and finished in small batches. The variation you see is the record of that work — a fingerprint, not a flaw.',
-    image: '/reference/oryzo-product.jpg',
-    ctaText: 'See the process',
-    ctaLink: '/',
+    title: 'BORN FROM\nTHE EARTH.',
+    text: 'Every surface tells a story. The grain, the warmth under your fingertips, the quiet confidence of a material that has existed for millions of years.',
+    image: DEFAULT_PRODUCT_IMAGE,
+    ctaText: 'DETAILS',
+    ctaLink: '',
   },
   {
-    title: 'Made for the long table.',
-    text: 'Designed to move from the shelf to the hand without ceremony. Objects that earn their place by being used, not protected.',
-    image: '/reference/oryzo-product.jpg',
-    ctaText: 'View the collection',
-    ctaLink: '/',
+    title: 'DESIGNED\nFOR THE\nRITUAL.',
+    text: 'Not mass-produced. Not disposable. Each piece carries the memory of the oak it came from — and the hand that shaped it. Made to age with grace, not to be replaced.',
+    image: DEFAULT_PRODUCT_IMAGE,
+    ctaText: '',
+    ctaLink: '',
   },
 ];
 
 /**
- * Editorial product story: full-bleed photographic hero, alternating
- * object/copy reveals and a quiet closing call to action.
+ * Dark editorial product showcase (faithful port of the Oryzo reference):
+ * museum-presentation layout — full-bleed walnut canvas, warm cream typography
+ * at weight 500 uppercase, the accent ink reserved for credits. Photographic
+ * hero, void-mode reveals with the object centered and copy flanking it,
+ * dashed hairline dividers between sections, and a closing CTA.
  */
 export function EditorialProductStory({ data }: EditorialProductStoryProps) {
   const root = useRef<HTMLElement | null>(null);
-  const rawId = useId();
-  const base = `editorial-${rawId.replace(/[^a-zA-Z0-9_-]/g, '')}`;
   useReveal(root);
 
   const heroImage = readText(data, 'hero_image', 'editorial_story', '/reference/oryzo-hero.jpg');
   const brand = readText(data, 'brand', 'editorial_story', 'ORYZO');
-  const tagline = readText(
-    data,
-    'tagline',
-    'editorial_story',
-    'Objects with a memory of the hand that made them.'
-  );
-  const cardTitle = readText(data, 'hero_card_title', 'editorial_story', 'The Walnut Series');
-  const cardText = readText(
-    data,
-    'hero_card_text',
-    'editorial_story',
-    'Turned from a single block. Finished with oil, wax and time.'
-  );
-  const ctaEyebrow = readText(data, 'cta_eyebrow', 'editorial_story', 'COMMISSIONS / 2026');
-  const ctaTitle = readText(
-    data,
-    'cta_title',
-    'editorial_story',
-    'Bring a piece of the studio into your home.'
-  );
-  const ctaText = readText(data, 'cta_text', 'editorial_story', 'The studio works in small runs, made to order.');
-  const ctaLinkText = readText(data, 'cta_link_text', 'editorial_story', 'Start a conversation');
+  const tagline = readText(data, 'tagline', 'editorial_story', 'MADE FOR MUGS, BUILT FOR TABLES.');
+  const cardTitle = readText(data, 'hero_card_title', 'editorial_story', 'Designed by the studio’s award-winning team.');
+  const cardText = readText(data, 'hero_card_text', 'editorial_story', 'Handcrafted from sustainable raw material. Each piece is precision-cut and heat-pressed.');
+  const ctaEyebrow = readText(data, 'cta_eyebrow', 'editorial_story', 'BUILT BY');
+  const ctaTitle = readText(data, 'cta_title', 'editorial_story', 'READY TO MAKE\nTHE SIMPLEST\nMOMENT\nCONSIDERED?');
+  const ctaText = readText(data, 'cta_text', 'editorial_story', 'Order directly or through select design retailers worldwide.');
+  const ctaLinkText = readText(data, 'cta_link_text', 'editorial_story', 'ORDER NOW');
   const ctaLink = readText(data, 'cta_link', 'editorial_story', '/');
-  const footer = readText(data, 'footer_text', 'editorial_story', 'ORYZO STUDIO — MILAN / RIYADH');
+  const footer = readText(data, 'footer_text', 'editorial_story', 'DESIGNED IN-HOUSE · MADE RESPONSIBLY');
   const background = readText(data, 'background_color', 'editorial_story', '#100904');
   const accent = readText(data, 'accent_color', 'editorial_story', '#dc5000');
 
@@ -89,92 +78,171 @@ export function EditorialProductStory({ data }: EditorialProductStoryProps) {
     const rows = readRows(data, 'sections', 'editorial_story');
     if (!rows.length) return DEFAULT_SECTIONS;
     return rows.map((row, index) => ({
-      title: rowText(row, 'title', 'editorial_story', `Chapter ${index + 1}`),
+      title: rowText(row, 'title', 'editorial_story', `CHAPTER ${index + 1}`),
       text: rowText(row, 'text', 'editorial_story'),
-      image: rowImage(
-        row,
-        'image',
-        'editorial_story',
-        index % 2 ? '/reference/oryzo-product.jpg' : '/reference/oryzo-hero.jpg'
-      ),
-      ctaText: rowText(row, 'cta_text', 'editorial_story', 'Discover'),
+      image: rowImage(row, 'image', 'editorial_story', DEFAULT_PRODUCT_IMAGE),
+      ctaText: rowText(row, 'cta_text', 'editorial_story'),
       ctaLink: rowLink(row, 'cta_link', 'editorial_story'),
     }));
   }, [data]);
+
+  /* Reference hero parallax: the photographic layer drifts down 120px while
+     the hero scrolls away (scrubbed from scroll position, never time-based). */
+  useEffect(() => {
+    const scope = root.current;
+    const heroImg = scope?.querySelector<HTMLElement>('.editorial-story__hero img');
+    if (!scope || !heroImg || prefersReducedMotion()) return undefined;
+
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const hero = heroImg.parentElement;
+      if (!hero) return;
+      const rect = hero.getBoundingClientRect();
+      const distance = Math.max(1, rect.height + window.innerHeight);
+      const progress = Math.min(Math.max(-rect.top / distance, 0), 1);
+      heroImg.style.transform = `translateY(${(progress * 120).toFixed(2)}px)`;
+    };
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [heroImage]);
+
+  const jump = (target: string) => {
+    root.current
+      ?.querySelector(`[data-nav="${target}"]`)
+      ?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <section
       ref={root}
       className="editorial-story"
       style={{ '--es-bg': background, '--es-accent': accent } as CSSProperties}
-      aria-labelledby={`${base}-title`}
+      aria-labelledby="editorial-story-title"
     >
-      <div className="editorial-story__nav">
-        <span>{brand}</span>
-        <div>
-          <a href={`#${base}-story`}>Story</a>
-          <a href={`#${base}-objects`}>Objects</a>
-          <a href={`#${base}-contact`}>Contact</a>
+      <nav className="editorial-story__nav">
+        <span className="editorial-story__nav-logo">{brand}</span>
+        <div className="editorial-story__nav-links">
+          <button type="button" className="is-active" onClick={() => jump('story')}>
+            INTRO
+          </button>
+          <button type="button" onClick={() => jump('objects')}>
+            FEATURES
+          </button>
+          <button type="button" onClick={() => jump('contact')}>
+            CONTACT
+          </button>
         </div>
+      </nav>
+
+      <div className="editorial-story__sidebar" aria-hidden>
+        {brand} 1-MODEL
       </div>
 
-      <header className="editorial-story__hero">
-        <img src={heroImage} alt="" loading="eager" />
-        <div className="editorial-story__shade" aria-hidden />
-        <p className="editorial-story__wordmark" aria-hidden>
-          {brand}
-        </p>
-        <div className="editorial-story__hero-copy" data-reveal>
-          <span>EST. 2018</span>
-          <h2 id={`${base}-title`}>{tagline}</h2>
+      <header className="editorial-story__hero" data-nav="story">
+        <img src={heroImage} alt={brand} loading="eager" />
+        <div className="editorial-story__hero-grad" aria-hidden />
+
+        <div className="editorial-story__brand" data-reveal>
+          <p className="editorial-story__tag">{tagline}</p>
+          <h2 id="editorial-story-title">{brand}</h2>
         </div>
+
         <aside className="editorial-story__card" data-reveal>
-          <span>01 — MATERIAL</span>
           <h3>{cardTitle}</h3>
+          <hr className="editorial-story__rule" />
           <p>{cardText}</p>
         </aside>
+
+        <div className="editorial-story__video-thumb" data-reveal aria-hidden>
+          <span>{brand}</span>
+          <div className="editorial-story__video-play" />
+        </div>
       </header>
 
-      <div className="editorial-story__divider" aria-hidden />
+      <hr className="editorial-story__divider" data-reveal />
 
-      <div className="editorial-story__chapters" id={`${base}-story`}>
-        {sections.map((section, index) => (
-          <article
-            className={`editorial-story__chapter${index % 2 ? ' is-reversed' : ''}`}
-            key={`${section.title}-${index}`}
-            id={index === 0 ? `${base}-objects` : undefined}
+      {sections.map((section, index) => (
+        <article
+          key={`${section.title}-${index}`}
+          className={`editorial-story__chapter${index % 2 ? ' is-mirrored' : ''}`}
+          data-nav={index === 0 ? 'objects' : undefined}
+        >
+          <div className="editorial-story__chapter-head" data-reveal>
+            <h3>{section.title}</h3>
+          </div>
+          <div className={`editorial-story__object${index === 1 && section.image === DEFAULT_PRODUCT_IMAGE ? ' is-tilted' : index === 2 && section.image === DEFAULT_PRODUCT_IMAGE ? ' is-lifted' : ''}`}>
+            <img
+              src={section.image}
+              alt={section.title}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              data-reveal
+            />
+          </div>
+          <div className="editorial-story__chapter-body" data-reveal>
+            <p>{section.text}</p>
+            {section.ctaText ? (
+              <Link
+                to={section.ctaLink || '/'}
+                className="editorial-story__btn-filled"
+              >
+                {section.ctaText}
+              </Link>
+            ) : null}
+            {sections[index + 1] && section.ctaText ? (
+              <Link
+                to={sections[index + 1].ctaLink || '/'}
+                className="editorial-story__btn-ghost"
+              >
+                {sections[index + 1].ctaText || 'DETAILS'}
+              </Link>
+            ) : (
+              <span className="editorial-story__btn-ghost">{`${String(index + 1).padStart(2, '0')} · ${brand}`}</span>
+            )}
+          </div>
+        </article>
+      ))}
+
+      <hr className="editorial-story__divider" data-reveal />
+
+      <div className="editorial-story__cta" id="editorial-story-contact" data-nav="contact">
+        <div data-reveal>
+          <p className="editorial-story__tag" style={{ marginBottom: 14 }}>
+            {ctaEyebrow}
+          </p>
+          <h3 className="editorial-story__cta-title">{ctaTitle}</h3>
+        </div>
+        <p className="editorial-story__cta-body" data-reveal>
+          {ctaText}
+        </p>
+        <div data-reveal>
+          <Link to={ctaLink || '/'} className="editorial-story__btn-filled">
+            {ctaLinkText}
+          </Link>
+          <button
+            type="button"
+            className="editorial-story__btn-ghost"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="editorial-story__chapter-copy" data-reveal>
-              <span>{String(index + 1).padStart(2, '0')} / CHAPTER</span>
-              <h3>{section.title}</h3>
-              <p>{section.text}</p>
-              {section.ctaText ? (
-                <Link to={section.ctaLink || '#'} className="editorial-story__text-link">
-                  {section.ctaText} <span aria-hidden>↗</span>
-                </Link>
-              ) : null}
-            </div>
-            <div className="editorial-story__object" data-reveal>
-              <img src={section.image} alt={section.title} loading="lazy" />
-            </div>
-          </article>
-        ))}
+            CONTACT
+          </button>
+        </div>
       </div>
 
-      <div className="editorial-story__divider" aria-hidden />
-
-      <div className="editorial-story__cta" id={`${base}-contact`} data-reveal>
-        <span>{ctaEyebrow}</span>
-        <h3>{ctaTitle}</h3>
-        <p>{ctaText}</p>
-        <Link to={ctaLink || '/'} className="editorial-story__button">
-          {ctaLinkText}
-        </Link>
-      </div>
-
-      <footer className="editorial-story__footer">
-        <span>{footer}</span>
-        <span>© {new Date().getFullYear()} — ALL RIGHTS RESERVED</span>
+      <footer className="editorial-story__footer" data-reveal>
+        <span className="editorial-story__footer-legal">{footer}</span>
+        <span className="editorial-story__footer-legal">
+          © {new Date().getFullYear()} {brand}. ALL RIGHTS RESERVED.
+        </span>
       </footer>
     </section>
   );
