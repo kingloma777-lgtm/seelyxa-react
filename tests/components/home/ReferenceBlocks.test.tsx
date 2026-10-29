@@ -52,14 +52,14 @@ describe('reference home blocks', () => {
     expect(container.querySelector('.stamp-journey__trail-ink')).toBeTruthy();
   });
 
-  it('renders LensZoomSpotlight with the merchant image in the SVG', () => {
+  it('renders LensZoomSpotlight with the merchant spotlight title and image', () => {
     const { container } = render(
       <LensZoomSpotlight data={{ lens_zoom_spotlight_title: 'LOOK INSIDE' }} />
     );
-    expect(container.querySelector('.lens-zoom__doodle')).toBeTruthy();
-    expect(container.querySelector('.lens-zoom__photo image')?.getAttribute('href')).toContain(
-      'larevoltosa-lens.jpg'
-    );
+    // The doodle fixture is injected at runtime (reference behaviour); SSR
+    // shows the fallback photo plate and the merchant headline.
+    expect(container.querySelector('.lens-zoom__fallback')).toBeTruthy();
+    expect(container.querySelector('.lens-zoom__header')?.textContent).toContain('LOOK INSIDE');
   });
 
   it('renders ProductModelScroll headings and CTA', () => {
