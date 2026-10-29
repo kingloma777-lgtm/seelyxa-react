@@ -1,8 +1,12 @@
-/* Stamp journey — pinned diagonal field journal (StampStory adaptation). */
+/* Stamp journey — faithful port of the StampStory reference.
+   The viewport is pinned while the 400vw × 300vh scene travels diagonally
+   (-300vw / -150vh) down-right past three postage stamps; a dotted trail
+   draws itself through an SVG mask reveal, handwritten names float in
+   beside each stamp, and grain + vignette sit above everything. */
+
 .stamp-journey {
   position: relative;
-  height: 300svh;
-  min-height: 1500px;
+  height: calc(100svh + 400vw);
   overflow: clip;
   background: var(--sj-bg, #000);
   color: #fff;
@@ -13,7 +17,6 @@
   position: sticky;
   top: 0;
   height: 100svh;
-  min-height: 600px;
   overflow: hidden;
 }
 
@@ -21,11 +24,11 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 210vw;
-  height: 150vh;
+  width: 400vw;
+  height: 300vh;
   transform: translate3d(
-    calc(var(--block-progress, 0) * -135vw),
-    calc(var(--block-progress, 0) * -35vh),
+    calc(var(--block-progress, 0) * -300vw),
+    calc(var(--block-progress, 0) * -150vh),
     0
   );
   will-change: transform;
@@ -33,37 +36,38 @@
 
 .stamp-journey__trail {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+  z-index: 2;
   overflow: visible;
-}
-
-.stamp-journey__trail-ghost,
-.stamp-journey__trail-ink {
-  stroke-width: 8;
-  stroke-linecap: round;
-  stroke-dasharray: 0.018 0.022;
-  fill: none;
-}
-
-.stamp-journey__trail-ghost {
-  stroke: rgba(255, 255, 255, 0.16);
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(245, 212, 79, 0.4));
 }
 
 .stamp-journey__trail-ink {
   stroke: var(--sj-trail, #f5d44f);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 16 20;
+  fill: none;
+}
+
+.stamp-journey__trail-mask {
+  stroke: #fff;
+  stroke-width: 40;
+  fill: none;
   stroke-dasharray: 1;
   stroke-dashoffset: calc(1 - var(--block-progress, 0));
 }
 
 .stamp-journey__entry {
   position: absolute;
+  z-index: 5;
   left: var(--stamp-x);
   top: var(--stamp-y);
   transform: translate(-50%, -50%) rotate(var(--stamp-r));
-  animation: stamp-settle 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: calc(var(--stamp-i) * 90ms);
 }
 
 .stamp-journey__link {
@@ -74,65 +78,107 @@
 
 .stamp-journey__stamp {
   position: relative;
-  width: clamp(230px, 19vw, 300px);
-  padding: 8px;
-  background: #fdfbf7;
-  color: #111;
-  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.42);
-  transition: transform 0.35s ease;
+  width: clamp(230px, 20vw, 280px);
+  aspect-ratio: 14 / 19;
+  filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.25));
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
 .stamp-journey__entry:hover .stamp-journey__stamp {
-  transform: scale(1.04) rotate(0deg);
+  transform: scale(1.05);
 }
 
+/* Perforated stamp edge, punched with radial notches (reference mask). */
 .stamp-journey__perforation {
-  border: 1px dashed rgba(17, 17, 17, 0.45);
-  padding: 6px;
-  background: #f4f0e6;
+  position: absolute;
+  inset: 0;
+  background: #fdfbf7;
+  -webkit-mask:
+    linear-gradient(#000 0 0) center / calc(100% - 20px) calc(100% - 20px) no-repeat,
+    radial-gradient(circle at 10px 10px, transparent 5px, #000 5.5px) -10px -10px / 20px 20px;
+  mask:
+    linear-gradient(#000 0 0) center / calc(100% - 20px) calc(100% - 20px) no-repeat,
+    radial-gradient(circle at 10px 10px, transparent 5px, #000 5.5px) -10px -10px / 20px 20px;
 }
 
 .stamp-journey__inner {
-  position: relative;
+  position: absolute;
+  inset: 20px;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
   overflow: hidden;
-  background: #fdfbf7;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: #f4f0e6;
 }
 
-.stamp-journey__inner img {
-  display: block;
+.stamp-journey__image {
+  flex: 1;
+  min-height: 0;
   width: 100%;
-  aspect-ratio: 4 / 5;
   object-fit: cover;
-  filter: sepia(0.24) contrast(1.04) saturate(0.78);
+  filter: sepia(0.2) contrast(1.1) brightness(0.9);
 }
 
 .stamp-journey__country {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  padding: 9px 10px 0;
-  font: 500 9px/1.2 'Space Mono', ui-monospace, monospace;
-  letter-spacing: 0.16em;
+  align-items: center;
+  color: #fff;
+  font-family: 'Anton', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-.stamp-journey__inner > p {
+.stamp-journey__symbol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 2px solid #fff;
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-style: italic;
+  font-size: 16px;
+}
+
+.stamp-journey__place {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
   margin: 0;
-  padding: 8px 10px 12px;
-  font: 400 clamp(15px, 1.35vw, 19px)/1.1 'Playfair Display', Georgia, serif;
-  letter-spacing: -0.02em;
+  color: #fff;
+  font-family: 'Anton', sans-serif;
+  font-size: 24px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .stamp-journey__note {
   position: absolute;
-  left: 60%;
-  top: 82%;
-  width: 170px;
-  color: #f5d44f;
-  font: 400 clamp(20px, 2vw, 28px)/1 'La Belle Aurore', 'Segoe Script', cursive;
-  transform: rotate(-5deg);
-  opacity: clamp(0, calc(var(--block-progress, 0) * 2.2 - var(--stamp-i) * 0.5), 1);
-  transition: opacity 0.25s linear;
+  z-index: 6;
+  font-family: 'La Belle Aurore', cursive;
+  font-size: clamp(38px, 4.8vw, 72px);
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
   pointer-events: none;
+  text-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+  --note-op: clamp(
+    0,
+    calc((var(--block-progress, 0) - var(--note-start, -1)) / 0.12),
+    1
+  );
+  opacity: var(--note-op);
+  transform: rotate(var(--note-rot, -5deg)) translateY(calc((1 - var(--note-op)) * 30px));
 }
 
 .stamp-journey__grain,
@@ -143,112 +189,89 @@
 }
 
 .stamp-journey__grain {
-  z-index: 4;
-  opacity: 0.17;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  z-index: 8;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .stamp-journey__vignette {
-  z-index: 5;
-  background: radial-gradient(ellipse at center, transparent 38%, rgba(0, 0, 0, 0.56) 100%);
+  z-index: 9;
+  mix-blend-mode: multiply;
+  background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.6) 120%);
 }
 
 .stamp-journey__ui {
   position: absolute;
-  z-index: 6;
   inset: 0;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 24px clamp(18px, 4vw, 52px);
+  padding: 32px 48px;
+  font-family: 'Space Mono', ui-monospace, monospace;
   pointer-events: none;
 }
 
-.stamp-journey__ui-top,
-.stamp-journey__ui-bottom {
+.stamp-journey__ui-top {
   display: flex;
   justify-content: space-between;
-  gap: 16px;
-  font: 500 9px/1.4 'Space Mono', ui-monospace, monospace;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.68);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
 }
 
-.stamp-journey__ui-top span:nth-child(2) {
-  margin-inline-start: auto;
+.stamp-journey__ui-top span {
+  pointer-events: auto;
 }
 
-.stamp-journey__intro {
-  max-width: 330px;
-  margin: auto 0 36px;
-  font: 400 clamp(15px, 1.45vw, 19px)/1.55 'Space Mono', ui-monospace, monospace;
-  color: rgba(255, 255, 255, 0.75);
-  text-wrap: pretty;
+.stamp-journey__ui-dim {
+  opacity: 0.5;
 }
 
 .stamp-journey__ui-bottom {
-  align-items: end;
-  font-size: 8px;
-}
-
-@keyframes stamp-settle {
-  from {
-    opacity: 0;
-    translate: 0 22px;
-  }
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.17em;
+  opacity: 0.8;
 }
 
 @media (max-width: 760px) {
-  .stamp-journey {
-    height: 270svh;
+  .stamp-journey__ui {
+    padding: 20px 20px;
   }
 
-  .stamp-journey__scene {
-    width: 250vw;
-    transform: translate3d(
-      calc(var(--block-progress, 0) * -172vw),
-      calc(var(--block-progress, 0) * -32vh),
-      0
-    );
+  .stamp-journey__ui-top {
+    font-size: 11px;
   }
 
   .stamp-journey__stamp {
-    width: 210px;
+    width: clamp(200px, 62vw, 260px);
   }
 
   .stamp-journey__note {
-    left: 54%;
-    width: 120px;
+    font-size: clamp(28px, 9vw, 44px);
   }
 
-  .stamp-journey__ui-top span:nth-child(n + 3) {
-    display: none;
-  }
-
-  .stamp-journey__intro {
-    max-width: 230px;
-    margin-bottom: 18px;
+  .stamp-journey__ui-bottom {
+    font-size: 9px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .stamp-journey {
     height: auto;
-    min-height: 0;
   }
 
   .stamp-journey__sticky {
     position: relative;
     height: auto;
-    min-height: 0;
     padding: 80px 20px;
   }
 
   .stamp-journey__scene {
     position: relative;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 28px;
     width: 100%;
     height: auto;
@@ -257,7 +280,8 @@
 
   .stamp-journey__trail,
   .stamp-journey__grain,
-  .stamp-journey__vignette {
+  .stamp-journey__vignette,
+  .stamp-journey__ui {
     display: none;
   }
 
@@ -266,7 +290,6 @@
     left: auto;
     top: auto;
     transform: none;
-    animation: none;
   }
 
   .stamp-journey__stamp {
@@ -275,26 +298,12 @@
 
   .stamp-journey__note {
     position: relative;
-    left: auto;
-    top: auto;
     display: block;
-    width: auto;
+    left: auto;
+    right: auto;
+    top: auto;
     margin: 14px 0 0 18px;
     opacity: 1;
-  }
-
-  .stamp-journey__ui {
-    position: relative;
-    padding: 0 0 24px;
-    color: #fff;
-  }
-
-  .stamp-journey__intro {
-    margin-top: 30px;
-  }
-
-  .stamp-journey__ui-top,
-  .stamp-journey__ui-bottom {
-    display: none;
+    transform: none;
   }
 }

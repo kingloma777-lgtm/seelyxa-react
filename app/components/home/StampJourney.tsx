@@ -27,41 +27,51 @@ const DEFAULT_STAMPS: Stamp[] = [
   {
     image: 'https://images.unsplash.com/photo-1567095761054-7a02e69e5c43?w=700&q=70',
     country: 'ITALIA',
-    symbol: '✦',
+    symbol: 'B',
     title: 'Monti Lessini',
-    note: 'Where the path turns to stone',
+    note: '',
     url: '',
   },
   {
     image: 'https://images.unsplash.com/photo-1620121692029-d088224ddc74?w=700&q=70',
     country: 'ITALIA',
-    symbol: '◒',
+    symbol: 'B',
     title: "Sant'Anna",
-    note: 'A chapel, a field, a long afternoon',
+    note: '',
     url: '',
   },
   {
     image: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=700&q=70',
     country: 'ITALIA',
-    symbol: '⌁',
+    symbol: 'B',
     title: 'Alpi Veronesi',
-    note: 'The last light before the ridge',
+    note: '',
     url: '',
   },
 ];
 
-const POSITIONS = [
-  { x: 15, y: 58, rotate: -4 },
-  { x: 48, y: 34, rotate: 5 },
-  { x: 81, y: 62, rotate: -3 },
-  { x: 34, y: 72, rotate: 2 },
-  { x: 65, y: 22, rotate: -5 },
-  { x: 90, y: 46, rotate: 4 },
-];
+/* Reference geometry (StampStory): the container is 400vw × 300vh and travels
+   diagonally by -300vw / -150vh, walking down-right past three stamps whose
+   centers sit at 50vw/50vh, 200vw/135vh and 350vw/200vh — exactly where the
+   trail path starts, bends and ends (viewBox 4000×3000). */
+const TRAIL_PATH =
+  'M 500 500 C 800 600, 1200 400, 1400 800 C 1600 1200, 1500 1400, 2000 1350 C 2500 1300, 2800 1100, 3000 1500 S 3200 2000, 3500 2000';
+
+const ANCHORS = [
+  { x: 50, y: 50, rotate: -4 },
+  { x: 200, y: 135, rotate: 5 },
+  { x: 350, y: 200, rotate: -3 },
+] as const;
+
+const NOTE_TOPS = [15, 35, 25] as const;
+const NOTE_ROTATIONS = [-6, 8, -5, -4, 7, -6] as const;
 
 /**
- * Pinned field-journal: a diagonal camera move across merchant-selected
- * postage stamps while a dotted trail inks itself into the scene.
+ * Pinned field-journal (faithful port of the StampStory reference): the
+ * viewport is pinned while the scene travels diagonally down-right across
+ * merchant stamps; a dotted trail draws itself along the path connecting
+ * them (SVG mask reveal), handwritten place names float in beside each
+ * stamp, and grain + vignette overlays sit above everything.
  */
 export function StampJourney({ data }: StampJourneyProps) {
   const root = useRef<HTMLElement | null>(null);
@@ -75,7 +85,7 @@ export function StampJourney({ data }: StampJourneyProps) {
             .map((row) => ({
               image: rowImage(row, 'image', 'stamp_journey'),
               country: rowText(row, 'country', 'stamp_journey', 'ITALIA'),
-              symbol: rowText(row, 'symbol', 'stamp_journey', '✦'),
+              symbol: rowText(row, 'symbol', 'stamp_journey', 'B'),
               title: rowText(row, 'title', 'stamp_journey'),
               note: rowText(row, 'note', 'stamp_journey'),
               url: rowLink(row, 'url', 'stamp_journey'),
@@ -85,22 +95,35 @@ export function StampJourney({ data }: StampJourneyProps) {
     [rows]
   );
 
-  const intro = readText(
-    data,
-    'intro',
-    'stamp_journey',
-    'A field journal in three postmarks — places collected, folded and kept.'
-  );
   const coordinates = readText(
     data,
     'coordinates',
     'stamp_journey',
-    'CAMPOSILVANO · N 45° 37′ 53.51″ E 11° 5′ 46.01″'
+    'CAMPOSILVANO - N 45° 37\' 53.51" E 11° 5\' 46.01"'
   );
   const background = readText(data, 'background_color', 'stamp_journey', '#000000');
   const trail = readText(data, 'trail_color', 'stamp_journey', '#f5d44f');
 
   if (!stamps.length) return null;
+
+  const card = (stamp: Stamp, index: number) => (
+    <article className="stamp-journey__stamp">
+      <div className="stamp-journey__perforation" aria-hidden />
+      <div className="stamp-journey__inner">
+        <img
+          className="stamp-journey__image"
+          src={stamp.image}
+          alt={stamp.title}
+          loading={index === 0 ? 'eager' : 'lazy'}
+        />
+        <div className="stamp-journey__country">
+          <span>{stamp.country}</span>
+          <span className="stamp-journey__symbol">{stamp.symbol}</span>
+        </div>
+        <p className="stamp-journey__place">{stamp.title}</p>
+      </div>
+    </article>
+  );
 
   return (
     <section
@@ -110,92 +133,71 @@ export function StampJourney({ data }: StampJourneyProps) {
         {
           '--sj-bg': background,
           '--sj-trail': trail,
-          '--sj-count': stamps.length,
         } as CSSProperties
       }
-      aria-labelledby="stamp-journey-title"
+      aria-label={coordinates}
     >
       <div className="stamp-journey__sticky">
-        <div className="stamp-journey__scene" aria-hidden={false}>
+        <div className="stamp-journey__scene">
           <svg
             className="stamp-journey__trail"
-            viewBox="0 0 2000 1200"
-            fill="none"
+            viewBox="0 0 4000 3000"
             preserveAspectRatio="none"
             aria-hidden
           >
-            <path
-              className="stamp-journey__trail-ghost"
-              d="M120 880 C 380 760, 470 520, 760 500 S 1190 760, 1430 500 S 1750 310, 1940 290"
-              pathLength="1"
-            />
-            <path
-              className="stamp-journey__trail-ink"
-              d="M120 880 C 380 760, 470 520, 760 500 S 1190 760, 1430 500 S 1750 310, 1940 290"
-              pathLength="1"
-            />
+            <defs>
+              <mask id="stamp-journey-draw">
+                <path className="stamp-journey__trail-mask" d={TRAIL_PATH} pathLength="1" />
+              </mask>
+            </defs>
+            <path className="stamp-journey__trail-ink" d={TRAIL_PATH} mask="url(#stamp-journey-draw)" />
           </svg>
 
           {stamps.map((stamp, index) => {
-            const position = POSITIONS[index % POSITIONS.length];
-            const card = (
-              <article
-                className="stamp-journey__stamp"
-                style={
-                  {
-                    '--stamp-x': `${position.x}%`,
-                    '--stamp-y': `${position.y}%`,
-                    '--stamp-r': `${position.rotate}deg`,
-                    '--stamp-i': index,
-                  } as CSSProperties
-                }
-              >
-                <div className="stamp-journey__perforation">
-                  <div className="stamp-journey__inner">
-                    <img src={stamp.image} alt={stamp.title} loading={index === 0 ? 'eager' : 'lazy'} />
-                    <div className="stamp-journey__country">
-                      <span>{stamp.country}</span>
-                      <span>{stamp.symbol}</span>
-                    </div>
-                    <p>{stamp.title}</p>
-                  </div>
-                </div>
-                <span className="stamp-journey__note" aria-hidden>
-                  {stamp.note}
-                </span>
-              </article>
-            );
+            const anchor = ANCHORS[index % ANCHORS.length];
+            const cycle = Math.floor(index / ANCHORS.length);
+            const entryVars = {
+              '--stamp-x': `${anchor.x + cycle * 24}vw`,
+              '--stamp-y': `${anchor.y + cycle * 14}vh`,
+              '--stamp-r': `${anchor.rotate}deg`,
+            } as CSSProperties;
+            const noteStart =
+              index === 0 ? -1 : 0.45 + ((index - 1) / Math.max(1, stamps.length - 2)) * 0.5;
+            const noteVars = {
+              top: `${NOTE_TOPS[index % NOTE_TOPS.length]}%`,
+              left: index % 2 === 0 ? '125%' : 'auto',
+              right: index % 2 === 0 ? 'auto' : '125%',
+              '--note-start': noteStart,
+              '--note-rot': `${NOTE_ROTATIONS[index % NOTE_ROTATIONS.length]}deg`,
+            } as unknown as CSSProperties;
             return (
-              <div className="stamp-journey__entry" key={`${stamp.image}:${index}`}>
+              <div className="stamp-journey__entry" key={`${stamp.image}:${index}`} style={entryVars}>
                 {stamp.url ? (
                   <Link to={stamp.url} className="stamp-journey__link">
-                    {card}
+                    {card(stamp, index)}
                   </Link>
                 ) : (
-                  card
+                  card(stamp, index)
                 )}
+                <span className="stamp-journey__note" style={noteVars} aria-hidden>
+                  {stamp.note || stamp.title}
+                </span>
               </div>
             );
           })}
         </div>
 
+        {/* Cinematic overlays (pinned above the scene) */}
         <div className="stamp-journey__grain" aria-hidden />
         <div className="stamp-journey__vignette" aria-hidden />
 
         <div className="stamp-journey__ui">
           <div className="stamp-journey__ui-top">
-            <span>JOURNAL / {String(stamps.length).padStart(2, '0')}</span>
-            <span>INDEX</span>
-            <span>ALL</span>
+            <span>INDEX •</span>
+            <span className="stamp-journey__ui-dim">ALL</span>
             <span>ABOUT</span>
           </div>
-          <p className="stamp-journey__intro" id="stamp-journey-title">
-            {intro}
-          </p>
-          <div className="stamp-journey__ui-bottom">
-            <span>{coordinates}</span>
-            <span>{String(Math.round(1 + (stamps.length - 1) * 0.8))} PLATES</span>
-          </div>
+          <div className="stamp-journey__ui-bottom">{coordinates}</div>
         </div>
       </div>
     </section>
