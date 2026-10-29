@@ -1,105 +1,232 @@
-/* Video power hero — scroll-scrubbed film (ScrollHero adaptation). */
+/* Video power hero — faithful port of the ScrollHero reference.
+   One sticky viewport pinned over the whole 500svh block: the film scrubbed
+   by scroll with mouse parallax (±30px), the pill nav with liquid hover, the
+   per-char headline collapse over the first 1000px, and the glass about
+   panel sliding up (y 100% → 0) with a 3D mouse tilt. Scrub transforms are
+   written by the component effects; CSS only holds the geometry. */
+
 .video-hero {
   position: relative;
-  height: 430svh;
-  min-height: 2200px;
+  height: 500svh;
   overflow: clip;
   background: var(--vh-bg, #000);
   color: var(--vh-ink, #fff);
   isolation: isolate;
 }
 
-.video-hero__sticky {
+.video-hero__pin {
   position: sticky;
   top: 0;
   height: 100svh;
-  min-height: 620px;
   overflow: hidden;
 }
 
+.video-hero__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  transform: scale(1.05);
+  transform-origin: center;
+  will-change: transform;
+}
+
 .video-hero__video {
-  position: absolute;
-  inset: -4%;
-  width: 108%;
-  height: 108%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  filter: saturate(0.72) contrast(1.06);
+  scale: 1.35;
 }
 
-.video-hero__shade {
+.video-hero__loading {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.56), transparent 30%),
-    linear-gradient(0deg, rgba(0, 0, 0, 0.82), transparent 52%);
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: #000;
+  color: white;
+  font-family: 'Manrope', 'Twilight', sans-serif;
+  font-size: 1.5rem;
 }
 
-.video-hero__grain {
-  position: absolute;
-  inset: 0;
-  opacity: 0.14;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23v)'/%3E%3C/svg%3E");
-}
-
+/* Pill nav (reference: fixed top-center; blocked context keeps it pinned to
+   the sticky viewport). */
 .video-hero__nav {
   position: absolute;
-  z-index: 8;
-  inset: 20px clamp(16px, 3.5vw, 46px) auto;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  top: 24px;
+  left: 50%;
+  z-index: 100;
+  display: flex;
+  transform: translateX(-50%);
+}
+
+.video-hero__nav > .video-hero__burger {
+  display: none;
+}
+
+.video-hero__logo {
+  display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #000;
+  cursor: pointer;
 }
 
-.video-hero__brand {
-  font: 600 14px/1 'Dirtyline', 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: 0.04em;
-}
-
-.video-hero__nav-label {
-  justify-self: center;
-  font: 500 9px/1 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.video-hero__pill {
-  justify-self: end;
+.video-hero__nav-items {
   display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  padding: 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  gap: 4px;
+  margin-inline-start: 8px;
+  padding: 4px;
+  overflow: hidden;
+  border: 2px solid #000;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  font: 500 9px/1 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: 0.12em;
+  background: #000;
+}
+
+.video-hero__pill-item {
+  position: relative;
+  display: block;
+  padding: 8px 24px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: #f0f0f0;
+  color: #000;
+  font: 600 14px/1.2 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: 0.05em;
   text-decoration: none;
   text-transform: uppercase;
-  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: background 0.3s;
 }
 
+.video-hero__pill-item:hover {
+  background: #e0e0e0;
+}
+
+.video-hero__pill-circle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 0;
+  border-radius: 50%;
+  background: #000;
+  transform: scale(0);
+  transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+  pointer-events: none;
+}
+
+.video-hero__pill-item:hover .video-hero__pill-circle {
+  transform: scale(3);
+}
+
+.video-hero__pill-label {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 1.2em;
+  overflow: hidden;
+  text-align: center;
+}
+
+.video-hero__pill-text {
+  display: block;
+  line-height: 1.2em;
+  transition: transform 0.3s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.video-hero__pill-text--hover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  color: white;
+  transform: translateY(100%);
+}
+
+.video-hero__pill-item:hover .video-hero__pill-text:not(.video-hero__pill-text--hover) {
+  transform: translateY(-100%);
+}
+
+.video-hero__pill-item:hover .video-hero__pill-text--hover {
+  transform: translateY(0);
+}
+
+.video-hero__burger {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.video-hero__burger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: white;
+  transition: transform 0.3s;
+}
+
+.video-hero__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 200px;
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.95);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+
+.video-hero__menu a {
+  display: block;
+  padding: 8px 16px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+/* Char-level split headline (reference ScrollFloat: Dirtyline face,
+   clamp(4rem, 15vw, 317px), per-char nbsp words). */
 .video-hero__title-wrap {
   position: absolute;
-  z-index: 5;
-  inset: auto clamp(16px, 4vw, 54px) clamp(40px, 9vh, 90px);
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px 32px 32px;
   pointer-events: none;
 }
 
 .video-hero__kicker {
-  margin: 0 0 20px;
-  font: 500 9px/1 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: 0.22em;
-  color: rgba(255, 255, 255, 0.62);
+  margin: 0 0 14px;
+  font: 500 10px/1 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
 }
 
-.video-hero__title-wrap h2 {
-  margin: 0;
-  font: 400 clamp(4rem, 15vw, 16rem)/0.8 'Dirtyline', 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: -0.03em;
-  text-transform: uppercase;
+.video-hero__title {
+  font-family: 'Dirtyline', 'Manrope', 'Twilight', sans-serif;
+  font-size: clamp(4rem, 15vw, 317px);
+  line-height: 0.85;
+  letter-spacing: 0%;
+  color: white;
 }
 
 .video-hero__line {
@@ -107,131 +234,141 @@
   white-space: nowrap;
 }
 
-.video-hero__line > span {
+.video-hero__char {
   display: inline-block;
-  opacity: clamp(0, calc(1 - var(--block-progress, 0) * 1.55), 1);
-  transform: translateY(calc(var(--block-progress, 0) * (140px + var(--char) * 1.5px)))
-    scaleY(calc(1 + var(--block-progress, 0) * 0.2))
-    scaleX(calc(1 - var(--block-progress, 0) * 0.1));
-  transform-origin: bottom center;
+  transform-origin: 50% 0%;
   will-change: transform, opacity;
 }
 
-.video-hero__panel {
+/* Glass about panel — the slide height comes from --vh-panel-y (scrubbed in
+   the component effect), the 3D tilt from the mouse loop. */
+.video-hero__panel-wrap {
   position: absolute;
-  z-index: 7;
-  left: 50%;
-  bottom: clamp(34px, 7vh, 70px);
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 24px;
-  width: min(1100px, calc(100% - 32px));
-  max-height: 74vh;
-  padding: clamp(22px, 4vw, 46px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 22px;
-  background: rgba(0, 0, 0, 0.18);
-  backdrop-filter: blur(26px) saturate(120%);
-  transform: translate(-50%, calc((1 - clamp(0, (var(--block-progress, 0) - 0.38) * 3.2, 1)) * 120%));
-  transition: transform 0.3s linear;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  width: 100%;
+  height: 100svh;
+  pointer-events: none;
 }
 
-.video-hero__panel-eyebrow {
-  margin: 0 0 18px;
-  font: 500 9px/1 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.52);
-}
-
-.video-hero__panel-copy h3 {
-  margin: 0 0 18px;
-  font: 400 clamp(2rem, 3.6vw, 3.4rem)/1 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: -0.045em;
-}
-
-.video-hero__panel-copy > p:last-child {
-  max-width: 620px;
-  margin: 0;
-  color: rgba(255, 255, 255, 0.7);
-  font: 400 14px/1.65 Georgia, serif;
-}
-
-.video-hero__panel-meta {
+.video-hero__panel {
+  --vh-panel-y: 100%;
+  --vh-tilt-x: 0px;
+  --vh-tilt-y: 0px;
+  --vh-rot-y: 0deg;
+  --vh-rot-x: 0deg;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 20px;
-  font: 500 8px/1.4 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: 0.16em;
-  color: rgba(255, 255, 255, 0.48);
-  text-align: end;
-}
-
-.video-hero__marquee {
-  position: absolute;
-  z-index: 4;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  width: min(1250px, calc(100% - 32px));
+  max-height: 85vh;
+  height: 900px;
+  margin: 0 auto;
   overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  opacity: 0.65;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  background: rgba(0, 0, 0, 0.16);
+  -webkit-backdrop-filter: blur(160px);
+  backdrop-filter: blur(160px);
+  perspective: 1000px;
+  transform: translateY(var(--vh-panel-y)) translate(var(--vh-tilt-x), var(--vh-tilt-y))
+    rotateY(var(--vh-rot-y)) rotateX(var(--vh-rot-x));
+  transform-style: preserve-3d;
+  will-change: transform;
+  pointer-events: auto;
 }
 
-.video-hero__marquee > div {
+.video-hero__panel-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 48px 24px;
+  text-align: center;
+}
+
+.video-hero__panel-eyebrow {
+  margin: 0 0 24px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.video-hero__panel-copy h3 {
+  max-width: 1000px;
+  margin: 0;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(36px, 5vw, 96px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+/* Bottom brand marquee inside the panel. */
+.video-hero__marquee {
+  padding: 24px 48px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.video-hero__marquee-track {
   display: flex;
   width: max-content;
-  gap: 70px;
-  padding: 14px 0;
-  animation: video-marquee 28s linear infinite;
+  animation: video-hero-marquee 30s linear infinite;
 }
 
-.video-hero__marquee span {
-  font: 500 10px/1 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: 0.22em;
+.video-hero__marquee-track span {
+  margin: 0 40px;
+  color: white;
+  font-family: 'Manrope', 'Twilight', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
+  opacity: 0.4;
+  transition: opacity 0.3s;
 }
 
-.video-hero__loading {
-  position: absolute;
-  z-index: 10;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: #000;
-  font: 500 9px/1 'Manrope', 'Twilight', sans-serif;
-  letter-spacing: 0.22em;
-  animation: video-loading 1.8s ease-in-out infinite alternate;
+.video-hero__marquee-track span:hover {
+  opacity: 1;
 }
 
-@keyframes video-marquee {
+@keyframes video-hero-marquee {
   to {
-    transform: translateX(-50%);
+    transform: translateX(-25%);
   }
 }
 
-@keyframes video-loading {
-  to {
-    opacity: 0.45;
-  }
-}
-
-@media (max-width: 760px) {
+@media (max-width: 768px) {
   .video-hero {
     height: 360svh;
   }
 
-  .video-hero__nav-label {
+  .video-hero__nav-items {
     display: none;
   }
 
-  .video-hero__nav {
-    grid-template-columns: 1fr auto;
+  .video-hero__burger {
+    display: flex;
+    position: absolute;
+    top: 62px;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
-  .video-hero__title-wrap h2 {
-    font-size: 18vw;
-    white-space: normal;
+  .video-hero__menu {
+    top: 96px;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .video-hero__title-wrap {
+    padding: 16px 20px 24px;
   }
 
   .video-hero__line {
@@ -239,69 +376,54 @@
   }
 
   .video-hero__panel {
-    grid-template-columns: 1fr;
-    bottom: 24px;
-    padding: 22px;
+    height: auto;
+    min-height: 420px;
+    max-height: 78svh;
   }
 
-  .video-hero__panel-meta {
-    flex-direction: row;
-    text-align: start;
+  .video-hero__panel-copy {
+    padding: 24px;
   }
 
   .video-hero__panel-copy h3 {
-    font-size: 1.9rem;
+    font-size: 34px;
+  }
+
+  .video-hero__marquee {
+    padding: 18px 24px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .video-hero {
-    height: auto;
-    min-height: 0;
+    height: 100svh;
   }
 
-  .video-hero__sticky {
+  .video-hero__pin {
     position: relative;
-    height: auto;
-    min-height: 0;
+  }
+
+  .video-hero__media {
+    transform: none;
   }
 
   .video-hero__video {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    height: 72svh;
+    scale: 1;
   }
 
-  .video-hero__title-wrap {
-    position: relative;
-    inset: auto;
-    padding: 42px 20px 30px;
+  .video-hero__char {
+    opacity: 1 !important;
+    transform: none !important;
   }
 
-  .video-hero__line > span {
-    opacity: 1;
-    transform: none;
+  .video-hero__marquee-track,
+  .video-hero__pill-circle,
+  .video-hero__pill-text {
+    animation: none;
+    transition: none;
   }
 
   .video-hero__panel {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    width: calc(100% - 32px);
-    margin: 0 auto 24px;
     transform: none;
-  }
-
-  .video-hero__marquee {
-    position: relative;
-  }
-
-  .video-hero__marquee > div {
-    animation: none;
-  }
-
-  .video-hero__loading {
-    display: none;
   }
 }
