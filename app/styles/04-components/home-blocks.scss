@@ -1107,3 +1107,566 @@ salla-reviews:not(:has(.s-reviews-swiper-slide)) {
     @apply mt-3 inline-flex items-center justify-center rounded-full bg-white px-6 py-2.5 text-sm font-bold text-gray-900 shadow-lg transition-transform hover:scale-[1.03] hover:no-underline;
   }
 }
+/*
+  Figurines depth carousel (home.figurines) — app/components/home/Figurines.tsx
+  ----------------------------------------------------------------------------
+  A full-viewport, colour-flooding hero: the merchant's figurines stand at the
+  bottom edge, the focused one sharp and tall, the neighbours small and
+  blurred, a giant ghost word melting into the background behind them. One
+  navigation morphs EVERYTHING at once: the background colour, every figure's
+  position/scale/blur/opacity and the caption — 650ms, one easing.
+
+  Geometry numbers are the ToonHub reference's, verbatim, expressed as CSS
+  tiers (xs < 640px / md < 1024 / lg < 1440 / xl above) instead of JS resize
+  state. The wrapper carries GEOMETRY (inset / bottom / height); every visual
+  state (transform / blur / opacity / blend / z-index) lives on the IMG, so
+  the multiply-blend cutout mode keeps working (a transformed ancestor would
+  isolate stacking and kill it). The scaling therefore reads the reference's
+  own tuned values — its PNGs share the 0.75 portrait aspect these come from.
+*/
+.s-block--figurines {
+  @apply mt-0 sm:mt-0;
+}
+
+/* ── the "under the header" opt-in (the Twig system, ported) ──────────────
+   The merchant switch (`figurines_under_header`) arrives as
+   `s-block--under-header` on the wrapper through the figurines config in
+   router.tsx — the flag MorphHeader.tsx answers with `data-morph-lift`
+   (hero legibility scrim + white ink at the top of the header). THIS rule is
+   the physical half: the hero slides up behind the sticky header by exactly
+   the header height (`--salla-header-h` is the header's OWN measurement, so
+   the lift never goes stale), and --fig-fit 0 makes the hero a full viewport
+   tall. Desktop only — under 1025px (the same DESKTOP_MIN MorphHeader uses)
+   the header keeps its paper surface and the page stacks naturally, which is
+   what the old system did too. Never gate the class on a live `position` —
+   the toggle is the single source of truth (old lesson). */
+@media (min-width: 1025px) {
+  .s-block--figurines.s-block--under-header {
+    margin-block-start: calc(-1 * var(--salla-header-h, 96px));
+
+    .figurines {
+      --fig-fit: 0px;
+    }
+  }
+}
+
+.figurines {
+  --fig-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --fig-font: 'Anton', 'Twilight', sans-serif;
+  /* --fig-fit is the distance from the viewport top to this block (the sticky
+     header's real height, measured by the component at scroll 0; without JS
+     it falls back to ~a header's height) — so the hero bottom lands on the
+     fold line the reference's 100vh occupies. */
+  position: relative;
+  overflow: hidden;
+  height: clamp(560px, calc(100svh - var(--fig-fit, 96px)), 1060px);
+  background: var(--fig-bg, #c96f4a);
+  color: #fff;
+  transition: background-color 650ms var(--fig-ease);
+}
+
+/* The giant ghost word behind the figures — flex-centred so a nowrapper
+   wider than the screen bleeds BOTH edges evenly, which is how the
+   reference's giant type hugs the viewport. */
+.figurines__ghost {
+  position: absolute;
+  inset-inline: 0;
+  top: 18%;
+  /* INSIDE the stage's stacking context: one layer above the back figure
+     (--z: 5 — the word swallows it) and below the sides (--z: 10) + center
+     (20), which stand in front of the letters. */
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--fig-font);
+  font-weight: 900;
+  font-size: clamp(90px, 28vw, 380px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #fff;
+  pointer-events: none;
+  user-select: none;
+  animation: figGhost 0.8s var(--fig-ease) both;
+}
+
+@keyframes figGhost {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+/* film grain over the flat colour so it reads as a surface, not a fill */
+.figurines__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23n)" opacity="0.08"/></svg>');
+  background-size: 200px 200px;
+  background-repeat: repeat;
+}
+
+.figurines__brand {
+  position: absolute;
+  top: 24px;
+  inset-inline-start: 16px;
+  z-index: 60;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+/* -- the figures --------------------------------------------------------------
+   Geometry on the wrapper, visuals on the IMG. --fig-shift is THE RTL half of
+   the centring: inset-inline-start: 50% anchors the wrapper's START edge on
+   the middle (`right: 50%` in RTL), so the physical translateX(-50%) that
+   centres in LTR would double-shift there — it flips to +50% under RTL. */
+.figurines__stage {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.figurines__fig {
+  position: absolute;
+  inset-inline-start: 50%;
+  bottom: 12%;
+  height: 22%;
+  aspect-ratio: 0.6 / 1;
+  /* the depth layer lives on the WRAPPER — it is the positioned box the
+     ghost's z-index can be measured against; a z-index on the non-positioned
+     <img> inside would be ignored entirely, and the word would swallow
+     EVERYTHING (that is exactly the bug one build shipped). */
+  z-index: var(--z, 5);
+  transition:
+    inset-inline-start 650ms var(--fig-ease),
+    bottom 650ms var(--fig-ease),
+    height 650ms var(--fig-ease);
+}
+
+.figurines__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  user-select: none;
+  -webkit-user-drag: none;
+  transform:
+    translateX(var(--fig-shift, -50%))
+    translate(var(--mx, 0px), var(--my, 0px))
+    scale(var(--s, 1));
+  /* the reference scales about the box CENTRE (no transform-origin set) */
+  transform-origin: center;
+  filter: blur(var(--b, 0px));
+  opacity: var(--o, 1);
+  transition:
+    transform 650ms var(--fig-ease),
+    filter 650ms var(--fig-ease),
+    opacity 650ms var(--fig-ease);
+}
+
+[dir='rtl'] .figurines__img {
+  --fig-shift: 50%;
+}
+
+/* ordinary white-background photos stand like cut-outs; real transparent
+   PNGs are unaffected (multiply over their own transparency) */
+.figurines__img--cutout {
+  mix-blend-mode: multiply;
+}
+
+/* -- the four roles: reference numbers (lg tier) ------------------------------ */
+.figurines__fig--center {
+  bottom: 0;
+  height: 92%;
+  --z: 20;
+
+  .figurines__img {
+    --s: 1.68;
+    --b: 0px;
+    --o: 1;
+  }
+}
+
+.figurines__fig--start {
+  inset-inline-start: 30%;
+  bottom: 12%;
+  height: 28%;
+  --z: 10;
+
+  .figurines__img {
+    --s: 1;
+    --b: 2px;
+    --o: 0.85;
+  }
+}
+
+.figurines__fig--end {
+  inset-inline-start: 70%;
+  bottom: 12%;
+  height: 28%;
+  --z: 10;
+
+  .figurines__img {
+    --s: 1;
+    --b: 2px;
+    --o: 0.85;
+  }
+}
+
+/* side + back figures never steal the click from the ink below */
+.figurines__fig--start,
+.figurines__fig--end {
+  pointer-events: none;
+
+  a {
+    pointer-events: none;
+  }
+}
+
+.figurines__fig--back {
+  inset-inline-start: 50%;
+  bottom: 12%;
+  height: 22%;
+  /* the deepest layer: underneath the ghost word (z 8), so wherever the
+     great letters reach, they swallow the far figurine whole */
+  --z: 5;
+
+  .figurines__img {
+    --s: 1;
+    --b: 4px;
+    --o: 1;
+  }
+
+  pointer-events: none;
+}
+
+/* -- the reference's remaining tiers -------------------------------------------
+   xs  < 640px                phones
+   md  640–1023.98px          tablets / small laptops
+   xl  >= 1440px              big screens */
+@media (max-width: 639.98px) {
+  .figurines {
+    height: clamp(520px, calc(100svh - var(--fig-fit, 64px)), 780px);
+  }
+
+  .figurines__ghost {
+    top: 14%;
+    font-size: clamp(54px, 26vw, 96px);
+  }
+
+  .figurines__fig--center {
+    bottom: 22%;
+    height: 58%;
+
+    .figurines__img {
+      --s: 1.18;
+    }
+  }
+
+  .figurines__fig--start,
+  .figurines__fig--end {
+    bottom: 30%;
+    height: 15%;
+
+    .figurines__img {
+      --b: 2px;
+      --o: 0.85;
+    }
+  }
+
+  .figurines__fig--start {
+    inset-inline-start: 18%;
+  }
+
+  .figurines__fig--end {
+    inset-inline-start: 82%;
+  }
+
+  .figurines__fig--back {
+    bottom: 30%;
+    height: 12%;
+
+    .figurines__img {
+      --b: 4px;
+      --o: 1;
+    }
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023.98px) {
+  .figurines__ghost {
+    top: 18%;
+    font-size: clamp(72px, 20vw, 220px);
+  }
+
+  .figurines__fig--center {
+    bottom: 2%;
+    height: 84%;
+
+    .figurines__img {
+      --s: 1.45;
+    }
+  }
+
+  .figurines__fig--start,
+  .figurines__fig--end {
+    bottom: 10%;
+    height: 22%;
+  }
+
+  .figurines__fig--start {
+    inset-inline-start: 24%;
+  }
+
+  .figurines__fig--end {
+    inset-inline-start: 76%;
+  }
+
+  .figurines__fig--back {
+    bottom: 10%;
+    height: 18%;
+  }
+}
+
+@media (min-width: 1440px) {
+  .figurines__ghost {
+    top: 16%;
+    font-size: clamp(140px, 22vw, 480px);
+  }
+
+  .figurines__fig--center {
+    bottom: 0;
+    height: 90%;
+
+    .figurines__img {
+      --s: 1.8;
+    }
+  }
+
+  .figurines__fig--start,
+  .figurines__fig--end {
+    bottom: 12%;
+    height: 30%;
+  }
+
+  .figurines__fig--start {
+    inset-inline-start: 32%;
+  }
+
+  .figurines__fig--end {
+    inset-inline-start: 68%;
+  }
+
+  .figurines__fig--back {
+    bottom: 12%;
+    height: 24%;
+  }
+}
+
+/* -- captions + controls ------------------------------------------------------
+   Reference insets: bottom-left copy at 16/24 on phones, 96/36 from sm; the
+   CTA sits bottom-right at 16/24 on phones, 40/36 from sm. The merchant asked
+   for the bottom row close to the hero's own bottom edge — 80px read as a
+   floating island, 36px ties it to the frame. */
+.figurines__info {
+  position: absolute;
+  bottom: 24px;
+  inset-inline-start: 16px;
+  z-index: 60;
+  max-width: 320px;
+}
+
+@media (min-width: 640px) {
+  .figurines__info {
+    bottom: 36px;
+    inset-inline-start: 96px;
+  }
+}
+
+.figurines__caption {
+  animation: figCaption 0.5s var(--fig-ease) both;
+}
+
+@keyframes figCaption {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.figurines__title {
+  font-size: 16px;
+  font-weight: 700;
+  /* No letter-spacing/text-transform: the caption is merchant Arabic, and
+     both break the letter joining. Identity carries through weight. */
+  line-height: 1.8;
+  opacity: 0.95;
+}
+
+@media (min-width: 640px) {
+  .figurines__title {
+    font-size: 22px;
+  }
+}
+
+.figurines__sub {
+  /* the reference hides the body copy on phones ("hidden sm:block") */
+  display: none;
+  margin-block-start: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  opacity: 0.85;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  .figurines__sub {
+    display: -webkit-box;
+    margin-block-end: 20px;
+  }
+}
+
+.figurines__nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block-start: 14px;
+}
+
+.figurines__nav button {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  cursor: pointer;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  transition:
+    transform 150ms,
+    background-color 150ms;
+}
+
+@media (min-width: 640px) {
+  .figurines__nav button {
+    width: 64px;
+    height: 64px;
+  }
+}
+
+.figurines__nav button:hover {
+  transform: scale(1.08);
+  background-color: rgb(255 255 255 / 0.12);
+}
+
+.figurines__nav button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.figurines__count {
+  margin-inline-start: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.18em;
+  opacity: 0.75;
+}
+
+/* the wide, quiet CTA on the opposite corner */
+.figurines__cta {
+  position: absolute;
+  bottom: 24px;
+  inset-inline-end: 16px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
+  font-family: var(--fig-font);
+  font-weight: 400;
+  font-size: clamp(20px, 4vw, 56px);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  opacity: 0.95;
+  transition:
+    opacity 200ms,
+    transform 200ms;
+}
+
+@media (min-width: 640px) {
+  .figurines__cta {
+    bottom: 36px;
+    inset-inline-end: 40px;
+  }
+}
+
+.figurines__cta:hover {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+.figurines__cta-arrow {
+  display: grid;
+  place-items: center;
+  transition: transform 200ms var(--fig-ease);
+}
+
+.figurines__cta-arrow svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 2.25;
+}
+
+@media (min-width: 640px) {
+  .figurines__cta-arrow svg {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+/* The document direction owns the arrow GLYPH — the component already renders
+   ArrowLeft in RTL (the same pattern as the nav pair), so the CSS must NOT
+   mirror it again: a scaleX(-1) here was flipping a correct glyph back to
+   rightward, and the CTA pointed against the reading direction. The CSS only
+   nudges the arrow on hover, toward where it points (leftward in RTL). */
+[dir='rtl'] .figurines__cta:hover .figurines__cta-arrow svg {
+  transform: translateX(-4px);
+}
+
+[dir='ltr'] .figurines__cta:hover .figurines__cta-arrow svg {
+  transform: translateX(4px);
+}
+
+/* reduced motion: the morphs cut to the point, no autoplay, no entrance beat */
+@media (prefers-reduced-motion: reduce) {
+  .figurines,
+  .figurines__fig,
+  .figurines__img {
+    transition: none;
+  }
+
+  .figurines__ghost,
+  .figurines__caption {
+    animation: none;
+  }
+
+  .figurines__cta-arrow svg,
+  .figurines__nav button {
+    transition: none;
+  }
+}

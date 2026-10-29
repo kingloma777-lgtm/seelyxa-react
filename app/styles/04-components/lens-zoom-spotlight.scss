@@ -1,0 +1,193 @@
+/* Lens zoom spotlight — pinned optical reveal (Larevoltosa adaptation). */
+.lens-zoom {
+  position: relative;
+  height: 320svh;
+  min-height: 1600px;
+  overflow: clip;
+  background: var(--lz-bg, #252627);
+  color: #fff;
+  isolation: isolate;
+}
+
+.lens-zoom__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  height: 82svh;
+  min-height: 520px;
+  padding: 24px;
+  text-align: center;
+}
+
+.lens-zoom__intro p {
+  margin: 0;
+  font: 900 clamp(3rem, 9vw, 9rem)/0.86 'Barlow Condensed', 'Twilight', sans-serif;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.lens-zoom__intro span {
+  color: var(--lz-accent, #eb5e55);
+  font-size: 26px;
+  animation: lens-arrow 1.7s ease-in-out infinite;
+}
+
+.lens-zoom__sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 580px;
+  overflow: hidden;
+  background: var(--lz-accent, #eb5e55);
+}
+
+.lens-zoom__sticky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 48% 78%, rgba(255, 255, 255, 0.17), transparent 36%),
+    linear-gradient(180deg, transparent 55%, rgba(37, 38, 39, 0.15));
+}
+
+.lens-zoom__doodle {
+  position: absolute;
+  z-index: 1;
+  bottom: -4%;
+  left: 50%;
+  width: min(56vw, 860px);
+  min-width: 660px;
+  overflow: visible;
+  transform: translateX(-50%) scale(calc(1 + var(--block-progress, 0) * 8.5));
+  transform-origin: 47% 21%;
+  will-change: transform;
+}
+
+.lens-zoom__face {
+  fill: #e6655d;
+  stroke: #171717;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lens-zoom__face .lens-zoom__rim {
+  fill: rgba(255, 255, 255, 0.1);
+  stroke-width: 8;
+}
+
+.lens-zoom__photo {
+  opacity: clamp(0, calc((var(--block-progress, 0) - 0.45) * 4), 1);
+}
+
+.lens-zoom__photo image {
+  filter: saturate(1.12) contrast(1.06);
+}
+
+.lens-zoom__glare rect {
+  fill: #fff;
+  opacity: 0.58;
+  transform: translateX(calc(var(--block-progress, 0) * 150px));
+}
+
+.lens-zoom__content {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(24px, 5vw, 64px);
+  pointer-events: none;
+}
+
+.lens-zoom__eyebrow {
+  align-self: flex-end;
+  margin: 0;
+  font: 500 10px/1.4 'Barlow Condensed', 'Twilight', sans-serif;
+  letter-spacing: 0.22em;
+}
+
+.lens-zoom__content h2 {
+  max-width: 38%;
+  margin: auto 0 0;
+  font: 900 clamp(3rem, 6.2vw, 7rem)/0.86 'Barlow Condensed', 'Twilight', sans-serif;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.lens-zoom__content h2 span {
+  opacity: clamp(
+    0,
+    calc((var(--block-progress, 0) - 0.62) * 7 - (var(--lz-word) / var(--lz-words)) * 1.2),
+    1
+  );
+}
+
+.lens-zoom__outro {
+  max-width: 260px;
+  margin: 24px 0 0 auto;
+  font: 500 11px/1.6 'Barlow Condensed', 'Twilight', sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: end;
+}
+
+@keyframes lens-arrow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+@media (max-width: 900px) {
+  .lens-zoom {
+    height: 280svh;
+  }
+
+  .lens-zoom__doodle {
+    width: 105vw;
+    min-width: 0;
+    bottom: 2%;
+    transform: translateX(-50%) scale(calc(1 + var(--block-progress, 0) * 6.4));
+  }
+
+  .lens-zoom__content h2 {
+    max-width: 88%;
+  }
+
+  .lens-zoom__outro {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lens-zoom {
+    height: auto;
+    min-height: 0;
+  }
+
+  .lens-zoom__sticky {
+    position: relative;
+    height: 92svh;
+  }
+
+  .lens-zoom__doodle {
+    transform: translateX(-50%) scale(2.1);
+  }
+
+  .lens-zoom__photo,
+  .lens-zoom__content h2 span {
+    opacity: 1;
+  }
+
+  .lens-zoom__intro span {
+    animation: none;
+  }
+}

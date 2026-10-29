@@ -79,8 +79,8 @@ const ACCOUNT_GRADIENTS = [
 
 /**
  * Salla theme settings can ship any field as the picker shape
- * `[{label, value, key}]` (same runtime boundary the home blocks hit — see
- * `lib/cinematicMedia.ts`). Flatten one such value to its first string.
+ * `[{label, value, key}]` (same runtime boundary the home blocks hit). Flatten
+ * one such value to its first string.
  */
 function scalarSetting(value: unknown): string | undefined {
   let v: unknown = value;

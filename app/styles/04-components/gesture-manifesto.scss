@@ -1,0 +1,363 @@
+/* Gesture manifesto — two-scene scroll narrative (Inner Circle adaptation). */
+.gesture-manifesto {
+  position: relative;
+  height: 320svh;
+  min-height: 1700px;
+  overflow: clip;
+  background: var(--gm-accent, #ff005e);
+  color: #fff;
+  isolation: isolate;
+}
+
+.gesture-manifesto__sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 620px;
+  overflow: hidden;
+  background: var(--gm-accent, #ff005e);
+}
+
+.gesture-manifesto__first {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  filter: blur(calc(var(--block-progress, 0) * 18px));
+  transform: scale(calc(1 + var(--block-progress, 0) * 0.04));
+}
+
+.gesture-manifesto__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.4;
+  filter: grayscale(0.2) contrast(1.05);
+}
+
+.gesture-manifesto__wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 60%, transparent 10%, rgba(255, 0, 94, 0.36) 72%),
+    linear-gradient(180deg, rgba(17, 1, 10, 0.22), transparent 40%);
+  mix-blend-mode: multiply;
+}
+
+.gesture-manifesto__nav {
+  position: absolute;
+  z-index: 5;
+  inset: 20px clamp(18px, 3.5vw, 48px) auto;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 20px;
+  font: 500 10px/1 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.gesture-manifesto__nav > span:nth-child(2) {
+  justify-self: center;
+  opacity: 0.6;
+}
+
+.gesture-manifesto__nav-cta {
+  justify-self: end;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+  text-decoration: none;
+}
+
+.gesture-manifesto__first h2 {
+  position: absolute;
+  z-index: 3;
+  top: 47%;
+  left: 50%;
+  width: 96%;
+  margin: 0;
+  font: 400 clamp(4rem, 10.4vw, 11rem)/0.8 'Michroma', 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: -0.07em;
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.gesture-manifesto__first h2 span {
+  display: inline-block;
+  opacity: clamp(0, calc(1 - var(--block-progress, 0) * 1.2), 1);
+  transform: translateY(calc(var(--block-progress, 0) * 180px + var(--gm-char) * 1px))
+    rotate(calc(var(--block-progress, 0) * 14deg));
+}
+
+.gesture-manifesto__tiles {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: clamp(28px, 7vh, 72px);
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  width: min(760px, calc(100% - 40px));
+  transform: translateX(-50%);
+}
+
+.gesture-manifesto__tiles article {
+  flex: 1;
+  min-height: 120px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 34px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #11010a;
+  opacity: clamp(0, calc(var(--block-progress, 0) * 2.4 - 0.7 - var(--gm-tile) * 0.2), 1);
+  transform: translateY(calc((1 - var(--block-progress, 0)) * 28px));
+}
+
+.gesture-manifesto__tiles article:nth-child(2) {
+  min-height: 148px;
+}
+
+.gesture-manifesto__tiles article:nth-child(3) {
+  min-height: 132px;
+}
+
+.gesture-manifesto__tiles span {
+  display: block;
+  margin-bottom: 24px;
+  font: 500 9px/1 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: 0.12em;
+}
+
+.gesture-manifesto__tiles h3 {
+  margin: 0 0 7px;
+  font: 600 15px/1.15 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.gesture-manifesto__tiles p {
+  margin: 0;
+  color: rgba(17, 1, 10, 0.62);
+  font: 400 11px/1.5 'Manrope', 'Twilight', sans-serif;
+}
+
+.gesture-manifesto__second {
+  position: absolute;
+  z-index: 6;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  padding: clamp(22px, 4vh, 42px) clamp(18px, 4vw, 54px) 0;
+  border-radius: 48px 48px 0 0;
+  background: var(--gm-bg, #11010a);
+  transform: translateY(calc((1 - clamp(0, (var(--block-progress, 0) - 0.14) * 2.2, 1)) * 100%));
+  box-shadow: 0 -24px 80px rgba(0, 0, 0, 0.34);
+  will-change: transform;
+}
+
+.gesture-manifesto__second-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  opacity: 0.16;
+  mask-image: linear-gradient(180deg, transparent, #000 28%, transparent 78%);
+}
+
+.gesture-manifesto__second-top {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font: 500 9px/1.4 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.gesture-manifesto__drum-wrap {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  height: 100%;
+  min-height: 280px;
+  overflow: hidden;
+  perspective: 900px;
+  mask-image: linear-gradient(180deg, transparent, #000 24%, #000 76%, transparent);
+}
+
+.gesture-manifesto__drum {
+  position: relative;
+  width: min(900px, 100%);
+  height: 300px;
+  transform-style: preserve-3d;
+}
+
+.gesture-manifesto__drum p {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  margin: 0;
+  font: 500 clamp(1.4rem, 3.4vw, 3.2rem)/1.08 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: -0.04em;
+  text-align: center;
+  text-wrap: balance;
+  backface-visibility: hidden;
+  transform: translate(-50%, -50%)
+    rotateX(calc(var(--gm-line) * 15deg + var(--block-progress, 0) * 180deg))
+    translateZ(260px);
+  opacity: calc(0.28 + var(--block-progress, 0) * 0.72);
+}
+
+.gesture-manifesto__second-copy {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 22px;
+}
+
+.gesture-manifesto__second-copy > p {
+  max-width: 360px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.56);
+  font: 400 12px/1.65 'Manrope', 'Twilight', sans-serif;
+}
+
+.gesture-manifesto__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: #fff;
+  color: #11010a;
+  font: 600 10px/1 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.gesture-manifesto__logos {
+  position: relative;
+  z-index: 3;
+  overflow: hidden;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.gesture-manifesto__logos > div {
+  display: flex;
+  width: max-content;
+  gap: 80px;
+  animation: gesture-marquee 25s linear infinite;
+}
+
+.gesture-manifesto__logos span {
+  font: 500 10px/1 'Manrope', 'Twilight', sans-serif;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.46);
+}
+
+@keyframes gesture-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 760px) {
+  .gesture-manifesto {
+    height: 300svh;
+  }
+
+  .gesture-manifesto__nav > span:nth-child(2) {
+    display: none;
+  }
+
+  .gesture-manifesto__nav {
+    grid-template-columns: 1fr auto;
+  }
+
+  .gesture-manifesto__first h2 {
+    font-size: 16vw;
+  }
+
+  .gesture-manifesto__tiles {
+    gap: 8px;
+  }
+
+  .gesture-manifesto__tiles article {
+    min-height: 105px;
+    padding: 13px;
+    border-radius: 22px;
+  }
+
+  .gesture-manifesto__tiles article:nth-child(n + 3) {
+    display: none;
+  }
+
+  .gesture-manifesto__second {
+    border-radius: 32px 32px 0 0;
+  }
+
+  .gesture-manifesto__second-copy {
+    flex-direction: column;
+    align-items: start;
+    gap: 14px;
+  }
+
+  .gesture-manifesto__drum p {
+    font-size: 1.55rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gesture-manifesto {
+    height: auto;
+    min-height: 0;
+  }
+
+  .gesture-manifesto__sticky {
+    position: relative;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .gesture-manifesto__first {
+    position: relative;
+    min-height: 90svh;
+    filter: none;
+    transform: none;
+  }
+
+  .gesture-manifesto__first h2 span,
+  .gesture-manifesto__tiles article {
+    opacity: 1;
+    transform: none;
+  }
+
+  .gesture-manifesto__second {
+    position: relative;
+    min-height: 90svh;
+    transform: none;
+  }
+
+  .gesture-manifesto__drum p {
+    opacity: 1;
+  }
+
+  .gesture-manifesto__logos > div {
+    animation: none;
+  }
+}

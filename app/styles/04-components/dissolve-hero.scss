@@ -1,0 +1,262 @@
+/* Dissolve hero — editorial scroll portrait (Second Skin adaptation). */
+.dissolve-hero {
+  position: relative;
+  min-height: 175svh;
+  overflow: clip;
+  background: var(--dh-bg, #141414);
+  color: #efece3;
+  isolation: isolate;
+}
+
+.dissolve-hero__sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+}
+
+.dissolve-hero__photo {
+  position: absolute;
+  inset: -4%;
+  background-image: var(--dh-image);
+  background-position: center 28%;
+  background-size: cover;
+  filter: saturate(0.8) contrast(1.08);
+  transform: scale(calc(1.04 + var(--block-progress, 0) * 0.06));
+  will-change: transform;
+}
+
+.dissolve-hero__grade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(20, 20, 20, 0.45) 0%, transparent 34%),
+    linear-gradient(0deg, rgba(20, 20, 20, 0.7) 0%, transparent 42%),
+    linear-gradient(135deg, color-mix(in srgb, var(--dh-accent, #f04e23) 48%, transparent), transparent 58%);
+  mix-blend-mode: multiply;
+}
+
+.dissolve-hero__veil {
+  position: absolute;
+  inset: auto 0 0;
+  height: calc(var(--block-progress, 0) * 112%);
+  min-height: 0;
+  background: var(--dh-bg, #141414);
+  pointer-events: none;
+}
+
+.dissolve-hero__veil span {
+  position: absolute;
+  inset: -22px 0 auto;
+  height: 48px;
+  background:
+    radial-gradient(ellipse at 12% 100%, var(--dh-bg, #141414) 0 62%, transparent 64%) 0 0 / 19% 100% repeat-x,
+    var(--dh-bg, #141414);
+  filter: blur(7px);
+}
+
+.dissolve-hero__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.16;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
+
+.dissolve-hero__header {
+  position: relative;
+  z-index: 2;
+  max-width: 1020px;
+  margin-inline: auto;
+  padding: clamp(96px, 17vh, 180px) 24px 0;
+  text-align: center;
+}
+
+.dissolve-hero__eyebrow {
+  margin: 0 0 20px;
+  font: 600 11px/1.4 'Space Mono', ui-monospace, monospace;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #efece3;
+}
+
+.dissolve-hero__header h2 {
+  margin: 0;
+  font-family: 'Space Grotesk', 'Twilight', sans-serif;
+  font-size: clamp(3.75rem, 12vw, 11rem);
+  font-weight: 700;
+  line-height: 0.86;
+  letter-spacing: -0.075em;
+  text-wrap: balance;
+}
+
+.dissolve-hero__intro {
+  max-width: 430px;
+  margin: 28px auto 0;
+  font: 400 clamp(15px, 1.4vw, 19px)/1.55 'Inter', 'Twilight', sans-serif;
+  color: rgba(239, 236, 227, 0.82);
+  text-wrap: pretty;
+}
+
+.dissolve-hero__content {
+  position: absolute;
+  z-index: 3;
+  inset: auto 0 0;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: end;
+  gap: clamp(16px, 3vw, 40px);
+  width: min(1180px, calc(100% - 48px));
+  margin-inline: auto;
+  padding-bottom: clamp(34px, 7vh, 76px);
+}
+
+.dissolve-hero__mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(239, 236, 227, 0.32);
+  border-radius: 999px;
+  color: var(--dh-accent, #f04e23);
+  font-size: 18px;
+}
+
+.dissolve-hero__statement {
+  max-width: 830px;
+  margin: 0;
+  font-family: 'Space Grotesk', 'Twilight', sans-serif;
+  font-size: clamp(1.65rem, 3.1vw, 3.1rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+}
+
+.dissolve-hero__statement span {
+  opacity: clamp(
+    0,
+    calc(var(--block-progress, 0) * 3.4 - (var(--word-index) / var(--word-total)) * 2.1),
+    1
+  );
+  transition: opacity 0.35s linear;
+}
+
+.dissolve-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid rgba(239, 236, 227, 0.5);
+  border-radius: 999px;
+  color: #efece3;
+  font: 600 12px/1 'Inter', 'Twilight', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.dissolve-hero__cta:hover,
+.dissolve-hero__cta:focus-visible {
+  background: #efece3;
+  color: var(--dh-bg, #141414);
+}
+
+.dissolve-hero__about {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: 0.7fr 1.6fr 0.7fr;
+  gap: clamp(24px, 6vw, 96px);
+  align-items: start;
+  min-height: 75svh;
+  padding: clamp(72px, 12vh, 150px) max(24px, calc((100vw - 1180px) / 2));
+  background: var(--dh-bg, #141414);
+}
+
+.dissolve-hero__about-eyebrow,
+.dissolve-hero__about-meta {
+  margin: 0;
+  font: 500 11px/1.5 'Space Mono', ui-monospace, monospace;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(239, 236, 227, 0.6);
+}
+
+.dissolve-hero__rule {
+  display: block;
+  width: 56px;
+  height: 1px;
+  margin-top: 16px;
+  background: var(--dh-accent, #f04e23);
+}
+
+.dissolve-hero__about-copy {
+  margin: 0;
+  max-width: 650px;
+  font: 400 clamp(1.5rem, 2.5vw, 2.4rem)/1.25 'Space Grotesk', 'Twilight', sans-serif;
+  letter-spacing: -0.035em;
+}
+
+.dissolve-hero__about-meta {
+  justify-self: end;
+  text-align: end;
+}
+
+@media (max-width: 760px) {
+  .dissolve-hero__content {
+    grid-template-columns: 1fr auto;
+    gap: 18px;
+  }
+
+  .dissolve-hero__mark {
+    display: none;
+  }
+
+  .dissolve-hero__cta {
+    align-self: end;
+    padding-inline: 16px;
+    font-size: 10px;
+  }
+
+  .dissolve-hero__about {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding-block: 64px;
+  }
+
+  .dissolve-hero__about-meta {
+    justify-self: start;
+    text-align: start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dissolve-hero {
+    min-height: auto;
+  }
+
+  .dissolve-hero__sticky {
+    position: relative;
+    height: 92svh;
+  }
+
+  .dissolve-hero__photo {
+    transform: none;
+  }
+
+  .dissolve-hero__veil {
+    display: none;
+  }
+
+  .dissolve-hero__statement span {
+    opacity: 1;
+  }
+
+  .dissolve-hero__about {
+    min-height: auto;
+  }
+}

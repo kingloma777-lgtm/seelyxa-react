@@ -802,6 +802,831 @@
   ],
   "components": [
     {
+      "key": "7f3d29a1-4b6e-4f85-9d2c-1a58c0b7e6f4",
+      "title": {
+        "en": "Figurines Depth Hero",
+        "ar": "بطل الشخصيات (كاروسيل العمق)"
+      },
+      "icon": "sicon-image",
+      "path": "home.figurines",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "title",
+          "id": "static-title-figurines",
+          "value": "بطل الشخصيات (كاروسيل العمق)",
+          "variant": "h6"
+        },
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-figurines",
+          "value": "شاشة كاملة غارقة في اللون: قطع المتجر تقف كأبطال داخلها، والكلمة الضخمة تمتد خلفها. أسهم التنقل والسحب وأزرار لوحة المفاتيح كلها تعمل، وانتقالات المكوّن تحترم إعداد تقليل الحركة. أفضل عرض للصور المقصوصة من خلفيتها (PNG شفاف) — وصور المنتجات ذات الخلفية البيضاء تُقصّ تلقائياً."
+        },
+        {
+          "id": "figurines",
+          "key": "9c2e64d8-1f4a-43b2-8d7e-3b9a5c1e7f20",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 6,
+          "label": "الشخصيات (القطع)",
+          "item_label": "قطعة",
+          "value": [
+            {
+              "figurines.image": "https://r2.motionsites.dev/motionsites/assets/6f8e47d0bc29.png",
+              "figurines.title": "Form 01",
+              "figurines.subtitle": "The first figure in the series.",
+              "figurines.color": "#F4845F",
+              "figurines.url": null
+            },
+            {
+              "figurines.image": "https://r2.motionsites.dev/motionsites/assets/15f4a07508d3.png",
+              "figurines.title": "Form 02",
+              "figurines.subtitle": "A study in balance and weight.",
+              "figurines.color": "#6BBF7A",
+              "figurines.url": null
+            },
+            {
+              "figurines.image": "https://r2.motionsites.dev/motionsites/assets/fda59aca3206.png",
+              "figurines.title": "Form 03",
+              "figurines.subtitle": "Soft geometry, held in light.",
+              "figurines.color": "#E882B4",
+              "figurines.url": null
+            },
+            {
+              "figurines.image": "https://r2.motionsites.dev/motionsites/assets/fa5b2ecfdedf.png",
+              "figurines.title": "Form 04",
+              "figurines.subtitle": "The final piece in the first edition.",
+              "figurines.color": "#6EB5FF",
+              "figurines.url": null
+            }
+          ],
+          "fields": [
+            {
+              "id": "figurines.image",
+              "type": "string",
+              "format": "image",
+              "required": true,
+              "label": "الصورة",
+              "icon": "sicon-image",
+              "description": "أفضل شكل: صورة مقصوصة (PNG شفاف) القطعة واقفة على حرف الشاشة. صورة بخلفية بيضاء تعمل أيضاً (نمط القص التلقائي).",
+              "value": null
+            },
+            {
+              "id": "figurines.title",
+              "type": "string",
+              "format": "text",
+              "required": false,
+              "label": "الاسم",
+              "description": "يظهر أسفل الشاشة مع القطعة الظاهرة.",
+              "value": "",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            {
+              "id": "figurines.subtitle",
+              "type": "string",
+              "format": "textarea",
+              "required": false,
+              "label": "الوصف الصغير",
+              "description": "سطر صغير أسفل الاسم.",
+              "value": ""
+            },
+            {
+              "id": "figurines.color",
+              "type": "string",
+              "format": "color",
+              "required": false,
+              "label": "لون الخلفية",
+              "description": "لون خلفية المكوّن عندما تحوز هذه القطعة الصدارة. يتبدّل بسلاسة مع اللون السابق.",
+              "value": "",
+              "conditions": []
+            },
+            {
+              "id": "figurines.url",
+              "type": "items",
+              "format": "variable-list",
+              "searchable": true,
+              "source": "custom",
+              "required": false,
+              "label": "عند الضغط تذهب إلى",
+              "icon": "sicon-link",
+              "value": null,
+              "sources": [
+                { "label": "منتجات", "key": "products", "value": "products" },
+                { "label": "تصنيفات", "key": "categories", "value": "categories" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "string",
+          "id": "figurines_ghost_text",
+          "format": "text",
+          "required": false,
+          "label": "الكلمة الضخمة خلف الشخصيات",
+          "description": "الكلمة الضخمة في الخلف. اتركها فارغة إن أحببت إخفاءها.",
+          "value": "SHOWROOM",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        {
+          "type": "string",
+          "id": "figurines_store_label",
+          "format": "text",
+          "required": false,
+          "label": "علامة أعلى المكوّن",
+          "description": "الاسم أعلى الشاشة (بأحرف كبيرة أم لا).",
+          "value": "SEELYXA",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        {
+          "type": "string",
+          "id": "figurines_cta_text",
+          "format": "text",
+          "required": false,
+          "label": "نص دعوة (اكتشفها) أسفل الطرف",
+          "value": "اكتشف المتجر",
+          "minLength": 1,
+          "maxLength": 30
+        },
+        {
+          "id": "figurines_cta_link",
+          "type": "items",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "required": false,
+          "label": "رابط الزر",
+          "icon": "sicon-link",
+          "value": null,
+          "sources": [
+            { "label": "تصنيفات", "key": "categories", "value": "categories" },
+            { "label": "منتجات", "key": "products", "value": "products" },
+            { "label": "صفحات", "key": "pages", "value": "pages" }
+          ]
+        },
+        {
+          "type": "boolean",
+          "id": "figurines_autoplay",
+          "format": "switch",
+          "required": false,
+          "label": "دوران تلقائي (كل 6 ثوانٍ)",
+          "description": "يتوقف عند المرور بالماوس، ولا يعمل مع تقليل الحركة.",
+          "value": false,
+          "selected": false
+        },
+                {
+          "type": "boolean",
+          "id": "figurines_under_header",
+          "format": "switch",
+          "required": false,
+          "label": "الظهور تحت الهيدر",
+          "description": "يسحب المكوّن ليبدأ من أعلى الشاشة خلف الهيدر الشفاف — فعّله فقط للمكوّن الأول في الصفحة على الشاشات الكبيرة.",
+          "value": false,
+          "selected": false
+        },
+{
+          "type": "items",
+          "id": "figurines_auto_seconds",
+          "format": "dropdown-list",
+          "required": false,
+          "label": "سرعة التمرير التلقائي",
+          "description": "كم ثانية يبقى كل تمثال قبل الانتقال للتمثال التالي، تُطبَّق عند تفعيل التمرير التلقائي.",
+          "source": "Manual",
+          "options": [
+            { "label": "سريع (3 ثوانٍ)", "value": "3", "key": "auto-seconds-3" },
+            { "label": "متوسط (6 ثوانٍ)", "value": "6", "key": "auto-seconds-6" },
+            { "label": "بطيء (10 ثوانٍ)", "value": "10", "key": "auto-seconds-10" },
+            { "label": "هادئ (15 ثانية)", "value": "15", "key": "auto-seconds-15" },
+            { "label": "بطيء جداً (20 ثانية)", "value": "20", "key": "auto-seconds-20" }
+          ],
+          "selected": [
+            { "label": "متوسط (6 ثوانٍ)", "value": "6", "key": "auto-seconds-6" }
+          ]
+        },
+        {
+          "type": "boolean",
+          "id": "figurines_auto_cutout",
+          "format": "switch",
+          "required": false,
+          "label": "القصّ التلقائي (منتجات على خلفية بيضاء)",
+          "description": "يجعل صور المنتجات ذات الخلفية البيضاء تقف كقطع مقصوصة على لون الخلفية (الخلط الضربي). أطفئه إذا كانت صورك مقصوصة مسبقًا (PNG شفاف).",
+          "value": true,
+          "selected": true
+        }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405001",
+      "title": { "en": "Dissolve Editorial Hero", "ar": "بطل تحوّل الصورة" },
+      "icon": "sicon-image",
+      "path": "home.dissolve-hero",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-dissolve",
+          "value": "بطل تحريري كامل الشاشة تتحول فيه الصورة تدريجيًا إلى لون خلفية أثناء التمرير، مع عنوان وكلمات تظهر تتابعيًا وقسم تعريفي."
+        },
+        {
+          "type": "string",
+          "id": "dissolve_hero_image",
+          "format": "image",
+          "required": false,
+          "label": "الصورة الرئيسية",
+          "icon": "sicon-image",
+          "value": "/reference/second-skin-wall.jpg"
+        },
+        { "type": "string", "id": "dissolve_hero_eyebrow", "format": "text", "required": false, "label": "السطر العلوي", "value": "FORM / FUNCTION / FEELING" },
+        { "type": "string", "id": "dissolve_hero_title", "format": "text", "required": false, "label": "العنوان الكبير", "value": "SECOND SKIN" },
+        { "type": "string", "id": "dissolve_hero_intro", "format": "textarea", "required": false, "label": "المقدمة", "value": "An independent studio shaping quiet objects for loud lives." },
+        { "type": "string", "id": "dissolve_hero_statement", "format": "textarea", "required": false, "label": "النص المتحرك", "value": "A study in contrast, texture and the quiet confidence of something made to be lived in." },
+        { "type": "string", "id": "dissolve_hero_about_eyebrow", "format": "text", "required": false, "label": "عنوان قسم التعريف", "value": "THE STUDIO" },
+        { "type": "string", "id": "dissolve_hero_about_text", "format": "textarea", "required": false, "label": "نص قسم التعريف", "value": "A small studio working between image, object and atmosphere. We build visual worlds that feel tactile before they are understood." },
+        { "type": "string", "id": "dissolve_hero_about_meta", "format": "text", "required": false, "label": "بيانات أسفل التعريف", "value": "EST. 2018 — MILAN / RIYADH" },
+        { "type": "string", "id": "dissolve_hero_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Enter the studio" },
+        {
+          "type": "items",
+          "id": "dissolve_hero_cta_link",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "required": false,
+          "label": "رابط الزر",
+          "icon": "sicon-link",
+          "value": null,
+          "sources": [
+            { "label": "صفحات", "key": "pages", "value": "pages" },
+            { "label": "تصنيفات", "key": "categories", "value": "categories" },
+            { "label": "منتجات", "key": "products", "value": "products" }
+          ]
+        },
+        { "type": "string", "id": "dissolve_hero_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#141414" },
+        { "type": "string", "id": "dissolve_hero_accent_color", "format": "color", "required": false, "label": "اللون المميز", "value": "#f04e23" },
+        { "type": "boolean", "id": "dissolve_hero_show_about", "format": "switch", "required": false, "label": "إظهار قسم التعريف", "value": true, "selected": true }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405002",
+      "title": { "en": "Arc Product Gallery", "ar": "معرض المنتجات القوسي" },
+      "icon": "sicon-image-carousel",
+      "path": "home.arc-gallery",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-arc",
+          "value": "معرض لا نهائي يرتب الصور على قوس، مع أسهم وسحب ولوحة مفاتيح وتسمية تتغير مع القطعة النشطة."
+        },
+        {
+          "id": "arc_gallery_items",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 12,
+          "label": "صور المعرض",
+          "item_label": "صورة",
+          "value": [],
+          "fields": [
+            { "id": "arc_gallery.image", "type": "string", "format": "image", "required": true, "label": "الصورة", "icon": "sicon-image", "value": null },
+            { "id": "arc_gallery.title", "type": "string", "format": "text", "required": false, "label": "الاسم", "value": "" },
+            { "id": "arc_gallery.alt", "type": "string", "format": "text", "required": false, "label": "وصف الصورة للوصول", "value": "" },
+            {
+              "id": "arc_gallery.url",
+              "type": "items",
+              "format": "variable-list",
+              "searchable": true,
+              "source": "custom",
+              "required": false,
+              "label": "رابط القطعة",
+              "value": null,
+              "sources": [
+                { "label": "منتجات", "key": "products", "value": "products" },
+                { "label": "تصنيفات", "key": "categories", "value": "categories" }
+              ]
+            }
+          ]
+        },
+        { "type": "string", "id": "arc_gallery_brand", "format": "text", "required": false, "label": "علامة أعلى المعرض", "value": "ATELIER / N° 09" },
+        { "type": "string", "id": "arc_gallery_note", "format": "text", "required": false, "label": "ملاحظة أعلى المعرض", "value": "Objects in orbit — autumn edition" },
+        { "type": "string", "id": "arc_gallery_eyebrow", "format": "text", "required": false, "label": "عنوان المجموعة", "value": "THE COLLECTION" },
+        { "type": "string", "id": "arc_gallery_hint", "format": "text", "required": false, "label": "تلميح الاستخدام", "value": "Scroll, drag or use ← →" },
+        { "type": "number", "id": "arc_gallery_arc_depth", "format": "numeric", "required": false, "label": "عمق القوس", "description": "مقدار هبوط الصور البعيدة بالبكسل.", "value": 190 },
+        { "type": "number", "id": "arc_gallery_center_lift", "format": "numeric", "required": false, "label": "ارتفاع الصورة المركزية", "value": 90 }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405003",
+      "title": { "en": "Stamp Journey", "ar": "رحلة الطوابع" },
+      "icon": "sicon-map",
+      "path": "home.stamp-journey",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-stamps",
+          "value": "مشهد مثبت يتحرك قطريًا بين طوابع بريدية، مع مسار منقط يرتسم أثناء التمرير وملاحظات بخط اليد."
+        },
+        {
+          "id": "stamp_journey_items",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 6,
+          "label": "الطوابع",
+          "item_label": "طابع",
+          "value": [],
+          "fields": [
+            { "id": "stamp_journey.image", "type": "string", "format": "image", "required": true, "label": "الصورة", "value": null },
+            { "id": "stamp_journey.country", "type": "string", "format": "text", "required": false, "label": "اسم البلد", "value": "ITALIA" },
+            { "id": "stamp_journey.symbol", "type": "string", "format": "text", "required": false, "label": "الرمز", "value": "✦" },
+            { "id": "stamp_journey.title", "type": "string", "format": "text", "required": false, "label": "الموقع", "value": "" },
+            { "id": "stamp_journey.note", "type": "string", "format": "text", "required": false, "label": "ملاحظة بخط اليد", "value": "" },
+            {
+              "id": "stamp_journey.url",
+              "type": "items",
+              "format": "variable-list",
+              "searchable": true,
+              "source": "custom",
+              "required": false,
+              "label": "الرابط",
+              "value": null,
+              "sources": [
+                { "label": "صفحات", "key": "pages", "value": "pages" },
+                { "label": "منتجات", "key": "products", "value": "products" }
+              ]
+            }
+          ]
+        },
+        { "type": "string", "id": "stamp_journey_intro", "format": "textarea", "required": false, "label": "نص المقدمة", "value": "A field journal in three postmarks — places collected, folded and kept." },
+        { "type": "string", "id": "stamp_journey_coordinates", "format": "text", "required": false, "label": "الإحداثيات", "value": "CAMPOSILVANO · N 45° 37′ 53.51″ E 11° 5′ 46.01″" },
+        { "type": "string", "id": "stamp_journey_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#000000" },
+        { "type": "string", "id": "stamp_journey_trail_color", "format": "color", "required": false, "label": "لون المسار", "value": "#f5d44f" }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405004",
+      "title": { "en": "Lens Zoom Spotlight", "ar": "تكبير عدسة الشخصية" },
+      "icon": "sicon-search",
+      "path": "home.lens-zoom",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-lens",
+          "value": "مشهد مثبت يقترب فيه رسم الشخصية من نظارتها حتى تتحول العدستان إلى نافذتين على صورة التاجر."
+        },
+        { "type": "string", "id": "lens_zoom_intro_title", "format": "text", "required": false, "label": "عنوان البداية", "value": "LOOK CLOSER" },
+        { "type": "string", "id": "lens_zoom_spotlight_title", "format": "text", "required": false, "label": "عنوان المشهد", "value": "THE WORLD IN THE DETAIL" },
+        { "type": "string", "id": "lens_zoom_outro_title", "format": "text", "required": false, "label": "العنوان الختامي", "value": "EVERY FRAME IS A DOOR" },
+        { "type": "string", "id": "lens_zoom_lens_image", "format": "image", "required": false, "label": "الصورة داخل العدسة", "value": "/reference/larevoltosa-lens.jpg" },
+        { "type": "string", "id": "lens_zoom_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#252627" },
+        { "type": "string", "id": "lens_zoom_accent_color", "format": "color", "required": false, "label": "لون المشهد", "value": "#eb5e55" }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405005",
+      "title": { "en": "3D Product Scroll", "ar": "المنتج ثلاثي الأبعاد" },
+      "icon": "sicon-cube",
+      "path": "home.product-model-scroll",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-model",
+          "value": "مشهد مثبت يدور فيه مجسم GLB للمنتج مع التمرير، مع عنوانين متحركين وخصائص تظهر تدريجيًا. يوجد بديل ثابت عند تعذر WebGL."
+        },
+        { "type": "string", "id": "product_model_model_url", "format": "url", "required": false, "label": "رابط مجسم GLB", "value": "/reference/shaker.glb" },
+        { "type": "string", "id": "product_model_fallback_image", "format": "image", "required": false, "label": "صورة بديلة", "description": "تظهر عند تعذر تشغيل WebGL أو تقليل الحركة.", "value": "" },
+        { "type": "string", "id": "product_model_intro_title", "format": "text", "required": false, "label": "السطر العلوي", "value": "FORM FOLLOWS FEELING" },
+        { "type": "string", "id": "product_model_title_primary", "format": "text", "required": false, "label": "العنوان الأول", "value": "THE DAILY" },
+        { "type": "string", "id": "product_model_title_secondary", "format": "text", "required": false, "label": "العنوان الثاني", "value": "RITUAL" },
+        { "type": "string", "id": "product_model_outro_title", "format": "textarea", "required": false, "label": "العنوان الختامي", "value": "MADE TO DISAPPEAR INTO YOUR DAY" },
+        {
+          "id": "product_model_features",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 4,
+          "label": "خصائص المنتج",
+          "item_label": "خاصية",
+          "value": [],
+          "fields": [
+            { "id": "product_model.icon", "type": "string", "format": "text", "required": false, "label": "الرمز", "value": "✦" },
+            { "id": "product_model.title", "type": "string", "format": "text", "required": false, "label": "العنوان", "value": "" },
+            { "id": "product_model.text", "type": "string", "format": "textarea", "required": false, "label": "الوصف", "value": "" }
+          ]
+        },
+        { "type": "string", "id": "product_model_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Discover the object" },
+        {
+          "type": "items",
+          "id": "product_model_cta_link",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "required": false,
+          "label": "رابط الزر",
+          "value": null,
+          "sources": [
+            { "label": "منتجات", "key": "products", "value": "products" },
+            { "label": "تصنيفات", "key": "categories", "value": "categories" },
+            { "label": "صفحات", "key": "pages", "value": "pages" }
+          ]
+        },
+        { "type": "string", "id": "product_model_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#0d0d0d" },
+        { "type": "string", "id": "product_model_text_color", "format": "color", "required": false, "label": "لون النص", "value": "#e0dfdf" }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405006",
+      "title": { "en": "Editorial Product Story", "ar": "قصة المنتج التحريرية" },
+      "icon": "sicon-document",
+      "path": "home.editorial-story",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-editorial",
+          "value": "قصة منتج تحريرية داكنة: بطل مصور، فصول متبادلة بين النص والصورة، دعوة ختامية وتذييل."
+        },
+        { "type": "string", "id": "editorial_story_hero_image", "format": "image", "required": false, "label": "صورة البطل", "value": "/reference/oryzo-hero.jpg" },
+        { "type": "string", "id": "editorial_story_brand", "format": "text", "required": false, "label": "اسم العلامة", "value": "ORYZO" },
+        { "type": "string", "id": "editorial_story_tagline", "format": "textarea", "required": false, "label": "الشعار", "value": "Objects with a memory of the hand that made them." },
+        { "type": "string", "id": "editorial_story_hero_card_title", "format": "text", "required": false, "label": "عنوان بطاقة البطل", "value": "The Walnut Series" },
+        { "type": "string", "id": "editorial_story_hero_card_text", "format": "textarea", "required": false, "label": "نص بطاقة البطل", "value": "Turned from a single block. Finished with oil, wax and time." },
+        {
+          "id": "editorial_story_sections",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 6,
+          "label": "فصول القصة",
+          "item_label": "فصل",
+          "value": [],
+          "fields": [
+            { "id": "editorial_story.title", "type": "string", "format": "text", "required": false, "label": "عنوان الفصل", "value": "" },
+            { "id": "editorial_story.text", "type": "string", "format": "textarea", "required": false, "label": "نص الفصل", "value": "" },
+            { "id": "editorial_story.image", "type": "string", "format": "image", "required": false, "label": "صورة الفصل", "value": null },
+            { "id": "editorial_story.cta_text", "type": "string", "format": "text", "required": false, "label": "نص الرابط", "value": "Discover" },
+            {
+              "id": "editorial_story.cta_link",
+              "type": "items",
+              "format": "variable-list",
+              "searchable": true,
+              "source": "custom",
+              "required": false,
+              "label": "رابط الفصل",
+              "value": null,
+              "sources": [
+                { "label": "منتجات", "key": "products", "value": "products" },
+                { "label": "تصنيفات", "key": "categories", "value": "categories" }
+              ]
+            }
+          ]
+        },
+        { "type": "string", "id": "editorial_story_cta_eyebrow", "format": "text", "required": false, "label": "سطر الدعوة", "value": "COMMISSIONS / 2026" },
+        { "type": "string", "id": "editorial_story_cta_title", "format": "textarea", "required": false, "label": "عنوان الدعوة", "value": "Bring a piece of the studio into your home." },
+        { "type": "string", "id": "editorial_story_cta_text", "format": "textarea", "required": false, "label": "نص الدعوة", "value": "The studio works in small runs, made to order." },
+        { "type": "string", "id": "editorial_story_cta_link_text", "format": "text", "required": false, "label": "نص زر الدعوة", "value": "Start a conversation" },
+        {
+          "type": "items",
+          "id": "editorial_story_cta_link",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "required": false,
+          "label": "رابط الدعوة",
+          "value": null,
+          "sources": [
+            { "label": "صفحات", "key": "pages", "value": "pages" },
+            { "label": "منتجات", "key": "products", "value": "products" }
+          ]
+        },
+        { "type": "string", "id": "editorial_story_footer_text", "format": "text", "required": false, "label": "نص التذييل", "value": "ORYZO STUDIO — MILAN / RIYADH" },
+        { "type": "string", "id": "editorial_story_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#100904" },
+        { "type": "string", "id": "editorial_story_accent_color", "format": "color", "required": false, "label": "اللون المميز", "value": "#dc5000" }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405007",
+      "title": { "en": "Portal Worlds", "ar": "عوالم البوابة" },
+      "icon": "sicon-globe",
+      "path": "home.portal-worlds",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-portal",
+          "value": "بطل بوابة يتوسع مع التمرير فوق عالم خلفي، تليه آراء العملاء في كاروسيل قوسي زجاجي."
+        },
+        { "type": "string", "id": "portal_worlds_portal_image", "format": "image", "required": false, "label": "صورة البوابة", "value": "/reference/auragate-portal.jpg" },
+        { "type": "string", "id": "portal_worlds_world_image", "format": "image", "required": false, "label": "صورة العالم الخلفي", "value": "/reference/auragate-world.jpg" },
+        { "type": "string", "id": "portal_worlds_brand", "format": "text", "required": false, "label": "اسم العلامة", "value": "AURAGATE" },
+        { "type": "string", "id": "portal_worlds_hero_title", "format": "text", "required": false, "label": "العنوان الرئيسي", "value": "Step beyond the" },
+        { "type": "string", "id": "portal_worlds_hero_accent", "format": "text", "required": false, "label": "الكلمة المميزة", "value": "ordinary." },
+        { "type": "string", "id": "portal_worlds_hero_text", "format": "textarea", "required": false, "label": "نص البطل", "value": "Objects and atmospheres for people who prefer the edge of the map." },
+        { "type": "string", "id": "portal_worlds_secondary_note", "format": "text", "required": false, "label": "ملاحظة الهيدر", "value": "A new world every season" },
+        { "type": "string", "id": "portal_worlds_testimonials_title", "format": "text", "required": false, "label": "عنوان الآراء", "value": "Real wonders. Real worlds." },
+        { "type": "string", "id": "portal_worlds_testimonials_text", "format": "textarea", "required": false, "label": "وصف الآراء", "value": "Notes from the people who stepped through first." },
+        {
+          "id": "portal_worlds_items",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 9,
+          "label": "آراء العملاء",
+          "item_label": "رأي",
+          "value": [],
+          "fields": [
+            { "id": "portal_worlds.name", "type": "string", "format": "text", "required": false, "label": "الاسم", "value": "" },
+            { "id": "portal_worlds.role", "type": "string", "format": "text", "required": false, "label": "الصفة", "value": "" },
+            { "id": "portal_worlds.text", "type": "string", "format": "textarea", "required": false, "label": "النص", "value": "" }
+          ]
+        },
+        { "type": "string", "id": "portal_worlds_footer_text", "format": "text", "required": false, "label": "نص التذييل", "value": "AURAGATE © 2026 — ALL WORLDS RESERVED" },
+        { "type": "string", "id": "portal_worlds_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#071018" },
+        { "type": "string", "id": "portal_worlds_accent_color", "format": "color", "required": false, "label": "لون التمييز", "value": "#f7fbff" }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405008",
+      "title": { "en": "Video Power Hero", "ar": "بطل الفيديو المتحرك" },
+      "icon": "sicon-video",
+      "path": "home.video-hero",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-video",
+          "value": "فيديو MP4 يُفرَّغ مع التمرير، عنوان كبير يتفرق حرفًا بحرف، ولوحة زجاجية تصعد من الأسفل."
+        },
+        { "type": "string", "id": "video_hero_video_url", "format": "url", "required": false, "label": "رابط فيديو MP4", "value": "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260709_080129_da34b00e-a5db-47dd-81a1-cccad79ac1ac.mp4" },
+        { "type": "string", "id": "video_hero_poster", "format": "image", "required": false, "label": "صورة الغلاف", "value": "/reference/second-skin-wall.jpg" },
+        { "type": "string", "id": "video_hero_eyebrow", "format": "text", "required": false, "label": "السطر العلوي", "value": "THE NEXT CHAPTER" },
+        { "type": "string", "id": "video_hero_title", "format": "textarea", "required": false, "label": "العنوان", "description": "استخدم سطرًا جديدًا لفصل السطور.", "value": "Unleash The\nFull Power" },
+        { "type": "string", "id": "video_hero_about_title", "format": "text", "required": false, "label": "عنوان اللوحة", "value": "About the house" },
+        { "type": "string", "id": "video_hero_about_text", "format": "textarea", "required": false, "label": "نص اللوحة", "value": "We make objects for the space between work and rest. Considered forms, honest materials, and a little bit of theatre." },
+        { "type": "string", "id": "video_hero_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Explore the collection" },
+        {
+          "type": "items",
+          "id": "video_hero_cta_link",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "required": false,
+          "label": "رابط الزر",
+          "value": null,
+          "sources": [
+            { "label": "تصنيفات", "key": "categories", "value": "categories" },
+            { "label": "صفحات", "key": "pages", "value": "pages" }
+          ]
+        },
+        {
+          "id": "video_hero_brands",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 8,
+          "label": "أسماء الشريط المتحرك",
+          "item_label": "اسم",
+          "value": [],
+          "fields": [
+            { "id": "video_hero.name", "type": "string", "format": "text", "required": false, "label": "الاسم", "value": "" }
+          ]
+        },
+        { "type": "string", "id": "video_hero_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#000000" },
+        { "type": "string", "id": "video_hero_text_color", "format": "color", "required": false, "label": "لون النص", "value": "#ffffff" }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405009",
+      "title": { "en": "Gesture Manifesto", "ar": "بيان الحركة" },
+      "icon": "sicon-mouse",
+      "path": "home.gesture-manifesto",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-gesture",
+          "value": "مشهدان متتاليان: شاشة وردية بعنوان يتفرق وبطاقات، ثم لوحة داكنة تصعد بأسطوانة نصوص ثلاثية الأبعاد وشريط شعارات."
+        },
+        { "type": "string", "id": "gesture_manifesto_video_url", "format": "url", "required": false, "label": "فيديو المشهد الأول", "value": "" },
+        { "type": "string", "id": "gesture_manifesto_secondary_video_url", "format": "url", "required": false, "label": "فيديو المشهد الثاني", "value": "" },
+        { "type": "string", "id": "gesture_manifesto_brand", "format": "text", "required": false, "label": "اسم العلامة", "value": "INNER CIRCLE" },
+        { "type": "string", "id": "gesture_manifesto_title", "format": "text", "required": false, "label": "العنوان", "value": "INNER CIRCLE" },
+        { "type": "string", "id": "gesture_manifesto_eyebrow", "format": "text", "required": false, "label": "السطر العلوي", "value": "A STUDY IN PRESENCE" },
+        {
+          "id": "gesture_manifesto_tiles",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 3,
+          "label": "البطاقات",
+          "item_label": "بطاقة",
+          "value": [],
+          "fields": [
+            { "id": "gesture_manifesto.title", "type": "string", "format": "text", "required": false, "label": "العنوان", "value": "" },
+            { "id": "gesture_manifesto.text", "type": "string", "format": "textarea", "required": false, "label": "النص", "value": "" }
+          ]
+        },
+        {
+          "id": "gesture_manifesto_manifesto",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 20,
+          "label": "عبارات البيان",
+          "item_label": "عبارة",
+          "value": [],
+          "fields": [
+            { "id": "gesture_manifesto.text", "type": "string", "format": "text", "required": false, "label": "العبارة", "value": "" }
+          ]
+        },
+        {
+          "id": "gesture_manifesto_logos",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 8,
+          "label": "الشعارات",
+          "item_label": "شعار",
+          "value": [],
+          "fields": [
+            { "id": "gesture_manifesto.name", "type": "string", "format": "text", "required": false, "label": "الاسم", "value": "" }
+          ]
+        },
+        { "type": "string", "id": "gesture_manifesto_manifesto_text", "format": "textarea", "required": false, "label": "نص البيان", "value": "A quiet refusal of the disposable. Twelve notes on making, keeping and living with objects." },
+        { "type": "string", "id": "gesture_manifesto_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Enter the circle" },
+        {
+          "type": "items",
+          "id": "gesture_manifesto_cta_link",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "required": false,
+          "label": "رابط الزر",
+          "value": null,
+          "sources": [
+            { "label": "صفحات", "key": "pages", "value": "pages" },
+            { "label": "تصنيفات", "key": "categories", "value": "categories" }
+          ]
+        },
+        { "type": "string", "id": "gesture_manifesto_background_color", "format": "color", "required": false, "label": "لون الخلفية الداكنة", "value": "#11010a" },
+        { "type": "string", "id": "gesture_manifesto_accent_color", "format": "color", "required": false, "label": "لون المشهد الأول", "value": "#ff005e" }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405010",
+      "title": { "en": "Ascend WebGL Landing", "ar": "صفحة Ascend ثلاثية الأبعاد" },
+      "icon": "sicon-rocket",
+      "path": "home.ascend",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-ascend",
+          "value": "صفحة داكنة متكاملة: بطل WebGL بمنتج يدور ونجوم، مزايا، لوحة إحصاءات، دعوة وتذييل."
+        },
+        { "type": "string", "id": "ascend_model_url", "format": "url", "required": false, "label": "رابط مجسم GLB", "value": "/reference/shaker.glb" },
+        { "type": "string", "id": "ascend_brand", "format": "text", "required": false, "label": "اسم العلامة", "value": "ASCEND" },
+        { "type": "string", "id": "ascend_eyebrow", "format": "text", "required": false, "label": "السطر العلوي", "value": "A NEW GRAVITY" },
+        { "type": "string", "id": "ascend_title", "format": "textarea", "required": false, "label": "العنوان", "description": "استخدم سطرًا جديدًا لفصل السطور.", "value": "Objects that\nhold their own orbit." },
+        { "type": "string", "id": "ascend_intro", "format": "textarea", "required": false, "label": "المقدمة", "value": "A product experience built in three dimensions — light, motion and material in one continuous frame." },
+        { "type": "string", "id": "ascend_primary_cta_text", "format": "text", "required": false, "label": "نص الزر الأساسي", "value": "Enter the experience" },
+        {
+          "type": "items",
+          "id": "ascend_primary_cta_link",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "required": false,
+          "label": "رابط الزر الأساسي",
+          "value": null,
+          "sources": [
+            { "label": "صفحات", "key": "pages", "value": "pages" },
+            { "label": "منتجات", "key": "products", "value": "products" }
+          ]
+        },
+        { "type": "string", "id": "ascend_secondary_cta_text", "format": "text", "required": false, "label": "نص الزر الثانوي", "value": "See how it works" },
+        { "type": "string", "id": "ascend_secondary_cta_link", "format": "url", "required": false, "label": "رابط الزر الثانوي", "value": "#ascend-features" },
+        {
+          "id": "ascend_features",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 8,
+          "label": "المزايا",
+          "item_label": "ميزة",
+          "value": [],
+          "fields": [
+            { "id": "ascend.title", "type": "string", "format": "text", "required": false, "label": "العنوان", "value": "" },
+            { "id": "ascend.text", "type": "string", "format": "textarea", "required": false, "label": "الوصف", "value": "" }
+          ]
+        },
+        { "type": "string", "id": "ascend_showcase_title", "format": "text", "required": false, "label": "عنوان العرض", "value": "Every angle considered." },
+        { "type": "string", "id": "ascend_showcase_text", "format": "textarea", "required": false, "label": "نص العرض", "value": "The same object, re-composed for every surface. Scroll, orbit and inspect without leaving the story." },
+        {
+          "id": "ascend_stats",
+          "type": "collection",
+          "format": "collection",
+          "required": false,
+          "minLength": 1,
+          "maxLength": 6,
+          "label": "الإحصاءات",
+          "item_label": "إحصائية",
+          "value": [],
+          "fields": [
+            { "id": "ascend.value", "type": "string", "format": "text", "required": false, "label": "القيمة", "value": "" },
+            { "id": "ascend.label", "type": "string", "format": "text", "required": false, "label": "الوصف", "value": "" }
+          ]
+        },
+        { "type": "string", "id": "ascend_cta_title", "format": "text", "required": false, "label": "عنوان الدعوة", "value": "Ready to leave the ground?" },
+        { "type": "string", "id": "ascend_cta_text", "format": "text", "required": false, "label": "نص زر الدعوة", "value": "Start your project" },
+        { "type": "string", "id": "ascend_footer_text", "format": "text", "required": false, "label": "نص التذييل", "value": "ASCEND — A DIGITAL OBJECT STUDIO" },
+        { "type": "string", "id": "ascend_accent_color", "format": "color", "required": false, "label": "اللون المميز", "value": "#5df0a8" },
+        { "type": "string", "id": "ascend_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#04060f" }
+      ]
+    },
+    {
+      "key": "8b7e9f10-1a2b-4c3d-9e4f-102030405011",
+      "title": { "en": "Composite Landing", "ar": "الصفحة المركبة" },
+      "icon": "sicon-layers",
+      "path": "home.composite-landing",
+      "image": "",
+      "is_default": true,
+      "fields": [
+        {
+          "type": "static",
+          "format": "description",
+          "id": "static-desc-composite",
+          "value": "تجميعة من أربعة مشاهد: بطل التحول، المعرض القوسي، الشخصيات، ورحلة الطوابع، مع شريط تنقل وكتل نصية."
+        },
+        { "type": "string", "id": "composite_brand", "format": "text", "required": false, "label": "اسم التجميعة", "value": "SEELYXA / COMPOSITE" },
+        { "type": "string", "id": "composite_manifesto_eyebrow", "format": "text", "required": false, "label": "سطر البيان", "value": "MANIFESTO / 01" },
+        { "type": "string", "id": "composite_manifesto_title", "format": "text", "required": false, "label": "عنوان البيان", "value": "A store is a sequence of feelings." },
+        { "type": "string", "id": "composite_manifesto_text", "format": "textarea", "required": false, "label": "نص البيان", "value": "Four scenes, one continuous atmosphere. Each block can stand alone; together they form a single walk through the brand." },
+        { "type": "string", "id": "composite_footer_title", "format": "text", "required": false, "label": "عنوان الختام", "value": "Begin with a single object." },
+        { "type": "string", "id": "composite_footer_text", "format": "textarea", "required": false, "label": "نص الختام", "value": "The collection is released in small editions, made to be lived with." },
+        { "type": "string", "id": "composite_cta_text", "format": "text", "required": false, "label": "نص الزر", "value": "Enter the store" },
+        {
+          "type": "items",
+          "id": "composite_cta_link",
+          "format": "variable-list",
+          "searchable": true,
+          "source": "custom",
+          "required": false,
+          "label": "رابط الزر",
+          "value": null,
+          "sources": [
+            { "label": "تصنيفات", "key": "categories", "value": "categories" },
+            { "label": "صفحات", "key": "pages", "value": "pages" }
+          ]
+        },
+        { "type": "string", "id": "composite_background_color", "format": "color", "required": false, "label": "لون الخلفية", "value": "#141414" },
+        { "type": "string", "id": "composite_accent_color", "format": "color", "required": false, "label": "اللون المميز", "value": "#f04e23" },
+        { "type": "boolean", "id": "composite_show_dissolve", "format": "switch", "required": false, "label": "إظهار بطل التحول", "value": true, "selected": true },
+        { "type": "boolean", "id": "composite_show_gallery", "format": "switch", "required": false, "label": "إظهار المعرض القوسي", "value": true, "selected": true },
+        { "type": "boolean", "id": "composite_show_figurines", "format": "switch", "required": false, "label": "إظهار الشخصيات", "value": true, "selected": true },
+        { "type": "boolean", "id": "composite_show_stamps", "format": "switch", "required": false, "label": "إظهار رحلة الطوابع", "value": true, "selected": true }
+      ]
+    },
+    {
       "key": "186b3f4f-25cf-4d3c-abca-cef7eed6f0ab",
       "title": {
         "en": "Enhances Animated Images",
@@ -2007,1749 +2832,6 @@
           "required": false,
           "minLength": 1,
           "maxLength": 30
-        }
-      ]
-    },
-    {
-      "key": "fd85a48b-091f-4bb1-9c5f-842acadb8974",
-      "title": {
-        "en": "Cinematic Hero",
-        "ar": "واجهة سينمائية (عرض كامل)"
-      },
-      "icon": "sicon-images",
-      "path": "home.cinematic-hero",
-      "image": "https://cdn.salla.network/images/themes/raed/preview-images/images-slider-enhancement.png?v=1.1",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc",
-          "value": "<div style='background-color:#101418;border-radius:12px;padding:14px 16px;color:#ffffff;font-size:14px;line-height:1.7;'><strong>واجهة سينمائية</strong> — قسم ترحيبي بملء الشاشة يعرض صورة / فيديو / نموذج ثلاثي الأبعاد مع نصوص وأزرار إجراء، لتحويل زوار متجرك إلى تجربة قصصية.</div>"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-media"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-media",
-          "value": "الخلفية",
-          "variant": "h6"
-        },
-        {
-          "id": "background_type",
-          "key": "8357a21c-4c3b-4f8e-9d0d-2e9f6a1b7c42",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "نوع الخلفية",
-          "icon": "sicon-expand",
-          "required": true,
-          "selected": [
-            {
-              "label": "صورة",
-              "value": "image",
-              "key": "5916bf14-42e0-4f94-8c8f-eb1a827f70c3"
-            }
-          ],
-          "options": [
-            {
-              "label": "صورة",
-              "value": "image",
-              "key": "5916bf14-42e0-4f94-8c8f-eb1a827f70c3"
-            },
-            {
-              "label": "فيديو",
-              "value": "video",
-              "key": "f22c43fc-b391-4581-9958-2a5f92336061"
-            },
-            {
-              "label": "نموذج ثلاثي الأبعاد",
-              "value": "3d",
-              "key": "d31c3990-5eec-4f80-bac6-d47dc58a6718"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-image",
-          "value": "https://cdn.salla.sa/ZrBEO/3gOhYSaIhaHxhH2IHWxJYDl9JHwxP6dGKiZFSq4K.jpg",
-          "label": "صورة الخلفية",
-          "id": "bg_image",
-          "format": "image",
-          "required": true,
-          "settings": {
-            "width": 1920,
-            "height": 1080
-          },
-          "conditions": [
-            {
-              "id": "background_type",
-              "operation": "=",
-              "value": "image"
-            }
-          ],
-          "description": "* المقاس المناسب 1920×1080 بكسل (بنطاق أوسع يفضّل)"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-file-video",
-          "value": null,
-          "label": "رابط الفيديو (MP4)",
-          "id": "bg_video_url",
-          "format": "url",
-          "required": true,
-          "placeholder": "https://example.com/hero.mp4",
-          "conditions": [
-            {
-              "id": "background_type",
-              "operation": "=",
-              "value": "video"
-            }
-          ],
-          "description": "يبدأ تلقائياً بدون صوت وبحلقة مستمرة"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-image",
-          "value": null,
-          "label": "صورة غلاف الفيديو",
-          "id": "bg_video_poster",
-          "format": "image",
-          "required": false,
-          "conditions": [
-            {
-              "id": "background_type",
-              "operation": "=",
-              "value": "video"
-            }
-          ]
-        },
-        {
-          "type": "string",
-          "icon": "sicon-box-3d",
-          "value": null,
-          "label": "رابط النموذج ثلاثي الأبعاد",
-          "id": "model_src",
-          "format": "url",
-          "required": true,
-          "placeholder": "https://example.com/model.glb",
-          "conditions": [
-            {
-              "id": "background_type",
-              "operation": "=",
-              "value": "3d"
-            }
-          ],
-          "description": "ارفع ملف النموذج (GLB / GLTF) واستخدم الرابط المباشر له"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-image",
-          "value": null,
-          "label": "صورة غلاف النموذج",
-          "id": "model_poster",
-          "format": "image",
-          "required": false,
-          "conditions": [
-            {
-              "id": "background_type",
-              "operation": "=",
-              "value": "3d"
-            }
-          ]
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "تدوير النموذج تلقائياً",
-          "id": "model_auto_rotate",
-          "format": "switch",
-          "required": false,
-          "value": true,
-          "selected": true,
-          "conditions": [
-            {
-              "id": "background_type",
-              "operation": "=",
-              "value": "3d"
-            }
-          ]
-        },
-        {
-          "type": "number",
-          "icon": "sicon-tonality",
-          "label": "تعتم الخلفية",
-          "id": "overlay_opacity",
-          "format": "slider",
-          "required": false,
-          "value": 35,
-          "minimum": 0,
-          "maximum": 90,
-          "step": 5,
-          "description": "سواد شفاف فوق الخلفية يساعد على إبراز النصوص"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-content"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-content",
-          "value": "المحتوى",
-          "variant": "h6"
-        },
-        {
-          "id": "height_mode",
-          "key": "f5e1d9c2-6b7a-4e3d-9f2c-8a1b0c3d5e7f",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "ارتفاع الواجهة",
-          "icon": "sicon-crop",
-          "required": true,
-          "selected": [
-            {
-              "label": "كامل الشاشة",
-              "value": "full",
-              "key": "956f2a6d-6e9b-4918-8880-f4f1444a2d13"
-            }
-          ],
-          "options": [
-            {
-              "label": "كامل الشاشة",
-              "value": "full",
-              "key": "956f2a6d-6e9b-4918-8880-f4f1444a2d13"
-            },
-            {
-              "label": "شاشة كبيرة (85%)",
-              "value": "large",
-              "key": "cd49b7f7-1a6f-4195-a56c-7a8b09c86a23"
-            },
-            {
-              "label": "تلقائي حسب المحتوى",
-              "value": "auto",
-              "key": "f4bc5ba8-8f6d-4361-9936-2b84673540c6"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "id": "content_width",
-          "key": "c1d2f3a4-5b6c-4d7e-8f90-a1b2c3d4e5f6",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "عرض المحتوى",
-          "icon": "sicon-expand-wide",
-          "required": true,
-          "selected": [
-            {
-              "label": "اعتيادي",
-              "value": "normal",
-              "key": "8975c6bc-8a16-436e-abd7-dc225fc3a513"
-            }
-          ],
-          "options": [
-            {
-              "label": "اعتيادي",
-              "value": "normal",
-              "key": "8975c6bc-8a16-436e-abd7-dc225fc3a513"
-            },
-            {
-              "label": "عريض",
-              "value": "wide",
-              "key": "54ea8cbc-f11b-46f4-ba9b-6fda6136250f"
-            },
-            {
-              "label": "بملء المساحة",
-              "value": "full",
-              "key": "3b740e73-9727-41ee-8185-6a466d0639b8"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "id": "content_position",
-          "key": "a9b8c7d6-ef01-4abc-9def-0123456789ab",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "مكان النص",
-          "icon": "sicon-format-align-center",
-          "required": true,
-          "selected": [
-            {
-              "label": "المنتصف",
-              "value": "center",
-              "key": "6358d62a-86ea-4d65-8761-01b9b13ecd0e"
-            }
-          ],
-          "options": [
-            {
-              "label": "المنتصف",
-              "value": "center",
-              "key": "6358d62a-86ea-4d65-8761-01b9b13ecd0e"
-            },
-            {
-              "label": "بداية الصفحة (يمين في العربية)",
-              "value": "start",
-              "key": "f99ca08a-dd61-47d4-87bf-6ec5cc4e2ac7"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "العنوان الكبير",
-          "multilanguage": true,
-          "maxLength": 60,
-          "id": "headline",
-          "format": "text",
-          "required": false,
-          "placeholder": "عنوان يخطف الانتباه...",
-          "value": "اروِ قصة متجرك بأسلوب سينمائي"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-typography",
-          "label": "نص إضافي",
-          "multilanguage": true,
-          "maxLength": 200,
-          "id": "subtitle",
-          "format": "textarea",
-          "required": false,
-          "placeholder": "صف هوية متجرك ورسالتك بجملة قصيرة...",
-          "value": null
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-color-text",
-          "label": "لون النصوص",
-          "id": "text_color",
-          "format": "color",
-          "required": false,
-          "value": "#ffffff"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-ctas"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-ctas",
-          "value": "أزرار الإجراء",
-          "variant": "h6"
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "إظهار الأزرار",
-          "id": "show_ctas",
-          "format": "switch",
-          "required": false,
-          "value": true,
-          "selected": true
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "نص الزر الأساسي",
-          "multilanguage": true,
-          "maxLength": 40,
-          "id": "primary_label",
-          "format": "text",
-          "required": false,
-          "value": "تسوّق الآن"
-        },
-        {
-          "type": "items",
-          "icon": "sicon-link",
-          "label": "رابط الزر الأساسي",
-          "id": "primary_url",
-          "value": null,
-          "description": null,
-          "required": false,
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "sources": [
-            {
-              "label": "منتج",
-              "key": "products",
-              "value": "products"
-            },
-            {
-              "label": "منتجات مع وسم",
-              "key": "products_tags",
-              "value": "products_tags"
-            },
-            {
-              "label": "تصنيف",
-              "key": "categories",
-              "value": "categories"
-            },
-            {
-              "label": "ماركة تجارية",
-              "key": "brands",
-              "value": "brands"
-            },
-            {
-              "label": "صفحة تعريفية",
-              "key": "pages",
-              "value": "pages"
-            },
-            {
-              "label": "مقالة",
-              "key": "blog_articles",
-              "value": "blog_articles"
-            },
-            {
-              "label": "تصنيف ضمن المدونة",
-              "key": "blog_categories",
-              "value": "blog_categories"
-            },
-            {
-              "label": "التخفيضات",
-              "key": "offers_link",
-              "value": "offers_link"
-            },
-            {
-              "label": "الماركات التجارية",
-              "key": "brands_link",
-              "value": "brands_link"
-            },
-            {
-              "label": "المدونة",
-              "key": "blog_link",
-              "value": "blog_link"
-            },
-            {
-              "label": "رابط خارجي",
-              "key": "custom",
-              "value": "custom"
-            }
-          ]
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "نص الزر الثانوي",
-          "multilanguage": true,
-          "maxLength": 40,
-          "id": "secondary_label",
-          "format": "text",
-          "required": false,
-          "value": null
-        },
-        {
-          "type": "items",
-          "icon": "sicon-link",
-          "label": "رابط الزر الثانوي",
-          "id": "secondary_url",
-          "value": null,
-          "description": null,
-          "required": false,
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "sources": [
-            {
-              "label": "منتج",
-              "key": "products",
-              "value": "products"
-            },
-            {
-              "label": "منتجات مع وسم",
-              "key": "products_tags",
-              "value": "products_tags"
-            },
-            {
-              "label": "تصنيف",
-              "key": "categories",
-              "value": "categories"
-            },
-            {
-              "label": "ماركة تجارية",
-              "key": "brands",
-              "value": "brands"
-            },
-            {
-              "label": "صفحة تعريفية",
-              "key": "pages",
-              "value": "pages"
-            },
-            {
-              "label": "مقالة",
-              "key": "blog_articles",
-              "value": "blog_articles"
-            },
-            {
-              "label": "تصنيف ضمن المدونة",
-              "key": "blog_categories",
-              "value": "blog_categories"
-            },
-            {
-              "label": "التخفيضات",
-              "key": "offers_link",
-              "value": "offers_link"
-            },
-            {
-              "label": "الماركات التجارية",
-              "key": "brands_link",
-              "value": "brands_link"
-            },
-            {
-              "label": "المدونة",
-              "key": "blog_link",
-              "value": "blog_link"
-            },
-            {
-              "label": "رابط خارجي",
-              "key": "custom",
-              "value": "custom"
-            }
-          ]
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-animation"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-animation",
-          "value": "الحركة والسينمائية",
-          "variant": "h6"
-        },
-        {
-          "id": "entrance_animation",
-          "key": "e2f3a4b5-6c7d-4e8f-9a0b-1c2d3e4f5a6b",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "حركة دخول النصوص",
-          "icon": "sicon-motion-photos-on",
-          "required": true,
-          "selected": [
-            {
-              "label": "صعود ناعم",
-              "value": "up",
-              "key": "9f915404-5213-4eff-b704-0fa6f0f7a1c6"
-            }
-          ],
-          "options": [
-            {
-              "label": "ظهور تدريجي",
-              "value": "fade",
-              "key": "710578cc-cbed-4b1a-8d9b-b084778c6263"
-            },
-            {
-              "label": "صعود ناعم",
-              "value": "up",
-              "key": "9f915404-5213-4eff-b704-0fa6f0f7a1c6"
-            },
-            {
-              "label": "تكبير من الداخل",
-              "value": "zoom",
-              "key": "ef2fe581-821f-4edd-ad98-af6f1289887e"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "عرض مؤشر التمرير للأسفل",
-          "id": "show_scroll_indicator",
-          "format": "switch",
-          "required": false,
-          "value": true,
-          "selected": true
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "الظهور تحت الهيدر",
-          "description": "عند التفعيل يبدأ المكوّن أعلى الصفحة خلف الهيدر الشفاف كمشهد افتتاحي (يعمل فقط لو كان أول بلوك في الصفحة الرئيسية). عند الإطفاء يظل المكوّن عادياً والبقية تحت بعضها بالترتيب الطبيعي.",
-          "id": "under_header",
-          "format": "switch",
-          "required": false,
-          "value": false,
-          "selected": false
-        }
-      ]
-    },
-    {
-      "key": "7b4c0c64-a002-424d-9aa8-0af2036adaf4",
-      "title": {
-        "en": "Split Scene (Story)",
-        "ar": "مشهد انقسامي (قصة)"
-      },
-      "icon": "sicon-layout-split",
-      "path": "home.split-scene",
-      "image": "https://cdn.salla.network/images/themes/raed/preview-images/parallax-background.png?v=1.1",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc",
-          "value": "<div style='background-color:#101418;border-radius:12px;padding:14px 16px;color:#ffffff;font-size:14px;line-height:1.7;'><strong>مشهد انقسامي</strong> — سردية مكوّنة من نص على جهة ووسيط ميديا (صورة / فيديو / 3D) على الجهة الأخرى، لتحكي قصة علامتك التجارية مشهداً بمشهد.</div>"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-media"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-media",
-          "value": "الوسائط",
-          "variant": "h6"
-        },
-        {
-          "id": "media_type",
-          "key": "1284f3a6-64d8-4b0e-9f3c-2e6a0f7c1d88",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "نوع الوسيط",
-          "icon": "sicon-expand",
-          "required": true,
-          "selected": [
-            {
-              "label": "صورة",
-              "value": "image",
-              "key": "70d73111-9253-413a-9727-38a9d599bd69"
-            }
-          ],
-          "options": [
-            {
-              "label": "صورة",
-              "value": "image",
-              "key": "70d73111-9253-413a-9727-38a9d599bd69"
-            },
-            {
-              "label": "فيديو",
-              "value": "video",
-              "key": "d4e200aa-1cb9-4993-bc67-31cdd88a0a5f"
-            },
-            {
-              "label": "نموذج ثلاثي الأبعاد",
-              "value": "3d",
-              "key": "2a737fc7-988f-4988-b113-f985702a98c9"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-image",
-          "value": "https://cdn.salla.sa/mQgZlG/pzOCEw10wCfXeVSpKnL0Ifd1O9ZkTfnZ17RkE14R.jpg",
-          "label": "الصورة",
-          "id": "media_image",
-          "format": "image",
-          "required": true,
-          "settings": {
-            "width": 1600,
-            "height": 1200
-          },
-          "conditions": [
-            {
-              "id": "media_type",
-              "operation": "=",
-              "value": "image"
-            }
-          ],
-          "description": "* المقاس المناسب 1600×1200 بكسل (منظر أفقي)"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-file-video",
-          "value": null,
-          "label": "رابط الفيديو (MP4)",
-          "id": "media_video_url",
-          "format": "url",
-          "required": true,
-          "placeholder": "https://example.com/scene.mp4",
-          "conditions": [
-            {
-              "id": "media_type",
-              "operation": "=",
-              "value": "video"
-            }
-          ],
-          "description": "يبدأ تلقائياً بدون صوت وبحلقة مستمرة"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-image",
-          "value": null,
-          "label": "صورة غلاف الفيديو",
-          "id": "media_video_poster",
-          "format": "image",
-          "required": false,
-          "conditions": [
-            {
-              "id": "media_type",
-              "operation": "=",
-              "value": "video"
-            }
-          ]
-        },
-        {
-          "type": "string",
-          "icon": "sicon-box-3d",
-          "value": null,
-          "label": "رابط النموذج ثلاثي الأبعاد",
-          "id": "model_src",
-          "format": "url",
-          "required": true,
-          "placeholder": "https://example.com/model.glb",
-          "conditions": [
-            {
-              "id": "media_type",
-              "operation": "=",
-              "value": "3d"
-            }
-          ],
-          "description": "ارفع ملف النموذج (GLB / GLTF) واستخدم الرابط المباشر له"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-image",
-          "value": null,
-          "label": "صورة غلاف النموذج",
-          "id": "model_poster",
-          "format": "image",
-          "required": false,
-          "conditions": [
-            {
-              "id": "media_type",
-              "operation": "=",
-              "value": "3d"
-            }
-          ]
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "تدوير النموذج تلقائياً",
-          "id": "model_auto_rotate",
-          "format": "switch",
-          "required": false,
-          "value": true,
-          "selected": true,
-          "conditions": [
-            {
-              "id": "media_type",
-              "operation": "=",
-              "value": "3d"
-            }
-          ]
-        },
-        {
-          "id": "media_position",
-          "key": "3f5b8c1a-9d2e-4f6b-8a3c-5f7d1e9c2a44",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "جهة الوسيط",
-          "icon": "sicon-align-right",
-          "required": true,
-          "selected": [
-            {
-              "label": "اليمين",
-              "value": "right",
-              "key": "8d3de6fe-d91f-4e0e-afa7-cbf8ed068d91"
-            }
-          ],
-          "options": [
-            {
-              "label": "اليمين",
-              "value": "right",
-              "key": "8d3de6fe-d91f-4e0e-afa7-cbf8ed068d91"
-            },
-            {
-              "label": "اليسار",
-              "value": "left",
-              "key": "db610e05-370c-491d-a7c4-27578ae763df"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "زوايا دائرية للوسيط",
-          "id": "media_rounded",
-          "format": "switch",
-          "required": false,
-          "value": true,
-          "selected": true
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-content"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-content",
-          "value": "المحتوى",
-          "variant": "h6"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "تسمية قصيرة (كلمة افتتاحية)",
-          "multilanguage": true,
-          "maxLength": 30,
-          "id": "kicker",
-          "format": "text",
-          "required": false,
-          "placeholder": "مثال: الفصل الأول",
-          "value": "الفصل الأول"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "العنوان الكبير",
-          "multilanguage": true,
-          "maxLength": 60,
-          "id": "headline",
-          "format": "text",
-          "required": false,
-          "placeholder": "عنوان يلخّص فصول قصتك...",
-          "value": "اصنع قصة علامتك التجارية"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-typography",
-          "label": "نص الوصف",
-          "multilanguage": true,
-          "maxLength": 300,
-          "id": "subtitle",
-          "format": "textarea",
-          "required": false,
-          "placeholder": "اكتب مشهداً سردياً يقدّم منتجك أو فكرة متجرك...",
-          "value": null
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-color-text",
-          "label": "لون النصوص",
-          "id": "text_color",
-          "format": "color",
-          "required": false,
-          "value": "#1f1f1f"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-ctas"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-ctas",
-          "value": "أزرار الإجراء",
-          "variant": "h6"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "نص الزر",
-          "multilanguage": true,
-          "maxLength": 40,
-          "id": "link_label",
-          "format": "text",
-          "required": false,
-          "value": "اكتشف المزيد"
-        },
-        {
-          "type": "items",
-          "icon": "sicon-link",
-          "label": "رابط الزر",
-          "id": "link_url",
-          "value": null,
-          "description": null,
-          "required": false,
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "sources": [
-            {
-              "label": "منتج",
-              "key": "products",
-              "value": "products"
-            },
-            {
-              "label": "منتجات مع وسم",
-              "key": "products_tags",
-              "value": "products_tags"
-            },
-            {
-              "label": "تصنيف",
-              "key": "categories",
-              "value": "categories"
-            },
-            {
-              "label": "ماركة تجارية",
-              "key": "brands",
-              "value": "brands"
-            },
-            {
-              "label": "صفحة تعريفية",
-              "key": "pages",
-              "value": "pages"
-            },
-            {
-              "label": "مقالة",
-              "key": "blog_articles",
-              "value": "blog_articles"
-            },
-            {
-              "label": "تصنيف ضمن المدونة",
-              "key": "blog_categories",
-              "value": "blog_categories"
-            },
-            {
-              "label": "التخفيضات",
-              "key": "offers_link",
-              "value": "offers_link"
-            },
-            {
-              "label": "الماركات التجارية",
-              "key": "brands_link",
-              "value": "brands_link"
-            },
-            {
-              "label": "المدونة",
-              "key": "blog_link",
-              "value": "blog_link"
-            },
-            {
-              "label": "رابط خارجي",
-              "key": "custom",
-              "value": "custom"
-            }
-          ]
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "نص زر ثانوي (اختياري)",
-          "multilanguage": true,
-          "maxLength": 40,
-          "id": "second_label",
-          "format": "text",
-          "required": false,
-          "value": null
-        },
-        {
-          "type": "items",
-          "icon": "sicon-link",
-          "label": "رابط الزر الثانوي",
-          "id": "second_url",
-          "value": null,
-          "description": null,
-          "required": false,
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "sources": [
-            {
-              "label": "منتج",
-              "key": "products",
-              "value": "products"
-            },
-            {
-              "label": "منتجات مع وسم",
-              "key": "products_tags",
-              "value": "products_tags"
-            },
-            {
-              "label": "تصنيف",
-              "key": "categories",
-              "value": "categories"
-            },
-            {
-              "label": "ماركة تجارية",
-              "key": "brands",
-              "value": "brands"
-            },
-            {
-              "label": "صفحة تعريفية",
-              "key": "pages",
-              "value": "pages"
-            },
-            {
-              "label": "مقالة",
-              "key": "blog_articles",
-              "value": "blog_articles"
-            },
-            {
-              "label": "تصنيف ضمن المدونة",
-              "key": "blog_categories",
-              "value": "blog_categories"
-            },
-            {
-              "label": "التخفيضات",
-              "key": "offers_link",
-              "value": "offers_link"
-            },
-            {
-              "label": "الماركات التجارية",
-              "key": "brands_link",
-              "value": "brands_link"
-            },
-            {
-              "label": "المدونة",
-              "key": "blog_link",
-              "value": "blog_link"
-            },
-            {
-              "label": "رابط خارجي",
-              "key": "custom",
-              "value": "custom"
-            }
-          ]
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-animation"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-animation",
-          "value": "الحركة",
-          "variant": "h6"
-        },
-        {
-          "id": "reveal_animation",
-          "key": "9c1e4a7b-2d5f-4e8a-b6c3-3f9d0e1a2b55",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "ظهور المحتوى عند التمرير",
-          "icon": "sicon-motion-photos-on",
-          "required": true,
-          "selected": [
-            {
-              "label": "صعود ناعم",
-              "value": "fade-up",
-              "key": "37176281-6174-4a0f-9e61-1c7fa3595a48"
-            }
-          ],
-          "options": [
-            {
-              "label": "صعود ناعم",
-              "value": "fade-up",
-              "key": "37176281-6174-4a0f-9e61-1c7fa3595a48"
-            },
-            {
-              "label": "ظهور تدريجي",
-              "value": "fade",
-              "key": "712df5e5-c08b-4c07-8cca-313480c4806d"
-            },
-            {
-              "label": "بدون حركة",
-              "value": "none",
-              "key": "181f3e7c-92bd-425c-80e3-d2a781da3c2d"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "الظهور تحت الهيدر",
-          "description": "عند التفعيل يبدأ المكوّن أعلى الصفحة خلف الهيدر الشفاف كمشهد افتتاحي (يعمل فقط لو كان أول بلوك في الصفحة الرئيسية). عند الإطفاء يظل المكوّن عادياً والبقية تحت بعضها بالترتيب الطبيعي.",
-          "id": "under_header",
-          "format": "switch",
-          "required": false,
-          "value": false,
-          "selected": false
-        }
-      ]
-    },
-    {
-      "key": "2a1547b7-9cc3-491a-ab76-ffc2948003ab",
-      "title": {
-        "en": "Chapter (Cinematic Scene)",
-        "ar": "فصل سينمائي (مشهد)"
-      },
-      "icon": "sicon-movie",
-      "path": "home.chapter",
-      "image": "https://cdn.salla.network/images/themes/raed/preview-images/parallax-background.png?v=1.1",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc",
-          "value": "<div style='background-color:#101418;border-radius:12px;padding:14px 16px;color:#ffffff;font-size:14px;line-height:1.7;'><strong>فصل سينمائي</strong> — مشهد بعرض كامل بخلفية كبيرة (صورة / فيديو / 3D) مع تسمية فصل وعنوان ووصف وأزرار، لتقسيم قصة متجرك إلى فصول سردية.</div>"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-bg"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-bg",
-          "value": "الخلفية",
-          "variant": "h6"
-        },
-        {
-          "id": "bg_type",
-          "key": "f7ebcb9f-5e07-4e1c-89cc-384a614e660a",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "نوع الخلفية",
-          "icon": "sicon-expand",
-          "required": true,
-          "selected": [
-            {
-              "label": "صورة",
-              "value": "image",
-              "key": "c463e0cd-84d4-4c21-9478-adbe7027f972"
-            }
-          ],
-          "options": [
-            {
-              "label": "صورة",
-              "value": "image",
-              "key": "c463e0cd-84d4-4c21-9478-adbe7027f972"
-            },
-            {
-              "label": "فيديو",
-              "value": "video",
-              "key": "6b0a7d51-bf2f-4282-8727-2a0b92d880c9"
-            },
-            {
-              "label": "نموذج ثلاثي الأبعاد",
-              "value": "3d",
-              "key": "03586250-38ee-4da3-b129-e066a10ee4f3"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-image",
-          "value": "https://cdn.salla.sa/ZrBEO/3gOhYSaIhaHxhH2IHWxJYDl9JHwxP6dGKiZFSq4K.jpg",
-          "label": "صورة الخلفية",
-          "id": "bg_image",
-          "format": "image",
-          "required": true,
-          "settings": {
-            "width": 1920,
-            "height": 1080
-          },
-          "conditions": [
-            {
-              "id": "bg_type",
-              "operation": "=",
-              "value": "image"
-            }
-          ],
-          "description": "* المقاس المناسب 1920×1080 بكسل"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-file-video",
-          "value": null,
-          "label": "رابط الفيديو (MP4)",
-          "id": "bg_video_url",
-          "format": "url",
-          "required": true,
-          "placeholder": "https://example.com/scene.mp4",
-          "conditions": [
-            {
-              "id": "bg_type",
-              "operation": "=",
-              "value": "video"
-            }
-          ],
-          "description": "يبدأ تلقائياً بدون صوت وبحلقة مستمرة"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-image",
-          "value": null,
-          "label": "صورة غلاف الفيديو",
-          "id": "bg_video_poster",
-          "format": "image",
-          "required": false,
-          "conditions": [
-            {
-              "id": "bg_type",
-              "operation": "=",
-              "value": "video"
-            }
-          ]
-        },
-        {
-          "type": "string",
-          "icon": "sicon-box-3d",
-          "value": null,
-          "label": "رابط النموذج ثلاثي الأبعاد",
-          "id": "model_src",
-          "format": "url",
-          "required": true,
-          "placeholder": "https://example.com/model.glb",
-          "conditions": [
-            {
-              "id": "bg_type",
-              "operation": "=",
-              "value": "3d"
-            }
-          ],
-          "description": "ارفع ملف النموذج (GLB / GLTF) واستخدم الرابط المباشر له"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-image",
-          "value": null,
-          "label": "صورة غلاف النموذج",
-          "id": "model_poster",
-          "format": "image",
-          "required": false,
-          "conditions": [
-            {
-              "id": "bg_type",
-              "operation": "=",
-              "value": "3d"
-            }
-          ]
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "تدوير النموذج تلقائياً",
-          "id": "model_auto_rotate",
-          "format": "switch",
-          "required": false,
-          "value": true,
-          "selected": true,
-          "conditions": [
-            {
-              "id": "bg_type",
-              "operation": "=",
-              "value": "3d"
-            }
-          ]
-        },
-        {
-          "type": "number",
-          "icon": "sicon-tonality",
-          "label": "تعتم الخلفية",
-          "id": "overlay_opacity",
-          "format": "slider",
-          "required": false,
-          "value": 45,
-          "minimum": 0,
-          "maximum": 90,
-          "step": 5,
-          "description": "سواد شفاف فوق الخلفية يساعد على إبراز النصوص"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-scene"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-scene",
-          "value": "المشهد",
-          "variant": "h6"
-        },
-        {
-          "id": "height_mode",
-          "key": "71cef2f7-a95e-4bd1-815c-7b2919223dfb",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "ارتفاع المشهد",
-          "icon": "sicon-crop",
-          "required": true,
-          "selected": [
-            {
-              "label": "متوسط (480)",
-              "value": "medium",
-              "key": "b428d613-21ac-467b-b4c6-1b015ae57ac8"
-            }
-          ],
-          "options": [
-            {
-              "label": "قصير (360)",
-              "value": "short",
-              "key": "a7098701-e8c0-4b88-8920-120d4ec44f9e"
-            },
-            {
-              "label": "متوسط (480)",
-              "value": "medium",
-              "key": "b428d613-21ac-467b-b4c6-1b015ae57ac8"
-            },
-            {
-              "label": "طويل (640)",
-              "value": "tall",
-              "key": "281f404f-52f3-480c-98dd-672290ba7115"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "تسمية الفصل",
-          "multilanguage": true,
-          "maxLength": 30,
-          "id": "chapter_label",
-          "format": "text",
-          "required": false,
-          "placeholder": "مثال: الفصل الأول",
-          "value": "الفصل الأول"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "العنوان الكبير",
-          "multilanguage": true,
-          "maxLength": 60,
-          "id": "headline",
-          "format": "text",
-          "required": false,
-          "placeholder": "عنوان يلخّص مشهد الفصل...",
-          "value": "كل مشهد يحكي فصلاً"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-typography",
-          "label": "نص الوصف",
-          "multilanguage": true,
-          "maxLength": 300,
-          "id": "subtitle",
-          "format": "textarea",
-          "required": false,
-          "placeholder": "اكتب سطراً سردياً يقدّم فكرة هذا الفصل...",
-          "value": null
-        },
-        {
-          "id": "content_align",
-          "key": "81d49f93-b15a-450c-826d-5d8d48878968",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "محاذاة النص",
-          "icon": "sicon-format-align-center",
-          "required": true,
-          "selected": [
-            {
-              "label": "المنتصف",
-              "value": "center",
-              "key": "e29d2fe1-6156-44da-898d-1a6007763674"
-            }
-          ],
-          "options": [
-            {
-              "label": "المنتصف",
-              "value": "center",
-              "key": "e29d2fe1-6156-44da-898d-1a6007763674"
-            },
-            {
-              "label": "بداية الصفحة (يمين في العربية)",
-              "value": "start",
-              "key": "4e666a78-7147-4c8c-90a1-9335a63edb29"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-color-text",
-          "label": "لون النصوص",
-          "id": "text_color",
-          "format": "color",
-          "required": false,
-          "value": "#ffffff"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-ctas"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-ctas",
-          "value": "أزرار الإجراء",
-          "variant": "h6"
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "إظهار الأزرار",
-          "id": "show_ctas",
-          "format": "switch",
-          "required": false,
-          "value": true,
-          "selected": true
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "نص الزر الأساسي",
-          "multilanguage": true,
-          "maxLength": 40,
-          "id": "primary_label",
-          "format": "text",
-          "required": false,
-          "value": "اكتشف المزيد"
-        },
-        {
-          "type": "items",
-          "icon": "sicon-link",
-          "label": "رابط الزر الأساسي",
-          "id": "primary_url",
-          "value": null,
-          "description": null,
-          "required": false,
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "sources": [
-            {
-              "label": "منتج",
-              "key": "products",
-              "value": "products"
-            },
-            {
-              "label": "منتجات مع وسم",
-              "key": "products_tags",
-              "value": "products_tags"
-            },
-            {
-              "label": "تصنيف",
-              "key": "categories",
-              "value": "categories"
-            },
-            {
-              "label": "ماركة تجارية",
-              "key": "brands",
-              "value": "brands"
-            },
-            {
-              "label": "صفحة تعريفية",
-              "key": "pages",
-              "value": "pages"
-            },
-            {
-              "label": "مقالة",
-              "key": "blog_articles",
-              "value": "blog_articles"
-            },
-            {
-              "label": "تصنيف ضمن المدونة",
-              "key": "blog_categories",
-              "value": "blog_categories"
-            },
-            {
-              "label": "التخفيضات",
-              "key": "offers_link",
-              "value": "offers_link"
-            },
-            {
-              "label": "الماركات التجارية",
-              "key": "brands_link",
-              "value": "brands_link"
-            },
-            {
-              "label": "المدونة",
-              "key": "blog_link",
-              "value": "blog_link"
-            },
-            {
-              "label": "رابط خارجي",
-              "key": "custom",
-              "value": "custom"
-            }
-          ]
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "نص زر ثانوي (اختياري)",
-          "multilanguage": true,
-          "maxLength": 40,
-          "id": "secondary_label",
-          "format": "text",
-          "required": false,
-          "value": null
-        },
-        {
-          "type": "items",
-          "icon": "sicon-link",
-          "label": "رابط الزر الثانوي",
-          "id": "secondary_url",
-          "value": null,
-          "description": null,
-          "required": false,
-          "format": "variable-list",
-          "searchable": true,
-          "source": "custom",
-          "sources": [
-            {
-              "label": "منتج",
-              "key": "products",
-              "value": "products"
-            },
-            {
-              "label": "منتجات مع وسم",
-              "key": "products_tags",
-              "value": "products_tags"
-            },
-            {
-              "label": "تصنيف",
-              "key": "categories",
-              "value": "categories"
-            },
-            {
-              "label": "ماركة تجارية",
-              "key": "brands",
-              "value": "brands"
-            },
-            {
-              "label": "صفحة تعريفية",
-              "key": "pages",
-              "value": "pages"
-            },
-            {
-              "label": "مقالة",
-              "key": "blog_articles",
-              "value": "blog_articles"
-            },
-            {
-              "label": "تصنيف ضمن المدونة",
-              "key": "blog_categories",
-              "value": "blog_categories"
-            },
-            {
-              "label": "التخفيضات",
-              "key": "offers_link",
-              "value": "offers_link"
-            },
-            {
-              "label": "الماركات التجارية",
-              "key": "brands_link",
-              "value": "brands_link"
-            },
-            {
-              "label": "المدونة",
-              "key": "blog_link",
-              "value": "blog_link"
-            },
-            {
-              "label": "رابط خارجي",
-              "key": "custom",
-              "value": "custom"
-            }
-          ]
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-animation"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-animation",
-          "value": "الحركة",
-          "variant": "h6"
-        },
-        {
-          "id": "reveal_animation",
-          "key": "2dee03f5-e471-444d-8a8f-594f4bf108a4",
-          "type": "items",
-          "format": "dropdown-list",
-          "label": "ظهور النصوص عند التمرير",
-          "icon": "sicon-motion-photos-on",
-          "required": true,
-          "selected": [
-            {
-              "label": "صعود ناعم",
-              "value": "fade-up",
-              "key": "de738326-0922-4e38-82b3-bc0fab960abc"
-            }
-          ],
-          "options": [
-            {
-              "label": "صعود ناعم",
-              "value": "fade-up",
-              "key": "de738326-0922-4e38-82b3-bc0fab960abc"
-            },
-            {
-              "label": "ظهور تدريجي",
-              "value": "fade",
-              "key": "bdd01565-30cb-4c80-b985-7330d2e93d65"
-            },
-            {
-              "label": "بدون حركة",
-              "value": "none",
-              "key": "146981cc-b5fa-4d76-93c6-73049b0ab212"
-            }
-          ],
-          "source": "Manual"
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "حركة الخلفية مع التمرير (Parallax)",
-          "id": "parallax",
-          "format": "switch",
-          "required": false,
-          "value": false,
-          "selected": false,
-          "description": "تتحرك الخلفية بسرعة أقل من النص لإحساس عمق سينمائي"
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "الظهور تحت الهيدر",
-          "description": "عند التفعيل يبدأ المكوّن أعلى الصفحة خلف الهيدر الشفاف كمشهد افتتاحي (يعمل فقط لو كان أول بلوك في الصفحة الرئيسية). عند الإطفاء يظل المكوّن عادياً والبقية تحت بعضها بالترتيب الطبيعي.",
-          "id": "under_header",
-          "format": "switch",
-          "required": false,
-          "value": false,
-          "selected": false
-        }
-      ]
-    },
-    {
-      "key": "c7812d50-3ae4-41f9-9b2d-8f6a1c4e07d3",
-      "title": {
-        "en": "Living Product Stage",
-        "ar": "مرحلة المنتج الحية"
-      },
-      "icon": "sicon-box-3d",
-      "path": "home.living-product-stage",
-      "image": "https://cdn.salla.network/images/themes/raed/preview-images/slider-products-with-bg.png?v=1.1",
-      "is_default": true,
-      "fields": [
-        {
-          "type": "static",
-          "format": "description",
-          "id": "static-desc",
-          "value": "<div style='background-color:#101418;border-radius:12px;padding:14px 16px;color:#ffffff;font-size:14px;line-height:1.7;'><strong>مرحلة المنتج الحية</strong> — منتجك يعيش في فضاء المشهد: يدخل عبر حركة التمرير، يتحرّك ويتغيّر حجمه، ثم تنبثق منه نقطة تفاعل واحدة ولوحة تجارية (السعر + إضافة للسلة). نسخة أولى صغيرة تثبت بصمة حركة الثيم قبل الترقّي إلى مشاهد ثلاثية الأبعاد.</div>"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-media"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-media",
-          "value": "المنتج",
-          "variant": "h6"
-        },
-        {
-          "id": "single_product",
-          "type": "items",
-          "icon": "sicon-box-3d",
-          "label": "اختر المنتج",
-          "description": "المنتج الذي يظهر في المشهد (صورته، اسمه، سعره وزر الإضافة للسلة تُجلب تلقائياً). اختر منتجاً واحداً وسيُستخدم أوله.",
-          "format": "dropdown-list",
-          "selected": [],
-          "options": [],
-          "required": true,
-          "multichoice": true,
-          "searchable": true,
-          "maxLength": 8,
-          "minLength": 1,
-          "value": [],
-          "source": "products"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-content"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-content",
-          "value": "المحتوى",
-          "variant": "h6"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "تسمية قصيرة (كلمة افتتاحية)",
-          "multilanguage": true,
-          "maxLength": 30,
-          "id": "kicker",
-          "format": "text",
-          "required": false,
-          "placeholder": "مثال: قصة المنتج",
-          "value": "قصة المنتج"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-format-text-alt",
-          "label": "عنوان نقطة التفاعل",
-          "multilanguage": true,
-          "maxLength": 40,
-          "id": "hotspot_label",
-          "format": "text",
-          "required": false,
-          "description": "العنوان الظاهر داخل بطاقة التفاصيل عند فتح نقطة التفاعل فوق المنتج",
-          "value": "تفاصيل المنتج"
-        },
-        {
-          "type": "string",
-          "icon": "sicon-link",
-          "label": "نص رابط صفحة المنتج",
-          "multilanguage": true,
-          "maxLength": 40,
-          "id": "product_link_label",
-          "format": "text",
-          "required": false,
-          "value": "عرض المنتج"
-        },
-        {
-          "type": "static",
-          "format": "line",
-          "id": "static-line-animation"
-        },
-        {
-          "type": "static",
-          "format": "title",
-          "id": "static-title-animation",
-          "value": "الحركة",
-          "variant": "h6"
-        },
-        {
-          "type": "boolean",
-          "icon": "sicon-toggle-off",
-          "label": "الظهور تحت الهيدر",
-          "description": "عند التفعيل يبدأ المكوّن أعلى الصفحة خلف الهيدر الشفاف كمشهد افتتاحي (يعمل فقط لو كان أول بلوك في الصفحة الرئيسية). عند الإطفاء يظل المكوّن عادياً والبقية تحت بعضها بالترتيب الطبيعي.",
-          "id": "under_header",
-          "format": "switch",
-          "required": false,
-          "value": false,
-          "selected": false
         }
       ]
     }

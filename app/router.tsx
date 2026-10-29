@@ -11,10 +11,6 @@ import { routeTree } from './routeTree.gen';
 import {
   Brands,
   CustomTestimonials,
-  CinematicHero,
-  SplitScene,
-  Chapter,
-  LivingProductStage,
   EnhancedSlider,
   FeaturedProducts,
   featuredProductsConfig,
@@ -24,9 +20,24 @@ import {
   ProductsSlider,
   SliderProductsWithHeader,
   EnhancedSquareBanners,
+  DissolveHero,
+  ArcProductGallery,
+  StampJourney,
+  LensZoomSpotlight,
+  ProductModelScroll,
+  EditorialProductStory,
+  PortalWorlds,
+  VideoPowerHero,
+  GestureManifesto,
+  AscendWebglLanding,
+  CompositeLanding,
 } from './components/home';
 import { registerThemeHooks } from './hooks';
 import { ProductListSkeleton } from './components/product/ProductListSkeleton';
+/* Direct file import, not `./components/home` — the home index module is
+   mid-refactor in the working tree, and registering a new block must not ride
+   that change. */
+import { Figurines } from './components/home/Figurines';
 
 const ProductListPage = lazy(() =>
   import('./components/product/ProductListPage').then((m) => ({ default: m.ProductListPage }))
@@ -67,51 +78,30 @@ registerHomeComponents({
   'fixed-products': FixedProducts,
   'slider-products-with-header': SliderProductsWithHeader,
   'enhanced-square-banners': EnhancedSquareBanners,
-  // Ported from the Twig theme (seelyxa 1041574063) — full-screen cinematic
-  // intro: image / video / 3D background, entrance animation, scroll indicator.
-  'cinematic-hero': CinematicHero,
-  // Ported from the Twig theme — storytelling text + media side by side,
-  // direction-aware (RTL safe); reveal animation on scroll.
-  'split-scene': SplitScene,
-  // Ported from the Twig theme — full-bleed scene divider with parallax bg,
-  // scene heights and one-shot reveal.
-  'chapter': Chapter,
-  // Ported from the Twig theme — 320vh sticky cinematic product journey.
-  'living-product-stage': LivingProductStage,
+  // Full-viewport depth-carousel hero (`home.figurines`). The morphing
+  // component: colour, position, scale, blur and opacity of every figure
+  // crossfade together under one 650ms easing.
+  figurines: Figurines,
+  // Reference-library adaptations. Each is a merchant block, scoped to its own
+  // section, and registered by the same `home.<path>` key declared in
+  // twilight.json.
+  'dissolve-hero': DissolveHero,
+  'arc-gallery': ArcProductGallery,
+  'stamp-journey': StampJourney,
+  'lens-zoom': LensZoomSpotlight,
+  'product-model-scroll': ProductModelScroll,
+  'editorial-story': EditorialProductStory,
+  'portal-worlds': PortalWorlds,
+  'video-hero': VideoPowerHero,
+  'gesture-manifesto': GestureManifesto,
+  ascend: AscendWebglLanding,
+  'composite-landing': CompositeLanding,
 });
 
 // Wrapper `<section>` classes for `featured-products` — the engine only styles
 // the literal `styleN` values; this covers the semantic `view_style`s too.
 // `custom-testimonials` gets `s-block--full-bg` so the gray band runs edge-to-edge.
 registerHomeComponentConfig({
-  // Full-screen intro — the wrapper reserves the eventual height so the lazy
-  // mount never shifts the page, and carries the under-header flag (the lift /
-  // header transparency counterpart arrives with the cinematic header port).
-  'cinematic-hero': {
-    height: '100svh',
-    className: (data) =>
-      `s-block s-block--cinematic-hero hero--${data.height_mode || 'full'}${
-        data.under_header ? ' s-block--under-header' : ''
-      }`,
-  },
-  'split-scene': {
-    height: '560px',
-    className: (data) =>
-      `s-block s-block--split-scene split--media-${data.media_position || 'right'}${
-        data.media_rounded === false ? ' split--media-square' : ''
-      }${data.under_header ? ' s-block--under-header' : ''}`,
-  },
-  'chapter': {
-    height: '480px', // .chapter--medium min-height (the default)
-    className: (data) =>
-      `s-block s-block--chapter${data.under_header ? ' s-block--under-header' : ''}`,
-  },
-  // 320vh scroll runway (the sticky journey inner is 100vh).
-  'living-product-stage': {
-    height: '320vh',
-    className: (data) =>
-      `s-block s-block--living-product${data.under_header ? ' s-block--under-header' : ''}`,
-  },
   'featured-products': featuredProductsConfig,
   'custom-testimonials': {
     className: 's-block s-block--custom-testimonials s-block--full-bg',
@@ -155,6 +145,28 @@ registerHomeComponentConfig({
     className: (data) =>
       `s-block s-block--photos-slider${data.is_repeated ? ' repeated-block' : ''}`,
   },
+  // The figurines hero paints its own colour full-bleed and clears the shared
+  // block margins in the stylesheet. The "under the header" opt-in (the Twig
+  // system) is read RIGHT HERE from the merchant switch, both key shapes as
+  // usual, and turns into `s-block--under-header` on the wrapper — which is
+  // the flag MorphHeader.tsx looks for to lift the first block + scrim the
+  // header; the physical lift itself lives in home-blocks.scss.
+  figurines: {
+    className: (data) =>
+      's-block s-block--figurines' +
+      (data.under_header ?? data.figurines_under_header ? ' s-block--under-header' : ''),
+  },
+  'dissolve-hero': { className: 's-block s-block--dissolve-hero' },
+  'arc-gallery': { className: 's-block s-block--arc-gallery' },
+  'stamp-journey': { className: 's-block s-block--stamp-journey' },
+  'lens-zoom': { className: 's-block s-block--lens-zoom' },
+  'product-model-scroll': { className: 's-block s-block--product-model-scroll' },
+  'editorial-story': { className: 's-block s-block--editorial-story' },
+  'portal-worlds': { className: 's-block s-block--portal-worlds' },
+  'video-hero': { className: 's-block s-block--video-hero' },
+  'gesture-manifesto': { className: 's-block s-block--gesture-manifesto' },
+  ascend: { className: 's-block s-block--ascend' },
+  'composite-landing': { className: 's-block s-block--composite' },
 });
 
 // Singleton for client-side (preserves QueryClient cache across navigations)

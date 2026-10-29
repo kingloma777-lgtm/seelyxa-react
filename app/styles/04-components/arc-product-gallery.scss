@@ -1,0 +1,222 @@
+/* Infinite arc gallery — cosine coverflow (ArcCoverflow adaptation). */
+.arc-gallery {
+  position: relative;
+  min-height: clamp(620px, 92svh, 900px);
+  overflow: hidden;
+  background: #e9e7e2;
+  color: #1b1916;
+  isolation: isolate;
+}
+
+.arc-gallery:focus-visible {
+  outline: 2px solid #1b1916;
+  outline-offset: -4px;
+}
+
+.arc-gallery__masthead {
+  position: relative;
+  z-index: 120;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 26px clamp(20px, 4vw, 56px);
+  font: 600 10px/1.4 'Hanken Grotesk', 'Twilight', sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.arc-gallery__stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  touch-action: pan-y;
+  cursor: grab;
+  user-select: none;
+}
+
+.arc-gallery__stage:active {
+  cursor: grabbing;
+}
+
+.arc-gallery__slide {
+  position: absolute;
+  top: 44%;
+  left: 50%;
+  z-index: var(--arc-z);
+  width: clamp(150px, 17vw, 210px);
+  aspect-ratio: 8 / 11;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 2px;
+  background: #0e0d0b;
+  box-shadow: 0 24px 60px -30px rgba(27, 25, 22, 0.55);
+  opacity: var(--arc-opacity);
+  transform: translate(-50%, -50%) translateX(var(--arc-x)) translateY(var(--arc-y))
+    scale(var(--arc-scale)) rotate(var(--arc-rotate));
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s ease,
+    filter 0.35s ease;
+  cursor: pointer;
+}
+
+.arc-gallery__slide:not(.is-active) {
+  filter: saturate(0.72) brightness(0.88);
+}
+
+.arc-gallery__slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.arc-gallery__slide.is-active {
+  cursor: default;
+  box-shadow: 0 34px 70px -30px rgba(27, 25, 22, 0.62);
+}
+
+.arc-gallery__slide:focus-visible {
+  outline: 2px solid #f04e23;
+  outline-offset: 4px;
+}
+
+.arc-gallery__caption {
+  position: absolute;
+  z-index: 130;
+  inset: auto 0 0;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 0 20px clamp(22px, 4vh, 42px);
+  text-align: center;
+  pointer-events: none;
+}
+
+.arc-gallery__caption > * {
+  pointer-events: auto;
+}
+
+.arc-gallery__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font: 600 9px/1.4 'Hanken Grotesk', 'Twilight', sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #79736a;
+}
+
+.arc-gallery__eyebrow span {
+  width: 46px;
+  height: 1px;
+  background: #bdb6aa;
+}
+
+.arc-gallery__eyebrow p {
+  margin: 0;
+}
+
+.arc-gallery__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 4vw, 54px);
+}
+
+.arc-gallery__title-row h2 {
+  min-width: 13ch;
+  margin: 0;
+  font: 500 clamp(1.8rem, 4vw, 3.5rem)/1 'Hanken Grotesk', 'Twilight', sans-serif;
+  letter-spacing: -0.055em;
+  animation: arc-caption-in 0.45s ease both;
+}
+
+.arc-gallery__title-row button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(27, 25, 22, 0.25);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.arc-gallery__title-row button:hover,
+.arc-gallery__title-row button:focus-visible {
+  background: #1b1916;
+  color: #e9e7e2;
+}
+
+.arc-gallery__hint {
+  margin: 0;
+  font: 400 10px/1.4 'Hanken Grotesk', 'Twilight', sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #79736a;
+}
+
+.arc-gallery__cta {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 5px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid currentColor;
+  color: #1b1916;
+  font: 600 11px/1.4 'Hanken Grotesk', 'Twilight', sans-serif;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+@keyframes arc-caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@media (max-width: 640px) {
+  .arc-gallery {
+    min-height: 620px;
+  }
+
+  .arc-gallery__masthead span:last-child {
+    display: none;
+  }
+
+  .arc-gallery__slide {
+    top: 41%;
+    width: 142px;
+  }
+
+  .arc-gallery__title-row {
+    gap: 12px;
+  }
+
+  .arc-gallery__title-row button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .arc-gallery__hint {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arc-gallery__slide {
+    transition: none;
+  }
+
+  .arc-gallery__title-row h2 {
+    animation: none;
+  }
+}

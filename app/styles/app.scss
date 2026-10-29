@@ -50,6 +50,18 @@
 
 // Note: Tailwind directives are in app.css, not here
 
+// Display faces used by the imported editorial blocks. The blocks keep local
+// system fallbacks, so this request never blocks first paint.
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;900&family=Hanken+Grotesk:wght@400;500;600&family=Inter:wght@400;500;600&family=La+Belle+Aurore&family=Manrope:wght@400;500;600&family=Michroma&family=Mr+Dafoe&family=Playfair+Display:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+@font-face {
+  font-family: 'Dirtyline';
+  src: url('/reference/Dirtyline-36daysoftype-2022.woff2') format('woff2');
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
 @import './01-settings/global';
 @import './01-settings/breakpoints';
 
@@ -84,10 +96,17 @@
 @import './04-components/mobile-account-sheet';
 @import './04-components/user-pages';
 @import './04-components/home-blocks';
-@import './04-components/cinematic-hero';
-@import './04-components/split-scene';
-@import './04-components/chapter';
-@import './04-components/living-product-stage';
+@import './04-components/dissolve-hero';
+@import './04-components/arc-product-gallery';
+@import './04-components/stamp-journey';
+@import './04-components/lens-zoom-spotlight';
+@import './04-components/product-model-scroll';
+@import './04-components/editorial-product-story';
+@import './04-components/portal-worlds';
+@import './04-components/video-power-hero';
+@import './04-components/gesture-manifesto';
+@import './04-components/ascend-webgl-landing';
+@import './04-components/composite-landing';
 @import './04-components/slider';
 @import './04-components/product';
 @import './04-components/product-list';
