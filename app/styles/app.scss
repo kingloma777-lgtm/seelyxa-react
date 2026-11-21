@@ -23,7 +23,7 @@
  * Radio Images.........Specific styles for radio images, used in product options.
  *
  * COMPONENTS
- * Header...............Specific styles for header styles.
+ * Morph Header.........Specific styles for the storefront header (the only layout).
  * Footer...............Specific styles for footer styles.
  * Menu.................Specific styles for main menu and mobile menu styles.
  * User Menu............Specific styles for user menu dropdown.
@@ -52,17 +52,19 @@
 
 // Display faces used by the imported editorial blocks. The blocks keep local
 // system fallbacks, so this request never blocks first paint.
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;900&family=Hanken+Grotesk:wght@400;500;600&family=Inter:wght@400;500;600&family=La+Belle+Aurore&family=Manrope:wght@400;500;600&family=Michroma&family=Mr+Dafoe&family=Playfair+Display:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
-
-@font-face {
-  font-family: 'Dirtyline';
-  src: url('/reference/Dirtyline-36daysoftype-2022.woff2') format('woff2');
-  font-display: swap;
-  font-style: normal;
-  font-weight: 400;
-}
+/* ONE request for every display face in the theme. The editorial blocks used
+   to add their own `<link>` for a family that was already listed here (four
+   extra stylesheet requests for the same CSS), and the two that were genuinely
+   missing — Anton, Aref Ruqaa — are listed here now. A block must not request a
+   font of its own; add it to this line instead. */
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Aref+Ruqaa&family=Barlow+Condensed:wght@500;700;900&family=Hanken+Grotesk:wght@400;500;600&family=Inter:wght@400;500;600&family=La+Belle+Aurore&family=Manrope:wght@400;500;600&family=Michroma&family=Mr+Dafoe&family=Playfair+Display:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 @import './01-settings/global';
+@import './01-settings/tokens';
+/* the merchant's global settings → tokens. Must come after `tokens` (it
+   re-points `--radius-card` and `--container-max`) and before every component,
+   so a block reads the resolved value on the first paint. */
+@import './01-settings/global-settings';
 @import './01-settings/breakpoints';
 
 @import './02-generic/reset';
@@ -77,14 +79,22 @@
 // Vendored Swiper stylesheet — before the component layers so theme rules
 // override it, matching the cascade the per-chunk link used to have.
 @import './vendor/swiper.css';
+/* intl-tel-input ships the layout every `salla-tel-input` depends on (absolute
+   country rail, flag sprite, dropdown). Without it the component's light DOM
+   collapses into a vertical stack — see the note in 04-components/login-auth. */
+@import './vendor/intl-tel-input.css';
 
 @import './03-elements/form';
 @import './03-elements/buttons';
 @import './03-elements/radio';
 @import './03-elements/radio-images';
 
-@import './04-components/header';
 @import './04-components/morph-header';
+/* The login dialog is Salla's iframe; this sheet restyles only its frame. */
+@import './04-components/login-modal';
+/* The store's own login popup (LoginAuthModal) — the frame sheet above keeps
+   styling the SDK modal that survives solely as the social-login handoff. */
+@import './04-components/login-auth';
 @import './04-components/footer';
 @import './04-components/social';
 @import './04-components/mobile-bottom-bar';
@@ -98,17 +108,57 @@
 @import './04-components/home-blocks';
 @import './04-components/slider';
 @import './04-components/product';
+@import './04-components/product-card';
 @import './04-components/product-list';
 @import './04-components/cart';
 @import './04-components/reviews';
 @import './04-components/metadata';
 @import './04-components/quantity-stepper';
+/* after quantity-stepper: the drawer re-skins the stepper on panel tokens */
+@import './04-components/cart-drawer';
 @import './04-components/brands';
 @import './04-components/no-content-placeholder';
 @import './04-components/gifting';
 @import './04-components/loyalty';
 @import './04-components/virtooal';
 @import './04-components/add-product-toast';
+@import './04-components/stamp-story';
+@import './04-components/second-skin';
+@import './04-components/product-scrub';
+@import './04-components/portal-hero';
+@import './04-components/arc-coverflow';
+@import './04-components/shop-the-look';
+@import './04-components/product-chapters';
+@import './04-components/stats-orbit';
+/* The ported Selia family — one shared shell, then one sheet per block. The
+   base MUST come first: every block below reads its container, heading and
+   token defaults from it. */
+@import './04-components/selia-base';
+@import './04-components/selia-statistics';
+@import './04-components/selia-map';
+@import './04-components/selia-blog';
+@import './04-components/selia-contact';
+@import './04-components/selia-ticker';
+@import './04-components/selia-cathero';
+@import './04-components/selia-branches';
+@import './04-components/selia-picks';
+/* The 26 second-batch Selia blocks share one renderer and one stylesheet. */
+@import './04-components/selia-generated';
+/* Featured Categories overrides the shared tiles look; it MUST come after
+   `selia-generated`, or the gradient caption it replaces wins on source order. */
+@import './04-components/selia-featured-categories';
+/* Circle Links re-shapes the same shared tiles into a six-across category
+   index; also after `selia-generated`, same reason. */
+@import './04-components/selia-circle-links';
+/* Before & After adds the drag grip and mirrors the seam for RTL; it must also
+   win over the bare `.selia-ba__*` base on source order. */
+@import './04-components/selia-before-after';
+/* Advanced Slider is a different widget from the shared scroll track the same
+   `kind` renders for Animated Banners, so its rules replace that block whole. */
+@import './04-components/selia-advanced-slider';
+/* The brand wall replaces the old `.selia-marquee` belt, so it comes after
+   `selia-generated` and inherits nothing from it. */
+@import './04-components/selia-brandwall';
 
 @import './05-utilities/chat-bots';
 @import './05-utilities/swal';
@@ -129,3 +179,8 @@
     display: none !important;
   }
 }
+
+/* Scroll reveal is armed by JS after hydration. It must be last: its hidden
+   state has to win over every component's own opacity/translate, and it must
+   never be overridden by a utility that comes later in source order. */
+@import './04-components/scroll-reveal';
