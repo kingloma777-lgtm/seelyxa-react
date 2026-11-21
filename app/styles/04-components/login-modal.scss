@@ -1,0 +1,422 @@
+/* ==========================================================================
+   Login modal — the frame is ours, the form stays Salla's
+   --------------------------------------------------------------------------
+   The account button opens `salla-modal.s-login-modal`, whose body is an
+   iframe to accounts.salla.com. We cannot (and must not) reach inside that
+   iframe: its markup, validation and social buttons belong to the platform.
+   What we CAN own is everything around it.
+
+   V2 — «the reception desk», rebuilt after measuring v1 (880×470, screenshot
+   in lens-harness/login-desktop.png). What was wrong, kept as a checklist:
+     - the rail was a tall dark void with its headline buried at the BOTTOM;
+     - a 4px terracotta inset line sliced the card and a brown radial glow
+       stained the rail;
+     - the card was 880px wide — more frame than content;
+     - the entrance was one flat fade: card only, no rhythm.
+
+   V2's answers:
+     - accent = `--color-primary` (the merchant's own brand colour) with a
+       fallback — the card no longer fights the store's theme;
+     - the rail opens with headline + note at the TOP (reading order); the
+       tint lives on the rail's own grid cells, so it follows the direction
+       automatically (logical border, cell-local gradients — never physical
+       left/right);
+     - the card shrinks to 780px and the sheet keeps real air around it;
+     - the entrance is STAGED: card rises → rail copy follows → the sheet
+       fades up → the close button pops. Reduced motion lands everything at
+       once (the block below), and the hosted form is never replaced.
+
+   The two pseudo-elements are the rail's grid cells — the SDK re-renders its
+   own DOM, so nothing is injected; the rail is drawn on the card itself.
+
+   Mode: the rail follows the site — a paper panel in day mode, ink at night.
+   The six `--login-*` tokens are re-pointed once under `html.dark`; the hosted
+   white sheet keeps its own light palette in both modes (its dark theme is
+   broken upstream), so night mode inverts the frame with a filter.
+   ========================================================================== */
+
+salla-modal.s-login-modal[visible] {
+  /* above the morph header (240) and the persistent mobile bar (220) */
+  z-index: 300 !important;
+
+  .s-modal-overlay {
+    background:
+      radial-gradient(circle at 28% 14%, color-mix(in srgb, var(--login-accent, #c9f26c) 14%, transparent), transparent 44%),
+      rgba(10, 12, 14, 0.72) !important;
+    backdrop-filter: blur(18px) saturate(0.7);
+    -webkit-backdrop-filter: blur(18px) saturate(0.7);
+    transition: opacity 0.3s ease;
+  }
+
+  .s-modal-wrapper {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 24px !important;
+  }
+
+  /* The SDK uses this zero-width span to vertical-centre the body. Flex owns
+     that job now, so the spacer would only add an empty grid/flex item. */
+  .s-modal-spacer {
+    display: none !important;
+  }
+
+  .s-modal-body.s-modal-xs.s-modal-align-middle {
+    /* The accent is the theme's own lime — the same signature the stats
+       scene and the dark panels wear. The merchant's `--color-primary` was
+       measured black on this store: a black glow on an ink card is nothing,
+       and a black close-hover would vanish into the rail. */
+    --login-accent: #c9f26c;
+    --login-accent-ink: #17280b;
+    --login-paper: #ffffff;
+    /* Day values: the rail is a soft paper panel and the hosted white sheet
+       sits on it with a hairline seam. `html.dark` re-points the same six
+       tokens, so nothing below forks on the mode. */
+    --login-ink: var(--ink-1, #231f1e);
+    --login-muted: var(--ink-3, #7c8082);
+    --login-rail: #f4f6f2;
+    --login-edge: var(--line-1, rgba(20, 20, 30, 0.08));
+    --login-soft: rgba(20, 22, 28, 0.05);
+    /* the hairline between rail and paper — logical, so it follows dir */
+    --login-seam: 1px solid var(--line-1, rgba(20, 20, 30, 0.08));
+    --login-shadow:
+      0 30px 80px rgba(16, 20, 26, 0.18),
+      0 2px 8px rgba(16, 20, 26, 0.06);
+    --login-sheet-shadow: 0 18px 40px rgba(16, 20, 26, 0.14);
+
+    position: relative;
+    display: grid !important;
+    grid-template-columns: minmax(232px, 288px) minmax(0, 1fr);
+    /* row 1: headline (auto), row 2: the note's cell stretches to the card's
+       bottom so the rail's panel is one continuous surface */
+    grid-template-rows: auto minmax(0, 1fr);
+    width: min(820px, calc(100vw - 40px)) !important;
+    max-width: none !important;
+    min-height: 448px;
+    margin: auto;
+    padding: 0 !important;
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid var(--login-edge) !important;
+    border-radius: 24px !important;
+    background: var(--login-rail) !important;
+    color: var(--login-ink) !important;
+    box-shadow: var(--login-shadow) !important;
+    animation: login-card-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+    /* Rail beat 1: the headline opens the reading order at the card's TOP.
+       Its cell carries the accent glow breathing down from the top edge —
+       clean light, no texture: on this small strip a grain reads as a stain. */
+    &::before {
+      content: 'أهلًا بعودتك';
+      grid-column: 1;
+      grid-row: 1;
+      align-self: stretch;
+      display: flex;
+      align-items: flex-end;
+      padding: 44px 28px 2px;
+      background:
+        radial-gradient(circle 280px at calc(100% - 36px) -56px, color-mix(in srgb, var(--login-accent) 40%, transparent) 0%, transparent 72%),
+        linear-gradient(180deg, color-mix(in srgb, var(--login-accent) 10%, var(--login-rail)) 0%, var(--login-rail) 80%);
+      border-inline-end: var(--login-seam);
+      color: var(--login-ink);
+      font-family: var(--font-condensed);
+      font-size: clamp(1.9rem, 2.5vw, 2.55rem);
+      font-weight: 900;
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      animation: login-rail-copy 0.55s ease 0.14s both;
+    }
+
+    /* Rail beat 2: the welcome note lands right under the headline; its cell
+       stretches over the rest of the rail, same base ink, so the two cells
+       read as one quiet panel under the glow. */
+    &::after {
+      content: 'سجّل دخولك لتتابع طلباتك وتحتفظ بما يعجبك.';
+      grid-column: 1;
+      grid-row: 2;
+      align-self: stretch;
+      display: flex;
+      align-items: flex-start;
+      max-width: none;
+      padding: 6px 28px 0;
+      background: var(--login-rail);
+      /* a faint echo of the top glow so the rail's long lower cell doesn't
+         read as dead black under the sheet's centreline */
+      background-image:
+        radial-gradient(circle 240px at 18% 108%, color-mix(in srgb, var(--login-accent) 12%, transparent) 0%, transparent 70%);
+      border-inline-end: var(--login-seam);
+      color: var(--login-muted);
+      font-size: 0.84rem;
+      font-weight: 500;
+      line-height: 1.8;
+      animation: login-rail-copy 0.55s ease 0.24s both;
+    }
+  }
+
+  /* the sheet: Salla's white hosted form, seated small on the dark surface —
+     448px because below that the hosted form's own width starts clipping its
+     labels. It hugs the seam (justify-self: start) and the paper's whole
+     outer margin belongs to the close button, so the caret never sits ON
+     the white. */
+  .s-modal-body.s-modal-xs.s-modal-align-middle iframe {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    justify-self: start;
+    align-self: center;
+    margin-inline-start: 12px;
+    width: min(100%, 460px) !important;
+    height: 400px !important;
+    min-height: 0;
+    border: 0 !important;
+    border-radius: 16px !important;
+    box-shadow: var(--login-sheet-shadow) !important;
+    background: var(--login-paper, #ffffff) !important;
+    animation: login-sheet-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+  }
+
+  /* The SDK renders an empty 0px header that owns the close button. Lift it
+     out of the grid as a full-width band (the pattern the phone uses): the
+     caret is then pinned by US to the corner away from the rail copy, and no
+     SDK-internal anchoring can half-clip it behind the sheet. */
+  .s-modal-body.s-modal-xs.s-modal-align-middle .s-modal-header {
+    position: absolute;
+    inset-block-start: 14px;
+    inset-inline: 0;
+    z-index: 5;
+    width: auto;
+    height: 48px;
+    display: block;
+    padding: 0;
+    pointer-events: none;
+  }
+
+  .s-modal-body.s-modal-xs.s-modal-align-middle .s-modal-close {
+    @apply inline-flex items-center justify-center;
+    position: absolute !important;
+    inset-block-start: 0;
+    inset-inline-end: 8px !important;
+    inset-inline-start: auto !important;
+    width: 44px !important;
+    height: 44px !important;
+    padding: 0 !important;
+    border: 1px solid var(--login-edge) !important;
+    border-radius: 999px !important;
+    background: var(--login-soft) !important;
+    color: var(--login-ink, #f6f8f7) !important;
+    /* the SDK resets its header's position, so the caret paints in DOM order
+       under the sheet — its OWN stacking is what lifts it above the paper */
+    z-index: 6 !important;
+    pointer-events: auto;
+    animation: login-close-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+    transition:
+      background-color 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+    svg {
+      width: 15px !important;
+      height: 15px !important;
+      fill: currentColor !important;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: var(--login-accent) !important;
+      border-color: var(--login-accent) !important;
+      color: var(--login-accent-ink) !important;
+      transform: rotate(90deg);
+    }
+  }
+}
+
+/* Night mode: Salla's own dark class is unusable — it whitens the form text
+   but leaves the iframe canvas white (`color-scheme: normal`), i.e. white on
+   white. `loginIframeTheme.ts` therefore keeps the hosted palette LIGHT and
+   we invert it here. Inverting a white canvas gives ink; dark text becomes
+   light; the paired hue-rotate returns the blue CTA and social logos to their
+   original hues. Border/shadow are pre-inverted colours so they land dark on
+   the card instead of glowing. The card itself is never filtered. */
+html.dark salla-modal.s-login-modal[visible] .s-modal-body.s-modal-xs.s-modal-align-middle {
+  --login-rail: #0b0c0f;
+  --login-ink: #f6f8f7;
+  --login-muted: rgba(246, 248, 247, 0.6);
+  --login-edge: rgba(255, 255, 255, 0.13);
+  --login-soft: rgba(255, 255, 255, 0.07);
+  --login-seam: 1px solid rgba(255, 255, 255, 0.08);
+  --login-shadow:
+    0 42px 110px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.45) inset;
+  --login-sheet-shadow: 0 20px 48px rgba(0, 0, 0, 0.42);
+
+  iframe {
+    filter: invert(1) hue-rotate(180deg) brightness(0.94);
+    border: 1px solid rgba(0, 0, 0, 0.16) !important;
+    box-shadow: 0 20px 48px rgba(255, 255, 255, 0.3) !important;
+  }
+}
+
+/* English stores get the same object with the rail's copy translated. The
+   document already carries dir/locale, so no JS and no second DOM node. */
+html[dir='ltr'] salla-modal.s-login-modal[visible] .s-modal-body.s-modal-xs::before {
+  content: 'Welcome back';
+  /* the glow hugs the card's outer edge; physical gradients need the mirrored
+     position for LTR, where the rail sits on the LEFT */
+  background:
+    radial-gradient(circle 280px at calc(0% + 36px) -56px, color-mix(in srgb, var(--login-accent) 40%, transparent) 0%, transparent 72%),
+    linear-gradient(180deg, color-mix(in srgb, var(--login-accent) 10%, var(--login-rail)) 0%, var(--login-rail) 80%);
+}
+
+html[dir='ltr'] salla-modal.s-login-modal[visible] .s-modal-body.s-modal-xs::after {
+  content: 'Sign in to follow your orders and keep the pieces you love.';
+}
+
+@keyframes login-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes login-rail-copy {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes login-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes login-close-in {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* ── phone: the card becomes a bottom sheet, the rail becomes a title
+      band above the iframe. The form itself is never replaced. ───────────── */
+@media (max-width: 767px) {
+  salla-modal.s-login-modal[visible] {
+    .s-modal-wrapper {
+      align-items: flex-end;
+      padding: 0 !important;
+    }
+
+    .s-modal-body.s-modal-xs.s-modal-align-middle {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: 52px minmax(0, 1fr);
+      width: 100% !important;
+      min-height: 0;
+      /* `margin:auto` centres the desktop card; left as-is it also centres
+         this sheet and leaves a dead band under it instead of docking it. */
+      margin: 0 !important;
+      border-radius: 20px 20px 0 0 !important;
+      padding-bottom: var(--safe-bottom, 0px) !important;
+      /* the glow layers above are tuned for the rail column; on the phone
+         they would stripe the full-width band — one clean accent breathe */
+      background-image:
+        radial-gradient(150% 100% at 100% 0%, color-mix(in srgb, var(--login-accent) 14%, transparent) 0%, transparent 55%);
+
+      &::before,
+      &::after {
+        content: none;
+        display: none;
+      }
+
+      iframe {
+        grid-column: 1;
+        grid-row: 2;
+        /* the sheet floats inside the dark card with even air on all sides */
+        justify-self: center;
+        align-self: center;
+        width: calc(100% - 20px) !important;
+        height: min(52vh, 358px) !important;
+        min-height: 312px;
+        border-radius: 16px !important;
+      }
+
+      .s-modal-header {
+        /* full-width band: a shrink-to-fit header made its ::before title
+           float in the middle of the sheet instead of hugging the edge */
+        inset-inline: 0;
+        inset-block-start: 5px;
+        width: auto;
+        height: 47px;
+
+        /* a real title in the sheet's own band — the iframe starts below it */
+        &::before {
+          /* the iframe already prints «تسجيل الدخول»; repeating it here read
+             as a rendering glitch. A greeting keeps the band purposeful. */
+          content: 'مرحبًا';
+          position: absolute;
+          inset-block-start: 12px;
+          inset-inline-start: 18px;
+          color: var(--login-ink);
+          font-size: 0.95rem;
+          font-weight: 800;
+          letter-spacing: -0.01em;
+          white-space: nowrap;
+        }
+      }
+
+      .s-modal-close {
+        /* the SDK pins its close button to the header's start; the header is
+           full-width now, so pin it to the OPPOSITE edge from the greeting */
+        position: absolute !important;
+        inset-block-start: 5px;
+        inset-inline-end: 10px !important;
+        inset-inline-start: auto !important;
+        border-color: var(--login-edge) !important;
+        background: var(--login-soft) !important;
+        color: var(--login-ink) !important;
+      }
+    }
+  }
+
+  html[dir='ltr'] salla-modal.s-login-modal[visible]
+    .s-modal-body.s-modal-xs.s-modal-align-middle
+    .s-modal-header::before {
+    /* same specificity chain as the nested Arabic rule, or the LTR copy loses */
+    content: 'Hello';
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  salla-modal.s-login-modal[visible] {
+    .s-modal-overlay,
+    .s-modal-body.s-modal-xs.s-modal-align-middle,
+    .s-modal-body.s-modal-xs.s-modal-align-middle ::before,
+    .s-modal-body.s-modal-xs.s-modal-align-middle ::after,
+    .s-modal-body.s-modal-xs.s-modal-align-middle iframe,
+    .s-modal-body.s-modal-xs.s-modal-align-middle .s-modal-close {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+}

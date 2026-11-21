@@ -22,6 +22,17 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* While a modal owns the page the reserved gutter is empty. Paint it as part
+   of the overlay so it stops reading as a white "scrollbar strip" beside the
+   dialog (the complaint that used to follow every account-button tap). */
+html.body-scroll-locked {
+  background: rgba(8, 9, 11, 0.78);
+}
+
+html.dark.body-scroll-locked {
+  background: #0b0c0f;
+}
+
 /* Scroll lock while a drawer (engine adds `menu-opened`) or a Salla modal
    (`salla-modal` adds `modal-is-open`) is open. */
 body.menu-opened,

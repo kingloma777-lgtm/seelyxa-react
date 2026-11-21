@@ -1,0 +1,1155 @@
+/* ==========================================================================
+   LoginAuthModal — the store's own login popup
+   --------------------------------------------------------------------------
+   Replaces the hosted `s-login-modal-wrapper` iframe (which lives inside
+   accounts.salla.com and cannot be themed) with a native card. Design
+   language is the same one `login-modal.scss` measured for the frame: ink
+   card, lemon accent, Barlow Condensed headline, staged entrance — but a
+   SINGLE column, because this card owns its content instead of hosting one.
+
+   Tokens (kept identical to the frame sheet so the two surfaces read as one
+   product when the social handoff swaps them):
+     --la-accent  #c9f26c   the theme's signature lemon
+     --la-card    paper in day, ink at night
+     --la-ink     ink on paper, paper on ink
+
+   The card FOLLOWS the site mode — it is a surface of the page, not a brand
+   plaque: a white sheet with hairlines in day mode, the ink card at night.
+   Only the lemon is fixed, because that is the brand. The `html.dark` block
+   below re-points every token in one place, so no rule below ever forks.
+   ========================================================================== */
+
+.login-auth {
+  --la-accent: #c9f26c;
+  --la-accent-ink: #17280b;
+  /* the gradient's far end — the lemon warmed toward white */
+  --la-accent-soft: #eaffb0;
+  /* the accent used as TEXT on the card: lemon on paper is unreadable, so the
+     day value is the same hue walked down to a deep olive */
+  --la-accent-text: #4a6112;
+  --la-card: #ffffff;
+  --la-card-hi: #f6f8f2;
+  --la-ink: var(--ink-1, #231f1e);
+  --la-muted: var(--ink-2, #465058);
+  --la-faint: var(--ink-3, #7c8082);
+  --la-line: var(--line-1, rgba(20, 20, 30, 0.08));
+  --la-line-strong: var(--line-2, rgba(20, 20, 30, 0.16));
+  --la-soft: rgba(20, 22, 28, 0.04);
+  --la-soft-strong: rgba(20, 22, 28, 0.08);
+  --la-field: var(--surface-2, #f5f7f9);
+  --la-field-hover: var(--surface-3, #eceff3);
+  --la-field-focus: #ffffff;
+  --la-placeholder: rgba(35, 31, 30, 0.36);
+  --la-danger: #b3402a;
+  --la-danger-soft: rgba(179, 64, 42, 0.08);
+  --la-danger-line: rgba(179, 64, 42, 0.28);
+  --la-shadow:
+    0 30px 80px rgba(16, 20, 26, 0.18),
+    0 2px 8px rgba(16, 20, 26, 0.06);
+  --la-scheme: light;
+
+  /* above the morph header (240) and the persistent mobile bar (220); the
+     social handoff modal sits at 300 and only ever shows while we're closed */
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+/* Night mode — the same card, re-pointed. Everything below reads a token, so
+   this block is the only place the mode exists. */
+html.dark .login-auth {
+  --la-accent-text: var(--la-accent);
+  --la-card: #15171c;
+  --la-card-hi: #101216;
+  --la-ink: #f6f8f7;
+  --la-muted: rgba(246, 248, 247, 0.55);
+  --la-faint: rgba(246, 248, 247, 0.38);
+  --la-line: rgba(255, 255, 255, 0.14);
+  --la-line-strong: rgba(255, 255, 255, 0.3);
+  --la-soft: rgba(255, 255, 255, 0.04);
+  --la-soft-strong: rgba(255, 255, 255, 0.1);
+  --la-field: rgba(255, 255, 255, 0.045);
+  --la-field-hover: rgba(255, 255, 255, 0.075);
+  --la-field-focus: rgba(255, 255, 255, 0.075);
+  --la-placeholder: rgba(246, 248, 247, 0.32);
+  --la-danger: #ffb59d;
+  --la-danger-soft: color-mix(in srgb, #ff8f6b 10%, transparent);
+  --la-danger-line: color-mix(in srgb, #ff8f6b 40%, transparent);
+  --la-shadow:
+    0 42px 110px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --la-scheme: dark;
+}
+
+.login-auth__overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 30% 12%, color-mix(in srgb, var(--la-accent) 12%, transparent), transparent 46%),
+    rgba(8, 9, 11, 0.78);
+  backdrop-filter: blur(18px) saturate(0.7);
+  -webkit-backdrop-filter: blur(18px) saturate(0.7);
+  animation: la-fade 0.3s ease both;
+}
+
+.login-auth__card {
+  position: relative;
+  width: min(400px, 100%);
+  max-height: min(86vh, 720px);
+  /* Short viewports still scroll the content, but the scrollbar itself must
+     never appear — that was the ugly "شريط تمرير" on the login tap. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+  color-scheme: var(--la-scheme);
+  padding: 36px 32px 24px;
+  border: 1px solid var(--la-line);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle 320px at calc(100% - 40px) -80px, color-mix(in srgb, var(--la-accent) 22%, transparent) 0%, transparent 70%),
+    linear-gradient(180deg, var(--la-card-hi) 0%, var(--la-card) 30%);
+  color: var(--la-ink);
+  box-shadow: var(--la-shadow);
+  animation: la-card 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: 50% 50%;
+}
+
+/* Head: store name as an accent eyebrow, Barlow Condensed headline. */
+.login-auth__head {
+  margin-block-start: 4px;
+}
+
+.login-auth__eyebrow {
+  margin: 0;
+  color: var(--la-accent-text);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.login-auth__title {
+  margin: 6px 0 0;
+  font-family: var(--font-condensed);
+  font-size: clamp(2rem, 6vw, 2.4rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.login-auth__subtitle {
+  margin: 8px 0 0;
+  color: var(--la-muted);
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
+.login-auth__sent {
+  color: var(--la-ink);
+  font-weight: 700;
+  unicode-bidi: plaintext;
+}
+
+/* Close: the same ghost caret the frame sheet wears — lemon on hover,
+   quarter-turn as it lands. */
+.login-auth__close {
+  position: absolute;
+  inset-block-start: 16px;
+  inset-inline-end: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--la-line);
+  border-radius: 999px;
+  background: var(--la-soft);
+  color: var(--la-ink);
+  cursor: pointer;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: la-close 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: var(--la-accent);
+    border-color: var(--la-accent);
+    color: var(--la-accent-ink);
+    transform: rotate(90deg);
+  }
+}
+
+/* The ring is the accent-as-text tone, not the fill tone: lemon on paper is
+   not a visible focus indicator. */
+.login-auth :focus-visible {
+  outline: 2px solid var(--la-accent-text);
+  outline-offset: 2px;
+}
+
+/* Fields: filled rounded controls with a real edge — not a hairline that
+   disappears into the card. Focus lifts the surface and adds a soft ring. */
+.login-auth__field {
+  display: block;
+  margin-block-start: 18px;
+}
+
+.login-auth__label {
+  display: block;
+  margin-block-end: 8px;
+  color: var(--la-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.login-auth__input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--la-line);
+  border-radius: 12px;
+  background: var(--la-field);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--la-ink) 4%, transparent);
+  color: var(--la-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+
+  &:hover {
+    border-color: var(--la-line-strong);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--la-accent);
+    background: var(--la-field-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--la-accent) 26%, transparent);
+  }
+
+  &::placeholder {
+    color: var(--la-placeholder);
+    font-weight: 400;
+  }
+
+  /* WebKit paints autofill lemon on ink otherwise. */
+  &:-webkit-autofill {
+    -webkit-text-fill-color: var(--la-ink);
+    caret-color: var(--la-ink);
+    transition: background-color 99999s ease-out;
+  }
+}
+
+/* ==========================================================================
+   Phone field — `salla-tel-input` is a light-DOM wrapper around
+   intl-tel-input. It was unusable for two reasons, both fixed here:
+     1. the vendor sheet was never loaded, so the country rail — which the
+        library positions absolutely inside `.iti` — collapsed into a vertical
+        stack and the control grew to ~100px with a blank square for a flag;
+     2. the number input had no placeholder, so an empty field was a bare
+        rectangle with no affordance at all.
+   The vendor sheet now ships from `styles/vendor/intl-tel-input.css`; the
+   block below re-dresses it in the card's own tokens so it sits exactly like
+   the email field beside it.
+   ========================================================================== */
+
+.login-auth .s-tel-input {
+  --iti-dropdown-bg: var(--la-card);
+  --iti-border-color: var(--la-line);
+  --iti-hover-color: var(--la-soft-strong);
+  --iti-icon-color: var(--la-faint);
+
+  position: relative;
+  display: block;
+  min-height: 52px;
+  padding: 0;
+  border: 1px solid var(--la-line);
+  border-radius: 12px;
+  background: var(--la-field);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--la-ink) 4%, transparent);
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+
+  &:hover {
+    border-color: var(--la-line-strong);
+  }
+
+  &:focus-within {
+    border-color: var(--la-accent);
+    background: var(--la-field-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--la-accent) 26%, transparent);
+  }
+
+  /* Invalid number: the component flags itself, we only repaint the edge.
+     The test is on a NON-EMPTY message — the error span is always in the DOM,
+     so `:has(.s-tel-input-error-msg)` alone would paint every field red. */
+  &.s-has-error,
+  &:has(.s-tel-input-error-msg:not(:empty)) {
+    border-color: var(--la-danger-line);
+
+    &:focus-within {
+      box-shadow: 0 0 0 3px var(--la-danger-soft);
+    }
+  }
+
+  /* Guard against a stale copy of this very block that still ships inside the
+     Tailwind layer with `:has(.s-tel-input-error-msg)` (0,3,0) — specificity
+     one step higher restores the neutral edge on an empty field. */
+  &:not(.s-has-error):not(:has(.s-tel-input-error-msg:not(:empty))) {
+    border-color: var(--la-line);
+  }
+
+  /* ---- the library wrapper -------------------------------------------- */
+  .iti {
+    display: block;
+    width: 100%;
+    min-height: 50px;
+    height: 100%;
+    font-family: inherit;
+  }
+
+  /* ---- the number input ----------------------------------------------- */
+  input.s-tel-input-control {
+    /* the library writes `padding-left: Npx` inline from the selected
+       country's width; our rail is a fixed column, so it must lose */
+    width: 100%;
+    height: 50px;
+    margin: 0;
+    padding-block: 0 !important;
+    /* physical, not logical: the input carries dir="ltr" from the library, so
+       `padding-inline-start` would resolve to the LEFT whatever the page dir */
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--la-ink);
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    transition: none;
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    &::placeholder {
+      color: var(--la-placeholder);
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    &:-webkit-autofill {
+      -webkit-text-fill-color: var(--la-ink);
+      caret-color: var(--la-ink);
+      transition: background-color 99999s ease-out;
+    }
+  }
+
+  /* ---- the country rail ------------------------------------------------ */
+  /* The library pins it to `left` and hardcodes `dir=ltr`; in an RTL card the
+     rail belongs on the right, and the number has to read from that edge. */
+  .iti__country-container {
+    top: 0;
+    bottom: 0;
+    left: auto;
+    right: 0;
+    padding: 0;
+  }
+
+  html[dir='ltr'] & .iti__country-container,
+  &:where(html[dir='ltr'] *) .iti__country-container {
+    left: 0;
+    right: auto;
+  }
+
+  .iti__selected-country {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    margin: 0;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--la-ink);
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: var(--la-soft-strong);
+    }
+  }
+
+  .iti__selected-country-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: auto;
+    padding: 0;
+  }
+
+  /* the library's triangle is 4px wide and inherits a grey we never chose;
+     one symmetric caret of our own reads better and needs no RTL variant */
+  .iti__arrow {
+    display: none;
+  }
+
+  .iti__selected-country::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-inline: 4px solid transparent;
+    border-top: 5px solid var(--la-faint);
+    transition: transform 0.2s ease;
+  }
+
+  .iti__selected-country[aria-expanded='true']::after {
+    transform: rotate(180deg);
+  }
+
+  .iti__flag {
+    border-radius: 2px;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--la-ink) 14%, transparent);
+    /* Something in the component writes a background-position that does not
+       match the sprite (measured: -4339px against a 3904px sheet, so every
+       flag painted an empty box). Pin it back to the country's own offset. */
+    background-position: var(--iti-flag-offset) 0 !important;
+  }
+
+  .iti__selected-dial-code {
+    margin: 0;
+    color: var(--la-muted);
+    font-size: 0.92rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    /* the rail is RTL for ordering, and "+966" is a leading sign: without an
+       isolated LTR run the bidi algorithm paints it as "966+" */
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  /* ---- the country panel ----------------------------------------------- */
+  /* intl-tel-input runs in "container" mode here: the panel is parked in a
+     `position: fixed` box whose coordinates the library writes inline, and
+     `salla-tel-input` ships its own legacy skin on top of that which pins the
+     list to `position: absolute; top: 100%`. The combination split the panel
+     into a search strip at the top of the card and a single country row at the
+     bottom. So: re-anchor the box to the field, then put the list back in flow. */
+  .iti--container {
+    /* inline `left`/`top` from the library lose to these */
+    position: absolute !important;
+    top: calc(100% + 8px) !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    /* above the sibling fields and the CTA, which are static */
+    z-index: 6;
+  }
+
+  .iti__dropdown-content {
+    /* the library writes the input's width and a stale measured height inline;
+       the height is what clipped the panel down to its search box */
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    /* The card clips at its own bottom edge, and on the register screen the
+       phone field sits low enough that 7 rows would run past it. The host
+       measures the room left and writes it here (see `applyTelPlaceholder`);
+       the list is the flex item that gives way, so the search box keeps its
+       full height. */
+    display: flex;
+    flex-direction: column;
+    max-height: var(--la-tel-panel-max, none);
+    border: 1px solid var(--la-line);
+    border-radius: 14px;
+    background: var(--la-card);
+    box-shadow: var(--la-shadow);
+    overflow: hidden;
+    z-index: 4;
+  }
+
+  .iti__search-input-wrapper {
+    border-block-end: 1px solid var(--la-line);
+    padding: 2px 6px;
+    background: color-mix(in srgb, var(--la-soft-strong) 55%, transparent);
+  }
+
+  .iti__search-input {
+    padding-block: 11px;
+    background: transparent;
+    color: var(--la-ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+
+    &::placeholder {
+      color: var(--la-placeholder);
+      font-weight: 400;
+    }
+
+    &:focus {
+      outline: none;
+    }
+  }
+
+  /* The icon sits at the inline start; the text has to start from the same
+     edge. Salla's own skin ships `.iti input { direction: ltr !important;
+     padding-left: 95px !important }` — that 95px is the phone field's country
+     rail and it lands on this search box too, so these need to match it. */
+  html[dir='rtl'] & .iti__search-input {
+    direction: rtl !important;
+    text-align: right !important;
+    padding-right: 34px !important;
+    padding-left: 30px !important;
+  }
+
+  html[dir='ltr'] & .iti__search-input {
+    direction: ltr !important;
+    text-align: left !important;
+    padding-left: 34px !important;
+    padding-right: 30px !important;
+  }
+
+  .iti__search-icon-svg {
+    stroke: var(--la-faint);
+  }
+
+  .iti__search-clear {
+    color: var(--la-faint);
+  }
+
+  /* Salla's skin absolutely pins this list and paints it as a white card of its
+     own; strip all of that and let it scroll inside our panel instead. */
+  .iti__country-list {
+    position: static !important;
+    inset: auto !important;
+    width: auto !important;
+    flex: 1 1 auto;
+    min-height: 0;
+    /* 7 uniform rows + the 6px padding top and bottom, so the panel never ends
+       on a half-row. The vh term keeps the panel inside the card on short
+       screens, where 7 rows would run past the card's clipped bottom edge. */
+    max-height: min(252px, 32vh);
+    margin: 0 !important;
+    padding: 6px;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    white-space: normal !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--la-line-strong) transparent;
+  }
+
+  .iti__country {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 9px;
+    color: var(--la-ink);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &.iti__highlight,
+    &:hover {
+      background: var(--la-soft-strong);
+    }
+  }
+
+  /* the vendor sheet adds a spacer margin beside the flag; `gap` already
+     handles the rhythm and the extra one pushed the name off its column */
+  .iti__country-list .iti__flag {
+    margin: 0 !important;
+    flex: 0 0 auto;
+  }
+
+  /* The library nests the dial code INSIDE the name span, so it flows with the
+     name text and the codes form a ragged column. Pull it to the far end of the
+     row so every code lines up, and reserve the space so long names truncate
+     before they reach it. */
+  .iti__country-name {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-inline-end: 62px;
+    color: var(--la-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .iti__dial-code {
+    position: absolute;
+    top: 50%;
+    /* physical, not logical: this element is forced LTR so the "+" stays in
+       front, which would make `inset-inline-end` resolve against the other
+       edge. The far end of the row is the left in RTL, the right in LTR. */
+    left: 0;
+    right: auto;
+    transform: translateY(-50%);
+    color: var(--la-faint);
+    font-size: 0.84rem;
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  html[dir='ltr'] & .iti__dial-code {
+    left: auto;
+    right: 0;
+  }
+
+  /* The current country's tick would land on the same edge as the code; the
+     rail already shows which country is selected, so drop it here. */
+  .iti__country-check {
+    display: none;
+  }
+
+  .iti__country-check {
+    flex: 0 0 auto;
+    color: var(--la-accent-text);
+  }
+
+  .iti__no-results {
+    padding: 26px 0;
+    color: var(--la-faint);
+    font-size: 0.88rem;
+    text-align: center;
+  }
+
+  /* ---- its own error line --------------------------------------------- */
+  /* The message is a sibling INSIDE the host, so in flow it would push the
+     field taller and draw the text inside the bordered box. Pin it below. */
+  .s-tel-input-error-msg {
+    position: absolute;
+    inset-inline-start: 2px;
+    top: calc(100% + 7px);
+    /* the component ships `color: … !important`, so ours must match it */
+    color: var(--la-danger) !important;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.4;
+
+    &:empty {
+      display: none;
+    }
+  }
+}
+
+/* RTL: the rail is on the right, so the number hugs that edge. */
+html[dir='rtl'] .login-auth .s-tel-input input.s-tel-input-control {
+  padding-right: 104px !important;
+  text-align: right;
+  direction: ltr;
+}
+
+html[dir='rtl'] .login-auth .s-tel-input .iti__selected-country {
+  direction: rtl;
+}
+
+html[dir='ltr'] .login-auth .s-tel-input input.s-tel-input-control {
+  padding-left: 104px !important;
+  text-align: left;
+}
+
+/* Give the error line room under the field so it never overlaps the CTA. */
+.login-auth .login-auth__field:has(.s-tel-input) {
+  padding-block-end: 2px;
+}
+
+/* `salla-tel-input.isValid()` answers with a boolean and paints nothing — its
+   own `.s-tel-input-error-msg` stays empty — so an invalid number used to make
+   the submit button look dead. The card says it instead. */
+.login-auth__field-error {
+  display: block;
+  margin-block-start: 7px;
+  color: var(--la-danger);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.login-auth .login-auth__field--invalid .s-tel-input {
+  /* `!important` to outrank the neutral-edge guard above, which is there to
+     neutralise a stale copy of this block shipping inside the Tailwind layer */
+  border-color: var(--la-danger-line) !important;
+
+  &:focus-within {
+    box-shadow: 0 0 0 3px var(--la-danger-soft);
+  }
+}
+
+/* OTP: one input, spaced glyphs, centred. `text-indent` eats the trailing
+   letter-space so the digits sit optically centred. */
+.login-auth__input--code {
+  padding-block: 12px 14px;
+  text-align: center;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: 0.65em;
+  text-indent: 0.65em;
+}
+
+/* Two name fields share the row on desktop, stack on narrow cards. */
+.login-auth__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  .login-auth__field {
+    margin-block-start: 0;
+  }
+}
+
+.login-auth__form .login-auth__row + .login-auth__field,
+.login-auth__form .login-auth__field + .login-auth__row {
+  margin-block-start: 20px;
+}
+
+/* Method tabs — only when the store allows BOTH email and mobile. */
+.login-auth__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-block-start: 22px;
+  padding: 4px;
+  border: 1px solid var(--la-line);
+  border-radius: 12px;
+  background: var(--la-soft);
+
+  button {
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--la-muted);
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.25s ease, color 0.25s ease;
+
+    &.is-active {
+      background: var(--la-soft-strong);
+      color: var(--la-ink);
+    }
+  }
+}
+
+/* CTA: lemon gradient, lifts on hover, presses on tap. */
+.login-auth__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-block-start: 26px;
+  padding: 15px 18px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    var(--la-accent) 0%,
+    color-mix(in srgb, var(--la-accent) 74%, var(--la-accent-soft)) 100%
+  );
+  color: var(--la-accent-ink);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--la-accent) 22%, transparent);
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s ease,
+    filter 0.3s ease,
+    opacity 0.25s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+    box-shadow: 0 16px 40px color-mix(in srgb, var(--la-accent) 30%, transparent);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.985);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.login-auth__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid color-mix(in srgb, var(--la-accent-ink) 30%, transparent);
+  border-block-start-color: var(--la-accent-ink);
+  border-radius: 50%;
+  animation: la-spin 0.8s linear infinite;
+}
+
+/* Social: ghost pills on one hairline each; brand glyph + latin name. */
+.login-auth__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block: 22px 16px;
+  color: var(--la-muted);
+  font-size: 0.78rem;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--la-line);
+  }
+}
+
+.login-auth__social {
+  display: grid;
+  gap: 10px;
+}
+
+.login-auth__social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border: 1px solid var(--la-line);
+  border-radius: 999px;
+  background: var(--la-soft);
+  color: var(--la-ink);
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  svg {
+    flex: none;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--la-accent) 55%, var(--la-line-strong));
+    background: color-mix(in srgb, var(--la-accent) 14%, transparent);
+    transform: translateY(-1px);
+  }
+
+  /* While a provider window is up, the other two pills wait their turn. */
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+    transform: none;
+  }
+
+  /* …but the one being worked on stays at full strength — dimming it reads as
+     "broken" exactly when it is the only thing doing anything. */
+  &[aria-busy='true'] {
+    opacity: 1;
+    border-color: color-mix(in srgb, var(--la-accent) 55%, var(--la-line-strong));
+    background: color-mix(in srgb, var(--la-accent) 12%, transparent);
+  }
+
+  /* the shared spinner is tuned for the lemon CTA; on a quiet pill it needs
+     the card's own ink or it disappears */
+  .login-auth__spinner {
+    width: 16px;
+    height: 16px;
+    border-color: color-mix(in srgb, var(--la-ink) 22%, transparent);
+    border-block-start-color: var(--la-ink);
+  }
+}
+
+.login-auth__social-wait {
+  margin: 12px 0 0;
+  color: var(--la-muted);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.login-auth__social-x {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Links under the forms: swap / resend / back / change. */
+.login-auth__swap {
+  margin-block: 22px 0;
+  color: var(--la-muted);
+  font-size: 0.86rem;
+  text-align: center;
+
+  button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--la-accent-text);
+    font-weight: 700;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.login-auth__aux {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-start: 16px;
+}
+
+.login-auth__link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--la-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.25s ease;
+
+  &:hover:not(:disabled) {
+    color: var(--la-accent-text);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.login-auth__resend-wait {
+  color: var(--la-faint);
+  font-size: 0.84rem;
+}
+
+/* Verified identifier: a quiet chip, not an editable field — change is a
+   link back to the start screen. */
+.login-auth__locked {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-block-start: 20px;
+  padding-block: 9px 11px;
+  border-block-end: 1px dashed var(--la-line-strong);
+
+  .login-auth__locked-label {
+    flex: none;
+    color: var(--la-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .login-auth__locked-value {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+    unicode-bidi: plaintext;
+  }
+
+  .login-auth__link {
+    flex: none;
+    font-size: 0.78rem;
+  }
+}
+
+.login-auth__check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-block-start: 20px;
+  color: var(--la-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+
+  input {
+    margin-block-start: 2px;
+    accent-color: var(--la-accent);
+  }
+}
+
+/* Error: one quiet panel above the form, in the card's danger tone. */
+.login-auth__error {
+  margin-block: 16px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--la-danger-line);
+  border-radius: 10px;
+  background: var(--la-danger-soft);
+  color: var(--la-danger);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.login-auth__privacy {
+  margin-block: 22px 0;
+  color: var(--la-faint);
+  font-size: 0.76rem;
+  text-align: center;
+
+  a {
+    color: var(--la-muted);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover {
+      color: var(--la-accent-text);
+    }
+  }
+}
+
+/* Each screen fades in its own beat — the card lands, then content. */
+.login-auth__form {
+  animation: la-step 0.45s ease 0.12s both;
+}
+
+@keyframes la-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes la-card {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.86);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes la-close {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes la-step {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes la-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── phone: the card docks as a bottom sheet ──────────────────────────── */
+@media (max-width: 767px) {
+  .login-auth {
+    padding: 0;
+    place-items: end center;
+  }
+
+  .login-auth__card {
+    width: 100%;
+    max-height: 92vh;
+    padding: 26px 22px calc(20px + var(--safe-bottom, 0px));
+    border-radius: 22px 22px 0 0;
+    border-block-end: 0;
+    transform-origin: 50% 100%;
+    animation: la-sheet 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .login-auth__row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .login-auth__row .login-auth__field {
+    margin-block-start: 20px;
+  }
+}
+
+@keyframes la-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(60px) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-auth,
+  .login-auth * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
