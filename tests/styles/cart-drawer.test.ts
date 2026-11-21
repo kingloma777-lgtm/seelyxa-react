@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect } from 'vitest';
+import { beforeAll, describe, it, expect } from 'vitest';
 import * as sass from 'sass';
 import postcss, { type Root } from 'postcss';
 import tailwindcss from 'tailwindcss';
@@ -16,6 +16,13 @@ async function compile(file: string): Promise<Root> {
   ]).process(css, { from: undefined });
   return result.root;
 }
+
+/* One compile for the whole file. Sass + Tailwind is ~1s here and each `it`
+   below used to pay it again, so whichever assertion ran first absorbed the
+   bill — on a loaded machine that was a 5s timeout, i.e. a false red. The AST
+   is read-only, so a shared one is safe. */
+let compiled: Promise<Root> | null = null;
+const css = () => (compiled ??= compile('cart-drawer.scss'));
 
 function declarations(root: Root, selector: string): Record<string, string> {
   const decls: Record<string, string> = {};
@@ -48,8 +55,14 @@ function declarationList(root: Root, selector: string): Array<Record<string, str
 }
 
 describe('cart-drawer.scss — the panel is anchored, hidden and theme-owned', () => {
+  /* Paying the compile off the clock keeps the first assertion from timing out
+     while the rest of the suite runs in parallel. */
+  beforeAll(async () => {
+    await css();
+  }, 30000);
+
   it('sits above the header and the mobile bar, and is click-through while closed', async () => {
-    const root = await compile('cart-drawer.scss');
+    const root = await css();
     const shell = declarations(root, '.cart-drawer-root');
 
     expect(shell.position).toBe('fixed');
@@ -61,7 +74,7 @@ describe('cart-drawer.scss — the panel is anchored, hidden and theme-owned', (
   });
 
   it('anchors to the END edge — the side the cart chip itself sits on', async () => {
-    const root = await compile('cart-drawer.scss');
+    const root = await css();
     const panel = declarations(root, '.cart-drawer');
 
     expect(panel['inset-inline-end']).toBe('0');
@@ -73,7 +86,7 @@ describe('cart-drawer.scss — the panel is anchored, hidden and theme-owned', (
   });
 
   it('slides out toward its own edge, and mirrors the closed offset in RTL', async () => {
-    const root = await compile('cart-drawer.scss');
+    const root = await css();
 
     expect(declarations(root, '.cart-drawer').transform).toBe('translateX(100%)');
     // sass normalises the attribute selector: html[dir='rtl'] → html[dir=rtl]
@@ -84,7 +97,7 @@ describe('cart-drawer.scss — the panel is anchored, hidden and theme-owned', (
   });
 
   it('paints on the shared tokens, so html.dark flips it in one place', async () => {
-    const root = await compile('cart-drawer.scss');
+    const root = await css();
     const panel = declarations(root, '.cart-drawer');
 
     expect(panel.background).toBe('var(--surface-1)');
@@ -92,7 +105,7 @@ describe('cart-drawer.scss — the panel is anchored, hidden and theme-owned', (
   });
 
   it('flashes the line that was just added, once', async () => {
-    const root = await compile('cart-drawer.scss');
+    const root = await css();
     const animations = declarationList(root, '.cart-drawer__row.is-new').map(
       (decls) => decls.animation ?? ''
     );
@@ -107,7 +120,7 @@ describe('cart-drawer.scss — the panel is anchored, hidden and theme-owned', (
   });
 
   it('honours prefers-reduced-motion for the slide and the flash', async () => {
-    const root = await compile('cart-drawer.scss');
+    const root = await css();
 
     let reduced = '';
     root.walkAtRules('media', (rule) => {

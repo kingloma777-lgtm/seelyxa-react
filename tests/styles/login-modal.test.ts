@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect } from 'vitest';
+import { beforeAll, describe, it, expect } from 'vitest';
 import * as sass from 'sass';
 import postcss, { type Container, type Root, type Rule } from 'postcss';
 import tailwindcss from 'tailwindcss';
@@ -16,6 +16,13 @@ async function compile(): Promise<Root> {
   ]).process(css, { from: undefined });
   return result.root;
 }
+
+/* One compile for the whole file. Sass + Tailwind is ~1s here and each `it`
+   below used to pay it again, so whichever assertion ran first absorbed the
+   bill — on a loaded machine that was a 5s timeout, i.e. a false red. The AST
+   is read-only, so a shared one is safe. */
+let compiled: Promise<Root> | null = null;
+const css = () => (compiled ??= compile());
 
 function collect(root: Root, selector: string, media?: string): Record<string, string> {
   const decls: Record<string, string> = {};
@@ -47,8 +54,14 @@ function collect(root: Root, selector: string, media?: string): Record<string, s
 const BODY = 'salla-modal.s-login-modal[visible] .s-modal-body.s-modal-xs.s-modal-align-middle';
 
 describe('login-modal.scss — the frame is ours, the form stays Salla’s', () => {
+  /* Paying the compile off the clock keeps the first assertion from timing out
+     while the rest of the suite runs in parallel. */
+  beforeAll(async () => {
+    await css();
+  }, 30000);
+
   it('replaces the 1425px white slab with a centred 820px ink card', async () => {
-    const root = await compile();
+    const root = await css();
     const body = collect(root, BODY);
     expect(body['display']).toContain('grid');
     expect(body['width']).toContain('820px');
@@ -59,7 +72,7 @@ describe('login-modal.scss — the frame is ours, the form stays Salla’s', () 
   });
 
   it('paints the ink rail as a full-height grid item, not a text-sized strip', async () => {
-    const root = await compile();
+    const root = await css();
     // `align-self:end` shrank the rail to the headline's own 60px box in the
     // browser; the background must STRETCH across the whole grid row.
     expect(collect(root, `${BODY}::before`)['align-self']).toBe('stretch');
@@ -71,7 +84,7 @@ describe('login-modal.scss — the frame is ours, the form stays Salla’s', () 
   });
 
   it('seats the white iframe as a small 460px sheet on the rail', async () => {
-    const root = await compile();
+    const root = await css();
     const iframe = collect(root, `${BODY} iframe`);
     expect(iframe['justify-self']).toBe('start');
     expect(iframe['align-self']).toBe('center');
@@ -83,7 +96,7 @@ describe('login-modal.scss — the frame is ours, the form stays Salla’s', () 
   });
 
   it('follows the site mode: paper rail by day, ink rail at night', async () => {
-    const root = await compile();
+    const root = await css();
     const day = collect(root, BODY);
     expect(day['--login-rail']).toContain('#f4f6f2');
     expect(day['--login-ink']).toContain('var(--ink-1');
@@ -96,7 +109,7 @@ describe('login-modal.scss — the frame is ours, the form stays Salla’s', () 
   });
 
   it('inverts the hosted LIGHT form in night mode instead of trusting its broken dark class', async () => {
-    const root = await compile();
+    const root = await css();
     const darkSelector = `html.dark ${BODY}`;
     expect(collect(root, darkSelector)['--login-rail']).toContain('#0b0c0f');
     const darkFrame = collect(root, `${darkSelector} iframe`);
@@ -108,7 +121,7 @@ describe('login-modal.scss — the frame is ours, the form stays Salla’s', () 
   });
 
   it('docks the phone sheet to the bottom and avoids a duplicate title', async () => {
-    const root = await compile();
+    const root = await css();
     const phone = collect(root, BODY, 'max-width: 767px');
     expect(phone['margin']).toContain('0');
     expect(phone['border-radius']).toContain('20px 20px 0 0');
@@ -121,7 +134,7 @@ describe('login-modal.scss — the frame is ours, the form stays Salla’s', () 
   });
 
   it('keeps a 44px close control and kills the entrance motion for reduced motion', async () => {
-    const root = await compile();
+    const root = await css();
     const close = collect(root, `${BODY} .s-modal-close`);
     expect(close['width']).toContain('44px');
     expect(close['height']).toContain('44px');

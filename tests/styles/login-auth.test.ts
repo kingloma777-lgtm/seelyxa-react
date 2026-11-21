@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect } from 'vitest';
+import { beforeAll, describe, it, expect } from 'vitest';
 import * as sass from 'sass';
 import postcss, { type Root, type Rule } from 'postcss';
 import tailwindcss from 'tailwindcss';
@@ -16,6 +16,13 @@ async function compile(): Promise<Root> {
   ]).process(css, { from: undefined });
   return result.root;
 }
+
+/* One compile for the whole file. Sass + Tailwind is ~1s here and each `it`
+   below used to pay it again, so whichever assertion ran first absorbed the
+   bill — on a loaded machine that was a 5s timeout, i.e. a false red. The AST
+   is read-only, so a shared one is safe. */
+let compiled: Promise<Root> | null = null;
+const css = () => (compiled ??= compile());
 
 function collect(root: Root, selector: string): Record<string, string> {
   const decls: Record<string, string> = {};
@@ -37,8 +44,14 @@ function collect(root: Root, selector: string): Record<string, string> {
 }
 
 describe('login-auth.scss — the popup follows the site mode', () => {
+  /* Paying the compile off the clock keeps the first assertion from timing out
+     while the rest of the suite runs in parallel. */
+  beforeAll(async () => {
+    await css();
+  }, 30000);
+
   it('paints a paper card in day mode, not the night ink one', async () => {
-    const root = await compile();
+    const root = await css();
     const day = collect(root, '.login-auth');
     expect(day['--la-card']).toContain('#ffffff');
     expect(day['--la-ink']).toContain('var(--ink-1');
@@ -49,7 +62,7 @@ describe('login-auth.scss — the popup follows the site mode', () => {
   });
 
   it('re-points every token under html.dark instead of forking the rules', async () => {
-    const root = await compile();
+    const root = await css();
     const night = collect(root, 'html.dark .login-auth');
     expect(night['--la-card']).toContain('#15171c');
     expect(night['--la-ink']).toContain('#f6f8f7');
@@ -58,7 +71,7 @@ describe('login-auth.scss — the popup follows the site mode', () => {
   });
 
   it('lets the card read its surface and shadow from the tokens', async () => {
-    const root = await compile();
+    const root = await css();
     const card = collect(root, '.login-auth__card');
     expect(card['color-scheme']).toBe('var(--la-scheme)');
     expect(card['box-shadow']).toBe('var(--la-shadow)');
@@ -73,7 +86,7 @@ describe('login-auth.scss — the popup follows the site mode', () => {
    the bottom, and the ones that make an invalid number say so at all. */
 describe('login-auth.scss — the phone field owns the country panel', () => {
   it('re-anchors the library container under the field instead of trusting its fixed coordinates', async () => {
-    const root = await compile();
+    const root = await css();
     const box = collect(root, '.login-auth .s-tel-input .iti--container');
     expect(box['position']).toBe('absolute !important');
     expect(box['top']).toBe('calc(100% + 8px) !important');
@@ -83,14 +96,14 @@ describe('login-auth.scss — the phone field owns the country panel', () => {
   });
 
   it('drops the stale inline height and width the library writes on the panel', async () => {
-    const root = await compile();
+    const root = await css();
     const content = collect(root, '.login-auth .s-tel-input .iti__dropdown-content');
     expect(content['height']).toBe('auto !important');
     expect(content['width']).toBe('auto !important');
   });
 
   it('puts the country list back in flow — the legacy skin pins it absolute', async () => {
-    const root = await compile();
+    const root = await css();
     const list = collect(root, '.login-auth .s-tel-input .iti__country-list');
     expect(list['position']).toBe('static !important');
     expect(list['inset']).toBe('auto !important');
@@ -101,7 +114,7 @@ describe('login-auth.scss — the phone field owns the country panel', () => {
   });
 
   it('lines the dial code up on the far edge even though it is forced LTR', async () => {
-    const root = await compile();
+    const root = await css();
     const rtl = collect(root, '.login-auth .s-tel-input .iti__dial-code');
     expect(rtl['left']).toBe('0');
     expect(rtl['direction']).toBe('ltr');
@@ -110,7 +123,7 @@ describe('login-auth.scss — the phone field owns the country panel', () => {
   });
 
   it('aligns the search box with the icon on both directions', async () => {
-    const root = await compile();
+    const root = await css();
     const rtl = collect(root, 'html[dir=rtl] .login-auth .s-tel-input .iti__search-input');
     expect(rtl['direction']).toBe('rtl !important');
     expect(rtl['padding-right']).toBe('34px !important');
@@ -120,7 +133,7 @@ describe('login-auth.scss — the phone field owns the country panel', () => {
   });
 
   it('marks an invalid number on the field, because isValid() paints nothing', async () => {
-    const root = await compile();
+    const root = await css();
     const invalid = collect(root, '.login-auth .login-auth__field--invalid .s-tel-input');
     expect(invalid['border-color']).toContain('--la-danger-line');
     const message = collect(root, '.login-auth__field-error');
