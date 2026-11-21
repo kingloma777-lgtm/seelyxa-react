@@ -21,8 +21,17 @@ const FOCUSABLE = [
  * Pass the *entered* (post-mount, painted) state as `active`, not the raw `open`
  * prop, so focus isn't grabbed a frame before the overlay is visible. The
  * container needs `tabIndex={-1}` for the fallback `container.focus()`.
+ *
+ * `initialFocus: 'container'` parks focus on the panel itself instead of its
+ * first control. Use it for a panel whose first control is the close button —
+ * focus rings are drawn for `:focus-visible`, and landing on ✕ paints a ring
+ * the user did not ask for every time the panel opens.
  */
-export function useDialogFocus(containerRef: RefObject<HTMLElement | null>, active: boolean): void {
+export function useDialogFocus(
+  containerRef: RefObject<HTMLElement | null>,
+  active: boolean,
+  initialFocus: 'first' | 'container' = 'first'
+): void {
   useEffect(() => {
     const container = containerRef.current;
     if (!active || !container) return;
@@ -37,7 +46,8 @@ export function useDialogFocus(containerRef: RefObject<HTMLElement | null>, acti
       );
 
     if (!container.contains(document.activeElement)) {
-      (focusable()[0] ?? container).focus();
+      const target = initialFocus === 'container' ? container : (focusable()[0] ?? container);
+      target.focus();
     }
 
     const onKeyDown = (e: KeyboardEvent) => {

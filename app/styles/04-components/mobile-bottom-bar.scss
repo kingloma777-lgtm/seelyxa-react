@@ -63,8 +63,12 @@
 
 .mobile-bottom-bar__item {
   @apply relative inline-flex flex-none items-center justify-center gap-0 no-underline;
-  min-width: 40px;
-  height: 36px;
+  /* The bar is the only navigation a phone user has when the morph index is
+     closed, so its tabs must meet the same 44px target as the header chips.
+     The inner pill is 52px tall and 242px at its widest, so both axes grow
+     without changing the bar's footprint on a 320px screen. */
+  min-width: 44px;
+  height: 44px;
   padding: 0 6px;
   border: 0;
   border-radius: 9999px;

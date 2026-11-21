@@ -2,6 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, screen, act, cleanup } from '@testing-library/react';
 import { MobileBottomBar } from '../../../app/components/layout/MobileBottomBar';
+import { closeCartDrawer, getCartDrawerState } from '../../../app/lib/cartDrawer';
 
 /** A logged-in `<salla-user-menu>` — the bar clicks `.s-user-menu-trigger-slot`,
  * which (like the real component's `open()`) toggles `.opened` on the toggler. */
@@ -74,6 +75,7 @@ afterEach(() => {
   // Unmount first: the bar's `<body>` MutationObserver would otherwise fire on
   // the node removal below and call setState outside act().
   cleanup();
+  closeCartDrawer();
   document.querySelectorAll('salla-user-menu, salla-modal').forEach((el) => el.remove());
 });
 
@@ -115,6 +117,42 @@ describe('MobileBottomBar', () => {
     expect(screen.getByTestId('mobile-bottom-bar-cart').getAttribute('href')).toBe('/cart');
     // account is a button (opens the account sheet), not a link
     expect(screen.getByTestId('mobile-bottom-bar-account').tagName).toBe('BUTTON');
+  });
+
+  it('opens the cart drawer from the Cart tab instead of navigating to /cart', () => {
+    render(<MobileBottomBar navOpen={false} onOpenNav={noop} />);
+
+    const tab = screen.getByTestId('mobile-bottom-bar-cart');
+    expect(getCartDrawerState().open).toBe(false);
+
+    const notPrevented = fireEvent.click(tab);
+
+    // fireEvent returns false when a handler called preventDefault
+    expect(notPrevented).toBe(false);
+    expect(getCartDrawerState().open).toBe(true);
+    // the tab lights up while the panel is open, even though the route is not /cart
+    expect(tab.className).toContain('is-active');
+  });
+
+  it('keeps the plain link when the drawer is switched off', () => {
+    render(<MobileBottomBar navOpen={false} onOpenNav={noop} cartDrawerEnabled={false} />);
+
+    const tab = screen.getByTestId('mobile-bottom-bar-cart');
+    const notPrevented = fireEvent.click(tab);
+
+    expect(notPrevented).toBe(true);
+    expect(getCartDrawerState().open).toBe(false);
+  });
+
+  it('lets a modified click on the Cart tab fall through to the link', () => {
+    render(<MobileBottomBar navOpen={false} onOpenNav={noop} />);
+
+    const notPrevented = fireEvent.click(screen.getByTestId('mobile-bottom-bar-cart'), {
+      metaKey: true,
+    });
+
+    expect(notPrevented).toBe(true);
+    expect(getCartDrawerState().open).toBe(false);
   });
 
   it('opens the account sheet when the Account tab is tapped', () => {
@@ -402,7 +440,7 @@ describe('MobileBottomBar', () => {
     expect(screen.getByTestId('mobile-bottom-bar-home').className).not.toContain('is-active');
   });
 
-  it('opens the shared nav drawer when the Categories tab is tapped', () => {
+  it('opens the morph index when the Categories tab is tapped', () => {
     const onOpenNav = vi.fn();
     render(<MobileBottomBar navOpen={false} onOpenNav={onOpenNav} />);
 
@@ -411,7 +449,21 @@ describe('MobileBottomBar', () => {
     expect(onOpenNav).toHaveBeenCalledTimes(1);
   });
 
-  it('moves the pill onto Categories while the drawer is open, dropping the route tab', () => {
+  /* The bar sits under the index while it is open (the header lifts to z 240
+     over the bar's 220), so the tab is not a toggle — Escape, the index's own
+     close button or a link dismisses it. */
+  it('does not try to toggle an index the bar cannot reach', () => {
+    const onOpenNav = vi.fn();
+    const onCloseNav = vi.fn();
+    render(<MobileBottomBar navOpen onOpenNav={onOpenNav} onCloseNav={onCloseNav} />);
+
+    fireEvent.click(screen.getByTestId('mobile-bottom-bar-categories'));
+
+    expect(onOpenNav).toHaveBeenCalledTimes(1);
+    expect(onCloseNav).not.toHaveBeenCalled();
+  });
+
+  it('moves the pill onto Categories while the index is open, dropping the route tab', () => {
     render(<MobileBottomBar navOpen onOpenNav={noop} />);
 
     const categories = screen.getByTestId('mobile-bottom-bar-categories');

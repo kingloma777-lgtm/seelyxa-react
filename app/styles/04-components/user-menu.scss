@@ -122,6 +122,6 @@
   .s-user-menu-dropdown-item-logout
     .s-user-menu-dropdown-item-link
     .s-user-menu-dropdown-item-prefix {
-    background-color: #ff443a;
+    background-color: var(--danger-on-ink);
   }
 }

@@ -13,6 +13,10 @@
 
 .bottom-sheet__backdrop {
   @apply absolute inset-0 bg-black/50;
+  /* `global_overlay` — the veil behind every sheet, drawer and modal. The
+     `@apply` above is the shipped 50%; `--scrim` re-reads the same alpha from
+     the token, so the setting moves this and the hero captions together. */
+  background: var(--scrim);
   opacity: 0;
   transition: opacity 0.3s ease;
 

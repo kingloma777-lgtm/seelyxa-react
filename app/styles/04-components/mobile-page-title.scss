@@ -15,6 +15,12 @@
   svg {
     @apply h-5 w-5;
   }
+
+  /* the glyph is the RTL "back" arrow; LTR mirrors it, so switching language
+     never leaves a back button pointing forwards */
+  [dir='ltr'] & svg {
+    transform: scaleX(-1);
+  }
 }
 
 .mobile-page-title__text {

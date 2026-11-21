@@ -17,7 +17,7 @@
      inline-start side and the +/− affordance on the inline-end side. */
   .s-metadata-box-header {
     @apply flex cursor-pointer select-none items-center justify-between gap-3 py-4 text-base font-bold mb-0;
-    color: #1f2937;
+    color: var(--ink-1);
 
     /* drop the engine's leading list icon */
     i {

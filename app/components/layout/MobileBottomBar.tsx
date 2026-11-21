@@ -1,17 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import type { ReactNode } from 'react';
 import { useRouterState } from '@tanstack/react-router';
 import { Link } from '@salla.sa/twilight-theme-engine/common';
 import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
 import { useMobileViewport } from '../../hooks/useMobileViewport';
+import {
+  getCartDrawerState,
+  openCartDrawerFromEvent,
+  subscribeCartDrawer,
+} from '../../lib/cartDrawer';
 import { DashboardSquare01Icon, HomeIcon, SearchIcon, ShoppingBagIcon } from '../icons';
 
 interface MobileBottomBarProps {
-  /** Whether the shared nav drawer (opened from the header) is currently open. */
+  /** Whether the morph header's fullscreen index is currently open. */
   navOpen: boolean;
-  /** Open that same nav drawer — the Categories tab is just another trigger for it. */
+  /** Open that index — the Categories tab is just another trigger for it. */
   onOpenNav: () => void;
-  /** Close it — the Account tab dismisses it before opening the account sheet. */
+  /** Close it — the tab toggles, and the Account tab dismisses it before
+   *  opening the account sheet. */
   onCloseNav?: () => void;
   /** Whether the {@link MobileAccountSheet} (shared with {@link ThemeLayout}) is open. */
   accountOpen?: boolean;
@@ -26,6 +32,12 @@ interface MobileBottomBarProps {
   secondSheetOpen?: boolean;
   /** Close whichever one of those is open. */
   onCloseSecondSheet?: () => void;
+  /**
+   * The cart tab opens the cart drawer instead of navigating to `/cart`
+   * (`theme.settings.enable_cart_drawer`, default on). `false` keeps the plain
+   * link to the cart page.
+   */
+  cartDrawerEnabled?: boolean;
 }
 
 type CartSummary = { count?: number | string | null };
@@ -46,20 +58,22 @@ function getCartSdk(): CartSdk | undefined {
 
 /* ─── Overlay coordination ─────────────────────────────────────────────────
    The tabs fall into two groups: Home / Cart navigate to a route, while
-   Categories, Search and Account each open an overlay — the shared nav drawer,
-   the Salla search modal and the account sheet (`MobileAccountSheet`; the
-   header's own `<salla-user-menu>` dropdown is dismissed too). Whichever
-   tab is tapped, every *other* overlay is dismissed first (so nothing is left
-   stacked behind a backdrop) and the tapped tab's icon lights while its own
-   overlay is open. */
+   Categories, Search and Account each open an overlay — the header's
+   fullscreen index, the Salla search modal and the account sheet
+   (`MobileAccountSheet`; the header's own `<salla-user-menu>` dropdown is
+   dismissed too). Whichever tab is tapped, every *other* overlay is dismissed
+   first (so nothing is left stacked behind a backdrop) and the tapped tab's
+   icon lights while its own overlay is open. */
 
 type Tab = 'home' | 'categories' | 'search' | 'cart' | 'account';
 
 const searchModal = (): Element | null => document.querySelector('salla-modal.s-search-modal');
 
+/* One `<salla-user-menu>` on the page now: the morph header's own. It used to
+   be two (the standard header had one too), hence the old `.header-action`
+   disambiguator. */
 const userMenu = (): (HTMLElement & { opened?: boolean }) | null =>
-  (document.querySelector('salla-user-menu.header-action') ??
-    document.querySelector('salla-user-menu')) as (HTMLElement & { opened?: boolean }) | null;
+  document.querySelector('salla-user-menu') as (HTMLElement & { opened?: boolean }) | null;
 
 /** Open the Salla search modal — the same event the header's search button fires. */
 function openSearch() {
@@ -289,19 +303,22 @@ function BarLink({
  * stay icon-only. On a page no tab owns (product, blog, listing…) nothing is
  * lit.
  *
- * Tapping any tab first dismisses every overlay the other tabs own — the nav
- * drawer, the search modal and the account sheet — so nothing is ever left
- * stacked behind another's backdrop (see {@link closeOverlays}). A tab then
- * lights while its own overlay is open (Search modal, Account sheet,
- * Categories drawer); with none open the route decides — Home on `/`, Cart on
- * `/cart`, Account under `/account` (see {@link activeTab}).
+ * Tapping any tab first dismisses every overlay the other tabs own — the
+ * header's fullscreen index, the search modal and the account sheet — so
+ * nothing is ever left stacked behind another's backdrop (see
+ * {@link closeOverlays}). A tab then lights while its own overlay is open
+ * (Search modal, Account sheet, Categories index); with none open the route
+ * decides — Home on `/`, Cart on `/cart`, Account under `/account` (see
+ * {@link activeTab}).
  *
  * The Account tab toggles {@link MobileAccountSheet} — for guests too, since
  * it also carries the footer widgets the page footer no longer shows on mobile
  * (a guest gets a login button in place of the account links).
  *
- * Mounted once in {@link ThemeLayout}, which also owns the drawer and account
- * sheet `open` state (the drawer is shared with the header). Styling: `04-components/mobile-bottom-bar.scss`.
+ * Mounted once in {@link ThemeLayout}, which also owns the account sheet's
+ * `open` state. The Categories tab drives the header's index through the
+ * `lib/headerMenu` store — the bar and the header share no parent.
+ * Styling: `04-components/mobile-bottom-bar.scss`.
  *
  * Shown on every route, including the product page — its sticky add-to-cart bar
  * is lifted to sit above this one (see `04-components/product.scss`).
@@ -314,9 +331,15 @@ export function MobileBottomBar({
   onAccountOpenChange,
   secondSheetOpen = false,
   onCloseSecondSheet,
+  cartDrawerEnabled = true,
 }: MobileBottomBarProps) {
   const { t } = useTranslation();
   const cartCount = useCartCount();
+  const cartDrawerOpen = useSyncExternalStore(
+    subscribeCartDrawer,
+    getCartDrawerState,
+    getCartDrawerState
+  ).open;
   const isMobile = useMobileViewport();
   const searchOpen = useSearchOpen(isMobile);
   const headerMenuOpen = useUserMenuOpen(isMobile);
@@ -407,11 +430,20 @@ export function MobileBottomBar({
           <Link
             to="/cart"
             className={`mobile-bottom-bar__item mobile-bottom-bar__item--cart${
-              active === 'cart' ? ' is-active' : ''
+              active === 'cart' || cartDrawerOpen ? ' is-active' : ''
             }`}
             aria-current={active === 'cart' ? 'page' : undefined}
+            aria-haspopup={cartDrawerEnabled ? 'dialog' : undefined}
+            aria-expanded={cartDrawerEnabled ? cartDrawerOpen : undefined}
             data-testid="mobile-bottom-bar-cart"
-            onClick={() => openTab('cart')}
+            onClick={(event) => {
+              openTab('cart');
+              // Plain click → the drawer. A modified click keeps the link's
+              // own "open the cart page in a new tab" behaviour.
+              if (cartDrawerEnabled && openCartDrawerFromEvent(event)) {
+                event.preventDefault();
+              }
+            }}
           >
             <span className="mobile-bottom-bar__icon">
               <ShoppingBagIcon aria-hidden="true" />

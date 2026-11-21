@@ -140,7 +140,7 @@
   .s-reviews-summary-row-rate {
     @apply inline-flex shrink-0 items-center justify-end gap-1 text-xs;
     min-width: 2.4ch;
-    color: #6b7280;
+    color: var(--ink-3);
 
     span {
       @apply inline-flex h-3 w-3;
@@ -320,7 +320,7 @@
      doesn't reserve a blank line */
   .s-comments-item-content-container p {
     @apply mb-0 text-sm leading-7;
-    color: #4b5563;
+    color: var(--ink-2);
 
     &:empty {
       @apply hidden;
