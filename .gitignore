@@ -15,3 +15,11 @@ twilight.preview.json
 
 # preview captures from the design-implementation loop (never commit these)
 twilight-preview-assets/
+
+# Local scratch: hand-made backups of the manifest, the layout snapshot
+# `scripts/home-layout.cjs` restores from, and one-off design previews.
+# None of it is theme source — `git show HEAD:twilight.json` is the backup.
+twilight.json.bak-*
+twilight.preview.layout-backup.json
+selia-product-videos-preview.html
+
