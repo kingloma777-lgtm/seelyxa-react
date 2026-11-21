@@ -375,26 +375,36 @@ registerHomeComponentConfig({
 /* @selia:config:end */
 });
 
-// Singleton for client-side (preserves QueryClient cache across navigations)
-// SSR creates fresh instances per request via getRouter()
+/**
+ * Browser-only singleton, so the QueryClient cache survives client navigation.
+ *
+ * It must never be populated on the server. A router owns a QueryClient, and the
+ * engine's `createRouter()` hands that QueryClient to the request-scoped
+ * AsyncLocalStorage (`updateTwilightContext`). Sharing one across requests is
+ * exactly what workerd rejects with
+ *   "Cannot perform I/O on behalf of a different request (I/O type: SpanParent)"
+ * — a query started in request A and settled during request B is an error, not
+ * a cache hit.
+ */
 let clientRouter: ReturnType<typeof createRouter> | null = null;
 
-// TanStack Start expects getRouter() for SSR compatibility
+/**
+ * TanStack Start calls this once per request on the server and once per page
+ * load in the browser.
+ *
+ * Server: always a new router, therefore a new QueryClient, therefore no I/O
+ * object outlives its request. Nothing here may be memoised — not the router,
+ * not the QueryClient, not a dehydrated cache. Only plain JSON (the store
+ * payload) is safe to keep between requests.
+ */
 export function getRouter() {
-  // On client: reuse existing router to preserve QueryClient cache
-  if (typeof window !== 'undefined' && clientRouter) {
-    return clientRouter;
+  if (typeof window === 'undefined') {
+    // One router + one QueryClient per request. Do not cache.
+    return createRouter(routeTree);
   }
 
-  // On SSR or first client load: create new router
-  const router = createRouter(routeTree);
-
-  // Cache for client-side
-  if (typeof window !== 'undefined') {
-    clientRouter = router;
-  }
-
-  return router;
+  clientRouter ??= createRouter(routeTree);
+  return clientRouter;
 }
 
 declare module '@tanstack/react-router' {

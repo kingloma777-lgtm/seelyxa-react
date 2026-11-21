@@ -122,8 +122,19 @@ const CSS = `
 
 let manifestPromise: Promise<RawManifest> | null = null;
 
-/** `/twilight.json` is served by Vite in dev; one fetch per page, shared. */
+/**
+ * `/twilight.json` is served by Vite in dev; one fetch per page, shared.
+ *
+ * Browser only. A module-level promise is a request-crossing I/O object in the
+ * worker: if this ever ran during SSR the promise created for request A would be
+ * awaited in request B and workerd would reject it with "Cannot perform I/O on
+ * behalf of a different request". The panel is lazily imported and only opened
+ * from an effect, so this is a guard, not a hot path.
+ */
 function loadManifest(): Promise<RawManifest> {
+  if (typeof window === 'undefined') {
+    return Promise.reject(new Error('DevColorPanel is browser-only'));
+  }
   manifestPromise ??= fetch(`${import.meta.env.BASE_URL}twilight.json`, { cache: 'no-store' }).then(
     async (response) => {
       if (!response.ok) throw new Error(`twilight.json — HTTP ${response.status}`);
