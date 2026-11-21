@@ -64,7 +64,9 @@ describe('SliderProductsWithHeader', () => {
 
   it('renders title', () => {
     const { container } = render(<SliderProductsWithHeader data={mockData} />);
-    const title = container.querySelector('h3');
+    /* h2, not h3: the block title is a section heading and the page's only h1
+       is the store name, so an h3 here skipped a level. */
+    const title = container.querySelector('h2');
     expect(title?.textContent).toBe('Featured Products');
   });
 

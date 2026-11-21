@@ -54,12 +54,16 @@
     .swiper-lazy {
       &:after {
         @apply content-[''] absolute transition top-0 bg-black/60 w-full h-full;
+        /* the caption veil, one step deeper than the sheet scrim so type stays
+           readable over a photograph; both follow `global_overlay` */
+        background: rgb(0 0 0 / calc(var(--overlay-alpha) + 0.1));
       }
     }
 
     .overlay-bg {
       &:after {
         @apply content-[''] absolute top-0 bg-black/60 w-full h-full;
+        background: rgb(0 0 0 / calc(var(--overlay-alpha) + 0.1));
       }
     }
   }
@@ -146,7 +150,9 @@
 
 /* Square Banner Block */
 .banner-entry {
-  @apply h-[200px] min-h-[200px] bg-gray-100 text-white text-center p-3 xs:p-4 rounded overflow-hidden relative !bg-cover !bg-no-repeat !bg-center;
+  /* `bg-cover` without the `!` so the block's own `data-sq-fit` rule — one
+     class more specific — can still switch the tile to `contain`. */
+  @apply h-[200px] min-h-[200px] bg-gray-100 text-white text-center p-3 xs:p-4 rounded overflow-hidden relative bg-cover !bg-no-repeat !bg-center;
 
   article {
     @apply flex flex-col items-center justify-center h-full p-2.5
@@ -205,6 +211,7 @@
 .has-overlay {
   &:after {
     @apply content-[''] h-full w-full bg-black/60 absolute top-0 left-0 transition-colors duration-300;
+    background: rgb(0 0 0 / calc(var(--overlay-alpha) + 0.1));
   }
 
   &.with-hover {
@@ -1053,6 +1060,22 @@ salla-reviews:not(:has(.s-reviews-swiper-slide)) {
     grid-template-areas: 'tl' 'center' 'tr' 'bl' 'br';
     aspect-ratio: auto;
   }
+}
+
+/* `squar_photo_bg_image_size` — the block-scoped setting this section answers
+   to. `EnhancedSquareBanners` publishes it as `data-sq-fit` on its own root, so
+   the rule reaches both layouts (the mosaic's `.enhanced-square-banner` tiles
+   and the plain grid's `.banner-entry` tiles) without an `!important`.
+   `contain` letterboxes the photo inside the tile instead of cropping it,
+   which is what a merchant selling tall or wide pieces actually wants. */
+[data-sq-fit='contain'] .enhanced-square-banner,
+[data-sq-fit='contain'] .banner-entry {
+  background-size: contain;
+}
+
+[data-sq-fit='cover'] .enhanced-square-banner,
+[data-sq-fit='cover'] .banner-entry {
+  background-size: cover;
 }
 
 .enhanced-square-banner {

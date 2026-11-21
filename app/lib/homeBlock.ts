@@ -7,11 +7,24 @@ export type BlockRow = Record<string, unknown>;
 export const clamp = (value: number, min = 0, max = 1) =>
   Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
 
-/** Top-level settings arrive short (`title`) or prefixed (`block_title`). */
+/** Top-level settings arrive short (`title`) or prefixed (`block_title`).
+ *
+ * The PREFIXED form wins, because that is the real field id — the one the
+ * merchant's editor writes. The short alias is only a convenience for seed
+ * data and for direct props, and reading it first is a silent trap: a block
+ * whose seed data carries `image` next to the merchant's `second_skin_image`
+ * keeps rendering the seed image forever, so "I changed the image in the
+ * settings and nothing happened". Presence (even empty) is authoritative, so
+ * clearing a field in the editor actually clears it instead of falling back
+ * to the seed text. */
 export function readValue(data: BlockData | undefined, key: string, prefix: string): unknown {
   if (!data) return undefined;
-  if (data[key] !== undefined && data[key] !== null) return data[key];
-  return data[`${prefix}_${key}`] ?? data[`${prefix}.${key}`];
+  const present = (value: unknown) => value !== undefined && value !== null;
+  const underscored = data[`${prefix}_${key}`];
+  if (present(underscored)) return underscored;
+  const dotted = data[`${prefix}.${key}`];
+  if (present(dotted)) return dotted;
+  return data[key];
 }
 
 export function readText(
@@ -23,13 +36,37 @@ export function readText(
   return scalar(readValue(data, key, prefix)) || fallback;
 }
 
+/** `readText`, except an explicitly EMPTY value stays empty.
+ *
+ * `readText` treats `''` as "not set" and returns the fallback. That is right
+ * for a field whose fallback is `''`, and wrong for copy that ships with a
+ * default: the merchant clears the field in the editor and the seed text comes
+ * straight back, so the control looks broken. Here "absent" means "use the
+ * default" and "cleared" means "show nothing" — the distinction the merchant
+ * is actually making. */
+export function readTextOr(
+  data: BlockData | undefined,
+  key: string,
+  prefix: string,
+  fallback = ''
+): string {
+  const raw = readValue(data, key, prefix);
+  if (raw === undefined || raw === null) return fallback;
+  return scalar(raw);
+}
+
 export function readNumber(
   data: BlockData | undefined,
   key: string,
   prefix: string,
   fallback: number
 ): number {
-  const value = Number(scalar(readValue(data, key, prefix)));
+  const raw = readValue(data, key, prefix);
+  /* `Number('')` is 0, so an unset field would silently become zero instead of
+     taking the default — every numeric setting needs the empty case spelled
+     out, not just the NaN one. */
+  if (raw === undefined || raw === null || raw === '') return fallback;
+  const value = Number(scalar(raw));
   return Number.isFinite(value) ? value : fallback;
 }
 

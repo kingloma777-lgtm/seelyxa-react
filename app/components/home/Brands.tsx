@@ -19,9 +19,16 @@ export interface BrandsProps {
 export const Brands = memo(function Brands({ data }: BrandsProps) {
   const { brands, title, show_all: showAll } = data;
   const { t } = useTranslation();
-  // Twig's brands block shows "View All" by the theme's setting; the component sends no `show_all`.
+  // Twig's brands block shows "View All" by the theme's setting; the component
+  // sends no `show_all`. `home.brands` is a Salla block, so the theme cannot
+  // declare a field on it — the read order below is what makes the setting
+  // movable: the block's own data wins the moment a field exists, the saved
+  // theme value is the fallback, and the block's designed default is last.
   const { theme } = useTwilight();
-  const showMoreButton = theme?.settings?.is_more_button_enabled;
+  const showMoreButton =
+    (data.is_more_button_enabled as boolean | undefined) ??
+    theme?.settings?.is_more_button_enabled ??
+    false;
 
   if (!brands.length) return null;
 
@@ -31,7 +38,7 @@ export const Brands = memo(function Brands({ data }: BrandsProps) {
   return (
     <>
       <div className="container">
-        {(title || showAll) && (
+        {(title || showAll || showMoreButton) && (
           <div className="s-block__title">
             {title && (
               <div className="right-side">

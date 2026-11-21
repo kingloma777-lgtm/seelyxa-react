@@ -1,7 +1,14 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import { EnhancedSquareBanners } from '../../../app/components/home/EnhancedSquareBanners';
+
+/** The saved theme value the block falls back to when its own data has none. */
+const themeSettings = vi.hoisted(() => ({ value: {} as Record<string, unknown> }));
+
+vi.mock('@salla.sa/twilight-theme-engine/providers', () => ({
+  useTwilight: () => ({ theme: { settings: themeSettings.value } }),
+}));
 
 // Mock the sub-path exports
 vi.mock('@salla.sa/twilight-theme-engine/common', () => ({
@@ -34,6 +41,10 @@ describe('EnhancedSquareBanners', () => {
     { image: 'banner2.jpg', url: '/url2', title: 'Banner 2', description: 'Desc 2' },
     { image: 'banner3.jpg', url: '/url3' },
   ];
+
+  beforeEach(() => {
+    themeSettings.value = {};
+  });
 
   it('renders banner items', () => {
     const { container } = render(<EnhancedSquareBanners data={{ banners: mockBanners }} />);
@@ -112,6 +123,47 @@ describe('EnhancedSquareBanners', () => {
       const { container } = render(<EnhancedSquareBanners data={{ banners: noUrl }} />);
       const last = container.querySelectorAll('.enhanced-square-banner')[4];
       expect(last.querySelector('.enhanced-square-banner__cta')).toBeNull();
+    });
+  });
+
+  /* `squar_photo_bg_image_size` is a setting for THIS block. It used to be
+     published as `data-sq-fit` on `.app-inner` — an attribute every page
+     carried for one block to read. The block now owns it, and the read order
+     is what lets the setting move to a block field without a code change. */
+  describe('image fit', () => {
+    const fitOf = (container: HTMLElement) =>
+      container.querySelector('[data-sq-fit]')?.getAttribute('data-sq-fit');
+
+    it('defaults to contain, which is what the block shipped with', () => {
+      const { container } = render(<EnhancedSquareBanners data={{ banners: mockBanners }} />);
+      expect(fitOf(container)).toBe('contain');
+    });
+
+    it('reads the saved theme value', () => {
+      themeSettings.value = { squar_photo_bg_image_size: 'cover' };
+      const { container } = render(<EnhancedSquareBanners data={{ banners: mockBanners }} />);
+      expect(fitOf(container)).toBe('cover');
+    });
+
+    it('lets the block own value win over the theme value', () => {
+      themeSettings.value = { squar_photo_bg_image_size: 'contain' };
+      const { container } = render(
+        <EnhancedSquareBanners data={{ banners: mockBanners, background_size: 'cover' }} />
+      );
+      expect(fitOf(container)).toBe('cover');
+    });
+
+    it('publishes the fit on its own root in both layouts', () => {
+      const five = [...mockBanners, { image: 'd.jpg', url: '/d' }, { image: 'e.jpg', url: '/e' }];
+      const grid = render(<EnhancedSquareBanners data={{ banners: mockBanners }} />);
+      const mosaic = render(<EnhancedSquareBanners data={{ banners: five }} />);
+
+      // grid root
+      expect(grid.container.firstElementChild?.getAttribute('data-sq-fit')).toBe('contain');
+      // mosaic root
+      expect(
+        mosaic.container.querySelector('.enhanced-square-banners-mosaic')?.getAttribute('data-sq-fit')
+      ).toBe('contain');
     });
   });
 });

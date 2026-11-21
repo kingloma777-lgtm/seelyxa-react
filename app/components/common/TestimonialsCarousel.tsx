@@ -54,7 +54,7 @@ export interface TestimonialsCarouselProps {
  * `04-components/home-blocks.scss` (`.s-testimonials` / `.testimonial-card`).
  */
 export function TestimonialsCarousel({ items, title, description }: TestimonialsCarouselProps) {
-  const { t } = useTranslation();
+  const { t, isRTL } = useTranslation();
   const scroller = useRef<HTMLDivElement>(null);
   const drag = useDragScroll(scroller);
   const [pos, setPos] = useState(0);
@@ -81,12 +81,15 @@ export function TestimonialsCarousel({ items, title, description }: Testimonials
     return () => observer.disconnect();
   }, [sync, items]);
 
-  const scrollByCard = (dir: number) => {
+  /** `forward` = travel toward the END of the row; the layout direction owns
+   * the sign, exactly as in `ScrollCarousel` — a hardcoded sign leaves the
+   * English store's arrows pointing and moving backwards. */
+  const scrollByCard = (forward: number) => {
     const el = scroller.current;
     if (!el) return;
     const card = el.querySelector<HTMLElement>('.testimonial-card');
     const step = (card?.offsetWidth || el.clientWidth * 0.8) + 24;
-    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+    el.scrollBy({ left: (isRTL ? -1 : 1) * forward * step, behavior: 'smooth' });
   };
 
   if (!items.length) return null;
@@ -129,16 +132,16 @@ export function TestimonialsCarousel({ items, title, description }: Testimonials
           <button
             type="button"
             aria-label={t('blocks.home.reviews_prev', 'Previous')}
-            onClick={() => scrollByCard(1)}
+            onClick={() => scrollByCard(-1)}
           >
-            <ArrowRightIcon aria-hidden="true" />
+            {isRTL ? <ArrowRightIcon aria-hidden="true" /> : <ArrowLeftIcon aria-hidden="true" />}
           </button>
           <button
             type="button"
             aria-label={t('blocks.home.reviews_next', 'Next')}
-            onClick={() => scrollByCard(-1)}
+            onClick={() => scrollByCard(1)}
           >
-            <ArrowLeftIcon aria-hidden="true" />
+            {isRTL ? <ArrowLeftIcon aria-hidden="true" /> : <ArrowRightIcon aria-hidden="true" />}
           </button>
         </div>
       </div>

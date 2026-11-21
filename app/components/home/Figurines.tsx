@@ -28,13 +28,6 @@ import { ArrowLeftIcon, ArrowRightIcon } from '../icons';
  * geometry tiers are CSS, not JS resize state — one source of truth.
  */
 
-/** Anton is the reference's display face for the Latin show-words. React 19
- * hoists these links into <head> and dedupes them; `font-display: swap` keeps
- * text visible while it loads, and the theme font is the fallback, so the
- * block never blocks on the font. */
-const ANTON_HREF =
-  'https://fonts.googleapis.com/css2?family=Anton&display=swap';
-
 /** Row fields are keyed by the SHORT name; the prefixed id only as a fallback
  * (`main-links` is the proof — old rule 15). Top-level settings arrive EITHER
  * short (`store_label`) or under the declared id (`figurines_store_label`,
@@ -90,7 +83,10 @@ const roleFor = (index: number, active: number, length: number): Role => {
 };
 
 export function Figurines({ data }: FigurinesProps) {
-  const { t } = useTranslation();
+  /* SSR-safe direction: the engine derives it from the store's theme data.
+     `document.documentElement.dir` is undefined on the server, which would
+     render the LTR arrows there and the RTL arrows on an Arabic client. */
+  const { t, isRTL } = useTranslation();
   const figurines = useMemo<Figurine[]>(
     () =>
       rowsFrom(data.figurines)
@@ -276,7 +272,6 @@ export function Figurines({ data }: FigurinesProps) {
 
   if (!slice) return null;
 
-  const isRTL = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
   const nextIcon = isRTL ? <ArrowLeftIcon width={26} height={26} strokeWidth={2.25} /> : <ArrowRightIcon width={26} height={26} strokeWidth={2.25} />;
 
   const current = figurines[Math.min(activeIdx, figurines.length - 1)] ?? figurines[0];
@@ -308,9 +303,10 @@ export function Figurines({ data }: FigurinesProps) {
       onPointerUp={onPointerUp}
       style={{ '--fig-bg': bg } as CSSProperties}
     >
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link rel="stylesheet" href={ANTON_HREF} precedence="figurines-fonts" />
+      {/* The display faces come from `app.scss`'s single Google Fonts request.
+          This block used to add its own `<link>` for a family that request
+          already carried — a second stylesheet request for the same CSS, and a
+          second preconnect pair, on every page that mounted the block. */}
 
       {/* film grain keeps the flat colour from reading as a solid fill */}
       <div className="figurines__grain" aria-hidden />

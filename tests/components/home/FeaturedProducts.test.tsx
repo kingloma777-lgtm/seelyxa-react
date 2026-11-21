@@ -20,7 +20,11 @@ vi.mock('@salla.sa/twilight-theme-engine/api/product', () => ({
   product: { list: (...args: unknown[]) => listMock(...args) },
 }));
 
-vi.mock('@salla.sa/twilight-theme-engine/product', () => ({
+/* FeaturedProducts renders the THEME's card wrapper, not the engine's card
+   directly. That wrapper now owns a detail query and the card settings
+   context, neither of which is what this block's own tests are about — so it
+   is stubbed the same way FixedProducts / ProductsSlider stub it. */
+vi.mock('../../../app/components/product/ProductCard', () => ({
   ProductCard: ({
     product,
     layout,
