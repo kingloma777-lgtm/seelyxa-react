@@ -6,13 +6,13 @@
     `salla theme preview --with-editor` / `vite dev` leave three kinds of orphan
     behind on Windows when a run dies badly:
 
-      * workerd.exe  — the Cloudflare runtime child. It survives its parent, keeps
+      * workerd.exe  - the Cloudflare runtime child. It survives its parent, keeps
                        the SSR inspector socket, and the next run dies with
                        "There was an access violation in the runtime".
-      * node.exe running `vite.js dev` — keeps 5173/5177 bound, so the next run
+      * node.exe running `vite.js dev` - keeps 5173/5177 bound, so the next run
                        reports "Port 5177 is already in use".
       * node.exe running `scripts/dev-local.cjs` or
-        `@salla.sa/cli ... theme dev|preview` — the wrappers that *respawn* the
+        `@salla.sa/cli ... theme dev|preview` - the wrappers that *respawn* the
                        vite process, which is why killing vite alone is not enough.
 
     Nothing is matched by name alone. A process is ours when its command line
@@ -32,17 +32,22 @@
     Leave `@salla.sa/cli theme dev|preview` parents alone (they only get killed
     when they are an ancestor of a repo dev server anyway).
 
+.PARAMETER DryRun
+    Print what would be killed and still probe the ports, without killing
+    anything. (`-WhatIf` is avoided on purpose: it leaks into the auto-loaded
+    modules and buries the output in "Performing the operation ..." noise.)
+
 .EXAMPLE
     pnpm clean:dev
 
 .EXAMPLE
-    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/clean-dev.ps1 -WhatIf
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/clean-dev.ps1 -DryRun
 #>
-[CmdletBinding(SupportsShouldProcess = $true)]
 param(
     [int[]] $Ports = @(5173, 5177, 9229),
     [switch] $KeepVite,
-    [switch] $KeepCli
+    [switch] $KeepCli,
+    [switch] $DryRun
 )
 
 $ErrorActionPreference = 'Stop'
@@ -124,26 +129,28 @@ else {
     foreach ($p in $targets) {
         $label = '{0} [{1}] {2}' -f $p.Name, $p.ProcessId,
             ($p.CommandLine.Substring(0, [Math]::Min(70, $p.CommandLine.Length)))
-        if ($PSCmdlet.ShouldProcess($label, 'Stop-Process')) {
-            try {
-                Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop
-                Write-Host "  killed $label" -ForegroundColor DarkYellow
+        if ($DryRun) {
+            Write-Host "  would kill $label" -ForegroundColor DarkGray
+            continue
+        }
+        try {
+            Stop-Process -Id $p.ProcessId -Force -ErrorAction Stop
+            Write-Host "  killed $label" -ForegroundColor DarkYellow
+        }
+        catch {
+            # Dying with its parent between the snapshot and the kill is the
+            # normal case for workerd - that is a success, not a failure.
+            if ($_.Exception.Message -match 'Cannot find a process') {
+                Write-Host "  gone   $label" -ForegroundColor DarkGray
             }
-            catch {
-                # Dying with its parent between the snapshot and the kill is the
-                # normal case for workerd — that is a success, not a failure.
-                if ($_.Exception.Message -match 'Cannot find a process') {
-                    Write-Host "  gone   $label" -ForegroundColor DarkGray
-                }
-                else {
-                    Write-Host "  could not kill $label : $($_.Exception.Message)" -ForegroundColor Red
-                }
+            else {
+                Write-Host "  could not kill $label : $($_.Exception.Message)" -ForegroundColor Red
             }
         }
     }
     # workerd releases its listening sockets a moment after the process object
     # disappears; give the OS a beat before probing ports.
-    Start-Sleep -Milliseconds 400
+    if (-not $DryRun) { Start-Sleep -Milliseconds 400 }
 }
 
 function Get-PortOwner {
@@ -169,6 +176,10 @@ foreach ($port in $Ports) {
         continue
     }
     $name = try { (Get-Process -Id $owner -ErrorAction Stop).ProcessName } catch { 'unknown' }
+    if ($DryRun -and $targets | Where-Object { $_.ProcessId -eq $owner }) {
+        Write-Host ("  port {0,-5} held by {1} [{2}] - a target above" -f $port, $name, $owner) -ForegroundColor DarkGray
+        continue
+    }
     Write-Host ("  port {0,-5} STILL HELD by {1} [{2}]" -f $port, $name, $owner) -ForegroundColor Red
     $blocked += $port
 }
@@ -179,6 +190,11 @@ if ($blocked.Count -gt 0) {
     Write-Host 'Those owners are not dev processes from this repo, so they were left alone.' -ForegroundColor DarkGray
     Write-Host 'Stop them yourself, or start the dev server on another port.' -ForegroundColor DarkGray
     exit 1
+}
+
+if ($DryRun) {
+    Write-Host 'clean-dev: dry run only - nothing was killed.' -ForegroundColor Yellow
+    exit 0
 }
 
 Write-Host 'clean-dev: ready.' -ForegroundColor Green

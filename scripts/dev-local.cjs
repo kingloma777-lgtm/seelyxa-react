@@ -25,6 +25,7 @@
  * Set SEELYXA_NO_RETRY=1 to see the raw Vite failure on the first attempt.
  */
 const { spawn } = require('node:child_process');
+const net = require('node:net');
 const path = require('node:path');
 
 const PROXY_KEYS = [
@@ -62,6 +63,12 @@ const root = path.resolve(__dirname, '..');
 const viteBin = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
 const viteArgs = ['dev', ...process.argv.slice(2)];
 
+// Ports this theme occupies: Vite (5173), the Salla editor preview (5177) and
+// the Node inspector (9229). A stale workerd from a previous run holds 5177 and
+// 9229, and Vite then silently drifts to 5174/9230 — the editor keeps pointing
+// at 5177 and the browser shows the old dead server. Fail loudly instead.
+const REQUIRED_PORTS = [5173, 5177, 9229];
+
 const MAX_ATTEMPTS = 4;
 const RESTART_DELAY_MS = 2000;
 const HEALTHY_MS = 120000;
@@ -77,6 +84,46 @@ let startedAt = 0;
 function remember(text) {
   tail = (tail + text).slice(-12000);
 }
+
+/** True when something is already listening on `port` (either address family). */
+function isPortBusy(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    const done = (busy) => {
+      server.removeAllListeners();
+      try {
+        server.close();
+      } catch {
+        /* already closed */
+      }
+      resolve(busy);
+    };
+    server.once('error', (error) => done(error.code === 'EADDRINUSE'));
+    server.once('listening', () => done(false));
+    // '::' covers both ::1 and 127.0.0.1 on Windows.
+    server.listen({ port, host: '::', exclusive: true });
+  });
+}
+
+async function preflight() {
+  if (process.env.SEELYXA_SKIP_PORT_CHECK === '1') return;
+  const busy = [];
+  for (const port of REQUIRED_PORTS) {
+    if (await isPortBusy(port)) busy.push(port);
+  }
+  if (busy.length === 0) return;
+
+  console.error(
+    `\n[dev-local] port${busy.length > 1 ? 's' : ''} ${busy.join(', ')} already in use.`
+  );
+  console.error(
+    '            A previous workerd / vite run is still alive. Free them with:\n' +
+      '              pnpm clean:dev\n' +
+      '            (or run `node scripts/dev-local.cjs --port 5180` to pick another port).\n'
+  );
+  process.exit(1);
+}
+
 
 function start() {
   attempts += 1;
@@ -141,4 +188,10 @@ for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
   });
 }
 
-start();
+// Check the ports once, then boot. The crash-retry path below reuses `start()`
+// directly: after a crash our own socket may still be in TIME_WAIT, and blocking
+// on that would turn a self-healing restart into a hard failure.
+preflight().then(start, (error) => {
+  console.error('[dev-local] port preflight failed:', error);
+  process.exit(1);
+});
