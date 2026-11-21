@@ -95,10 +95,16 @@ export default defineConfig(async () => ({
     // engine's bundled screens/components (they call useSuspenseQuery /
     // useTranslation but don't own these). Without dedupe the strict published
     // layout resolves a second copy → "No QueryClient set" / missing i18n context.
+    // `pnpm why` confirms react/react-dom are installed once (19.2.8); the
+    // entries stay because pnpm can legitimately materialise a peer-variant
+    // copy on any future install, and that is the failure this prevents.
     dedupe: [
       'react',
       'react-dom',
       'react/jsx-runtime',
+      'react/jsx-dev-runtime',
+      'react-dom/client',
+      'react-dom/server',
       '@tanstack/react-router',
       '@tanstack/react-query',
       'react-i18next',
@@ -119,6 +125,19 @@ export default defineConfig(async () => ({
       // resolve and poisons the whole pre-bundle (the missing deps_ssr file).
       optimizeDeps: {
         include: [
+          // React itself, in the SSR environment, for the same reason: the
+          // pre-bundled react-query / react-i18next chunks get their own copy of
+          // React inlined unless `react` is an explicit pre-bundle entry. When
+          // the app's own SSR modules then import the externalised CJS copy,
+          // React is loaded twice and the render throws
+          //   "Invalid hook call … Cannot read properties of null (reading 'useEffect')"
+          // inside QueryClientProvider. Listing react here makes every SSR
+          // consumer resolve to the single pre-bundled ESM instance.
+          'react',
+          'react-dom',
+          'react/jsx-runtime',
+          'react/jsx-dev-runtime',
+          'react-dom/server',
           '@tanstack/react-query',
           '@salla.sa/twilight-theme-engine > react-i18next',
           '@salla.sa/twilight-theme-engine > i18next',
