@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>كود المجسم — من ملف إلى نص جاهز للّصق</title>
+<style>
+  :root {
+    --ink: #f2f2ee;
+    --dim: #9a9a92;
+    --faint: #6d6d66;
+    --bg: #101010;
+    --card: #181818;
+    --card-2: #1f1f1e;
+    --line: #2c2c2a;
+    --lime: #d7ff3e;
+    --green: #4ad07a;
+    --amber: #f0b429;
+    --red: #ff5f57;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body {
+    font: 15px/1.75 "Segoe UI", system-ui, -apple-system, Tahoma, sans-serif;
+    padding: 40px 20px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.2px; }
+  .sub { color: var(--dim); margin: 0 0 28px; font-size: 14.5px; }
+  .sub b { color: var(--ink); font-weight: 600; }
+
+  .drop {
+    border: 1.5px dashed #3a3a37;
+    border-radius: 16px;
+    background: var(--card);
+    padding: 44px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, transform .15s;
+  }
+  .drop:hover, .drop:focus-visible { border-color: #5a5a54; outline: none; }
+  .drop.over { border-color: var(--lime); background: #1b1d13; transform: scale(.997); }
+  .drop.busy { opacity: .6; pointer-events: none; }
+  .drop svg { width: 34px; height: 34px; opacity: .85; }
+  .drop strong { display: block; margin-top: 12px; font-size: 17px; }
+  .drop span { display: block; color: var(--dim); font-size: 13.5px; margin-top: 6px; }
+
+  .opts { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; margin: 18px 0 0; }
+  .opts label { color: var(--dim); font-size: 13.5px; display: flex; align-items: center; gap: 7px; }
+  select, .btn {
+    font: inherit; color: var(--ink); background: var(--card-2);
+    border: 1px solid var(--line); border-radius: 9px; padding: 7px 11px;
+  }
+  select { cursor: pointer; }
+  input[type=checkbox] { accent-color: var(--lime); width: 15px; height: 15px; }
+
+  .result { margin-top: 26px; display: none; }
+  .result.on { display: block; }
+  .verdict { font-size: 19px; font-weight: 650; margin: 0 0 14px; line-height: 1.5; }
+  .verdict.ok { color: var(--green); }
+  .verdict.warn { color: var(--amber); }
+  .verdict.bad { color: var(--red); }
+  .verdict small { display: block; color: var(--dim); font-weight: 400; font-size: 13.5px; margin-top: 4px; }
+
+  .gauge { position: relative; height: 12px; border-radius: 999px; background: #242422; overflow: hidden; }
+  .gauge i { position: absolute; inset-block: 0; inset-inline-start: 0; width: 0; border-radius: 999px; transition: width .35s ease; }
+  .gauge i.ok { background: var(--green); }
+  .gauge i.warn { background: var(--amber); }
+  .gauge i.bad { background: var(--red); }
+  .gauge u { position: absolute; inset-block: -3px; width: 2px; background: #55554e; }
+  .ticks { display: flex; justify-content: space-between; color: var(--faint); font-size: 12px; margin-top: 6px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; }
+  .chip {
+    background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 12px; font-size: 13px; color: var(--dim);
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .btn { cursor: pointer; padding: 10px 18px; font-weight: 600; }
+  .btn.primary { background: var(--lime); color: #101010; border-color: var(--lime); }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn:disabled { opacity: .38; cursor: not-allowed; }
+  .btn.primary:disabled { background: #33332f; border-color: #33332f; color: #7d7d76; opacity: 1; }
+  .btn.ghost { background: transparent; }
+
+  .notes { margin: 18px 0 0; padding: 0; list-style: none; }
+  .notes li {
+    font-size: 13.5px; color: var(--dim); padding: 7px 0;
+    border-top: 1px solid var(--line);
+  }
+  .notes li:first-child { border-top: 0; }
+
+  .advice { margin-top: 20px; background: #1c1613; border: 1px solid #4a3227; border-radius: 14px; padding: 18px 20px; }
+  .advice h3 { margin: 0 0 10px; font-size: 15px; color: #ffb38a; }
+  .advice ol { margin: 0; padding-inline-start: 20px; color: #e2cdc3; font-size: 14px; }
+  .advice li { margin: 6px 0; }
+  .advice code { background: #2a201b; padding: 1px 6px; border-radius: 5px; font-size: 12.5px; }
+  .advice .try { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .why { margin-top: 34px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .why summary { cursor: pointer; color: var(--dim); font-size: 14px; }
+  .why p { color: var(--dim); font-size: 13.5px; }
+  .why b { color: var(--ink); }
+
+  .error {
+    display: none; margin-top: 20px; padding: 16px 18px; border-radius: 12px;
+    background: #221312; border: 1px solid #4a2422; color: #ffb3ae; font-size: 14px;
+  }
+  .error.on { display: block; }
+  .error code { color: #ffd9d6; }
+
+  textarea.preview { display: none; position: absolute; left: -9999px; }
+  .foot { color: var(--faint); font-size: 12.5px; margin-top: 26px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>كود المجسم</h1>
+  <p class="sub">
+    ارفع ملف <b>.glb</b> أو <b>.gltf</b> هنا، وخُد النص اللي بيتحط في حقل
+    <b>«كود المجسم (لصق)»</b> في محرّر الثيم — النص بيتعمل هنا، بعيد عن المحرّر،
+    عشان المحرّر ما يعلّقش.
+  </p>
+
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="اختيار ملف المجسم">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-3"/>
+    </svg>
+    <strong>اسحب الملف هنا، أو اضغط للاختيار</strong>
+    <span>لو الـ gltf بيشاور على ملف <code>.bin</code> أو صور، اختارهم مع بعض في نفس المرة.</span>
+  </div>
+  <input type="file" id="picker" multiple accept=".glb,.gltf,.bin,.png,.jpg,.jpeg,.webp,.ktx2" hidden>
+
+  <div class="opts">
+    <label>الصور:
+      <select id="textures">
+        <option value="512">تصغير لـ 512px (الأنسب)</option>
+        <option value="256">تصغير لـ 256px</option>
+        <option value="keep">من غير تصغير</option>
+        <option value="strip">بدون صور خالص</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="prune" checked> قلّم بيانات الرؤوس الزايدة</label>
+  </div>
+
+  <div class="error" id="error"></div>
+
+  <div class="result" id="result">
+    <p class="verdict" id="verdict"></p>
+    <div class="gauge"><i id="fill"></i><u style="inset-inline-start:37.5%"></u></div>
+    <div class="ticks"><span>0</span><span>150 ألف (لصق مريح)</span><span>400 ألف (الحد)</span></div>
+    <div class="chips" id="chips"></div>
+    <div class="actions">
+      <button class="btn primary" id="copy">انسخ النص</button>
+      <button class="btn ghost" id="download">نزّل .txt</button>
+    </div>
+    <ul class="notes" id="notes"></ul>
+    <div class="advice" id="advice" style="display:none">
+      <h3>النص أكبر من الحقل — ما تنسخش</h3>
+      <ol id="advice-list"></ol>
+      <div class="try">
+        <button class="btn ghost" data-try="strip">جرّب من غير صور</button>
+        <button class="btn ghost" data-try="256">جرّب 256px</button>
+      </div>
+    </div>
+  </div>
+
+  <details class="why">
+    <summary>ليه في حد أقصى ٤٠٠ ألف حرف؟</summary>
+    <p>
+      مش لأن المتصفح ما يقدرش. النص ده بيتخزن في <b>إعدادات متجرك</b> وبيتبعت مع
+      <b>كل زيارة للصفحة</b>، فكل كيلوبايت زيادة بيتحمّل على كل زائر — على الموبايل.
+      والأسوأ إن محرّر الثيم نفسه بيهنّج وانت بتلصق نص ضخم، قبل ما الحقل يستلمه.
+      عشان كده الحد ٤٠٠ ألف حرف (حوالي ٣٠٠ كيلوبايت مجسم)، وأي لصق أكبر بيتم رفضه
+      قبل ما يتقرأ — والمشهد بيرجع للشكل المحايد والصفحة ما بتقعش.
+    </p>
+    <p>
+      مجسم أكبر من كده بجد؟ ده مش مكانه هنا: ارفعه على استضافة عامة
+      (Cloudflare R2 / S3 / GitHub Releases) واستخدم <b>حقل الرابط</b> اللي تحت الحقل ده.
+    </p>
+  </details>
+
+  <p class="foot">
+    الملف ده بيشتغل أوفلاين — مافيش رفع ولا سيرفر، المجسم مش بيسيب جهازك.
+    ملف واحد مستقل: انقله على أي جهاز وافتحه بالدبل كليك، مافيش ملفات تانية لازم تكون جنبه.
+  </p>
+</div>
+<textarea class="preview" id="preview" readonly></textarea>
+
+<script>
+/* == MODEL-CORE-BEGIN == */
+/* ==========================================================================
+   The converter — a .glb / .gltf file → the one string «كود المجسم» takes.
+
+   Why this file exists. The theme editor has no uploader for a model and
+   Salla does not host one, so the block reads the model as *text*. Getting
+   that text out of a file used to mean running Python, and getting it small
+   enough to fit the 400 000-character ceiling meant going back to Blender.
+   Both steps are just arithmetic on a JSON document, so they run here — in a
+   page the merchant opens by double-click, with no build, no network and no
+   dependency.
+
+   The three things that actually make a model too heavy, in the order they
+   usually apply:
+
+     1. textures — a 2K PNG per part is megabytes of the file and almost
+        never needs to be 2K for a product on a phone;
+     2. vertex data nobody asked for — a second UV set, tangents, vertex
+        colours that the block's own material never reads;
+     3. triangles — the one thing that genuinely needs a DCC tool, so this
+        file does not pretend to do it.
+
+   Loaded as a classic <script> (works from file://, where ES modules are
+   blocked by CORS) and required as a module in the tests.
+   ========================================================================== */
+
+var ModelCodeCore = (function () {
+  'use strict';
+
+  /* Must equal MAX_MODEL_CODE in app/lib/modelCode.ts and BUDGET in
+     tools/glb-to-text.py. Three copies of one number is one too many, so the
+     test suite pins them against each other. */
+  var MAX_MODEL_CODE = 400000;
+
+  /* Above this, pasting into the editor's textarea is slow enough that the
+     merchant thinks it hung — even though it is under the ceiling. The
+     ceiling is about page weight; this is about the editor's own input. */
+  var COMFORTABLE = 150000;
+
+  var GLB_MAGIC = 0x46546c67; /* 'glTF' little-endian */
+  var CHUNK_JSON = 0x4e4f534a; /* 'JSON' */
+  var CHUNK_BIN = 0x004e4942; /* 'BIN\0' */
+
+  /* ---------------------------------------------------------------- bytes */
+
+  function base64FromBytes(bytes) {
+    var chunk = 0x8000;
+    var text = '';
+    for (var index = 0; index < bytes.length; index += chunk) {
+      text += String.fromCharCode.apply(null, bytes.subarray(index, index + chunk));
+    }
+    return btoa(text);
+  }
+
+  function bytesFromBase64(text) {
+    var binary = atob(text);
+    var bytes = new Uint8Array(binary.length);
+    for (var index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+    return bytes;
+  }
+
+  function dataUri(mime, bytes) {
+    return 'data:' + (mime || 'application/octet-stream') + ';base64,' + base64FromBytes(bytes);
+  }
+
+  function decodeDataUri(uri) {
+    if (typeof uri !== 'string' || uri.slice(0, 5) !== 'data:') return null;
+    var comma = uri.indexOf(',');
+    if (comma < 0) return null;
+    var head = uri.slice(5, comma);
+    if (!/;base64/i.test(head)) return null;
+    try {
+      return {
+        mime: head.replace(/;base64/i, '').split(';')[0] || 'application/octet-stream',
+        bytes: bytesFromBase64(uri.slice(comma + 1).replace(/\s+/g, '')),
+      };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function concatBytes(parts, total) {
+    var out = new Uint8Array(total);
+    var offset = 0;
+    for (var index = 0; index < parts.length; index += 1) {
+      out.set(parts[index], offset);
+      offset += parts[index].length;
+    }
+    return out;
+  }
+
+  function humanBytes(count) {
+    if (count < 1024) return count + ' بايت';
+    if (count < 1024 * 1024) return (count / 1024).toFixed(count < 10240 ? 1 : 0) + ' ك.ب';
+    return (count / (1024 * 1024)).toFixed(1) + ' م.ب';
+  }
+
+  /* ------------------------------------------------------------------ GLB */
+
+  function isGlb(bytes) {
+    if (!bytes || bytes.length < 12) return false;
+    var view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    return view.getUint32(0, true) === GLB_MAGIC;
+  }
+
+  function parseGlb(bytes) {
+    var view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    if (view.getUint32(0, true) !== GLB_MAGIC) throw new Error('الملف مش GLB صالح.');
+    var version = view.getUint32(4, true);
+    if (version !== 2) throw new Error('إصدار GLB رقم ' + version + ' — المطلوب إصدار 2.');
+    var declared = view.getUint32(8, true);
+    var end = Math.min(declared || bytes.byteLength, bytes.byteLength);
+    var decoder = new TextDecoder('utf-8');
+    var document = null;
+    var binary = null;
+    var offset = 12;
+    while (offset + 8 <= end) {
+      var chunkLength = view.getUint32(offset, true);
+      var chunkType = view.getUint32(offset + 4, true);
+      var start = offset + 8;
+      if (start + chunkLength > bytes.byteLength) break;
+      if (chunkType === CHUNK_JSON && !document) {
+        document = JSON.parse(decoder.decode(bytes.subarray(start, start + chunkLength)));
+      } else if (chunkType === CHUNK_BIN && !binary) {
+        binary = bytes.subarray(start, start + chunkLength);
+      }
+      offset = start + chunkLength;
+    }
+    if (!document) throw new Error('الملف GLB لكن مافيهوش جزء JSON — الملف تالف.');
+    return { document: document, binary: binary };
+  }
+
+  function parseEntry(entry) {
+    if (!entry || !entry.bytes || !entry.bytes.length) throw new Error('مافيش ملف.');
+    if (isGlb(entry.bytes)) {
+      var glb = parseGlb(entry.bytes);
+      return { document: glb.document, binary: glb.binary, fromGlb: true };
+    }
+    var text = new TextDecoder('utf-8').decode(entry.bytes).replace(/^\uFEFF/, '').trim();
+    if (text.charAt(0) !== '{') {
+      throw new Error('الملف ده مش GLB ولا glTF. لو عندك .fbx أو .obj حوّله الأول لـ glTF من Blender.');
+    }
+    var document;
+    try {
+      document = JSON.parse(text);
+    } catch (error) {
+      throw new Error('ملف glTF مكسور: ' + error.message);
+    }
+    return { document: document, binary: null, fromGlb: false };
+  }
+
+  /* --------------------------------------------------------------- buffers */
+
+  function normalisePath(path) {
+    var clean = String(path).split('?')[0].split('#')[0];
+    try {
+      clean = decodeURIComponent(clean);
+    } catch (error) {
+      /* a %-sequence that is not valid UTF-8 is still a path */
+    }
+    return clean.replace(/^\.\//, '').replace(/\\/g, '/').toLowerCase();
+  }
+
+  function findSibling(name, files) {
+    var wanted = normalisePath(name);
+    var base = wanted.split('/').pop();
+    var keys = Object.keys(files || {});
+    for (var index = 0; index < keys.length; index += 1) {
+      if (normalisePath(keys[index]) === wanted) return files[keys[index]];
+    }
+    for (var second = 0; second < keys.length; second += 1) {
+      if (normalisePath(keys[second]).split('/').pop() === base) return files[keys[second]];
+    }
+    return null;
+  }
+
+  /* A glTF document keeps its bytes somewhere else: inside the GLB chunk, in
+     a data URI, or in a sibling file the merchant may or may not have picked
+     along with it. All three end up as one byte array per buffer. */
+  function resolveBuffers(document, binary, files, notes) {
+    var declared = document.buffers || [];
+    var out = [];
+    for (var index = 0; index < declared.length; index += 1) {
+      var buffer = declared[index] || {};
+      var uri = buffer.uri;
+      if (typeof uri === 'string' && uri) {
+        var inline = decodeDataUri(uri);
+        if (inline) {
+          out.push(inline.bytes);
+          continue;
+        }
+        var sibling = findSibling(uri, files);
+        if (sibling) {
+          out.push(sibling);
+          continue;
+        }
+        throw new Error(
+          'الملف محتاج "' + uri + '" جنبه. اختاره مع الـ gltf في نفس المرة، أو استخدم ملف .glb بدلًا منه.'
+        );
+      }
+      if (index === 0 && binary && binary.length) {
+        out.push(binary);
+        continue;
+      }
+      throw new Error('الـ glTF ده بيشاور على بيانات مش موجودة في الملف (buffer رقم ' + index + ').');
+    }
+    if (!declared.length) notes.push('الملف مافيهوش بيانات شبكة — يمكن يكون وصف مشاهد بس.');
+    return out;
+  }
+
+  /* -------------------------------------------------------------- traversal */
+
+  function eachObject(node, visit) {
+    if (!node || typeof node !== 'object') return;
+    if (Array.isArray(node)) {
+      for (var index = 0; index < node.length; index += 1) eachObject(node[index], visit);
+      return;
+    }
+    visit(node);
+    for (var key in node) {
+      var value = node[key];
+      if (value && typeof value === 'object') eachObject(value, visit);
+    }
+  }
+
+  /* --------------------------------------------------------------- textures */
+
+  function imagePayload(document, image, buffers) {
+    if (!image) return null;
+    if (typeof image.bufferView === 'number') {
+      var view = (document.bufferViews || [])[image.bufferView];
+      if (!view) return null;
+      var buffer = buffers[view.buffer || 0];
+      if (!buffer) return null;
+      var start = view.byteOffset || 0;
+      return {
+        bytes: buffer.subarray(start, start + view.byteLength),
+        mime: image.mimeType || 'image/png',
+      };
+    }
+    if (typeof image.uri === 'string') {
+      var inline = decodeDataUri(image.uri);
+      if (inline) return { bytes: inline.bytes, mime: image.mimeType || inline.mime };
+    }
+    return null;
+  }
+
+  /* A material that still points at a texture we removed is a loader error,
+     not a grey product — so the references go with the images. glTF names
+     every texture slot `…Texture` (`baseColorTexture`, `normalTexture`,
+     `occlusionTexture`, `KHR_materials_specular`'s `specularColorTexture`…),
+     which is the rule this leans on. */
+  function dropTextureSlots(material) {
+    eachObject(material, function (node) {
+      for (var key in node) {
+        if (/texture$/i.test(key) && node[key] && typeof node[key] === 'object') delete node[key];
+      }
+    });
+  }
+
+  function stripTextures(document) {
+    var images = document.images || [];
+    (document.materials || []).forEach(dropTextureSlots);
+    if (document.extensions) {
+      /* a material extension can carry its own textures; they are gone too */
+      eachObject(document.extensions, function (node) {
+        for (var key in node) {
+          if (/texture$/i.test(key) && node[key] && typeof node[key] === 'object') delete node[key];
+        }
+      });
+    }
+    delete document.images;
+    delete document.textures;
+    delete document.samplers;
+    return images.length;
+  }
+
+  async function shrinkTextures(document, buffers, options, notes) {
+    var images = document.images || [];
+    var encode = options.encodeImage;
+    var maxPx = options.maxTexture || 512;
+    if (!encode) {
+      notes.push('النسخة دي مش بتصغّر الصور — الصور هتفضل بحجمها الأصلي.');
+      return { before: 0, after: 0, changed: 0 };
+    }
+    var before = 0;
+    var after = 0;
+    var changed = 0;
+    for (var index = 0; index < images.length; index += 1) {
+      var payload = imagePayload(document, images[index], buffers);
+      if (!payload) continue;
+      before += payload.bytes.length;
+      after += payload.bytes.length;
+      /* KTX2 / Basis images are already compressed and cannot be decoded by a
+         canvas; re-encoding them would be a downgrade, so they pass through. */
+      if (/ktx2|basis/i.test(payload.mime)) {
+        notes.push('فيه صورة KTX2 سبتها زي ما هي — مضغوطة أصلًا.');
+        continue;
+      }
+      var result = null;
+      try {
+        result = await encode(payload.bytes, payload.mime, maxPx);
+      } catch (error) {
+        result = null;
+      }
+      if (!result || !result.bytes || result.bytes.length >= payload.bytes.length) continue;
+      after += result.bytes.length - payload.bytes.length;
+      changed += 1;
+      images[index].uri = dataUri(result.mime, result.bytes);
+      delete images[index].bufferView;
+      delete images[index].mimeType;
+    }
+    return { before: before, after: after, changed: changed };
+  }
+
+  /* ---------------------------------------------------------------- buffers
+     Nothing is smaller until the bytes are physically gone: removing an image
+     from `images` leaves its bytes in the buffer, and the buffer is what gets
+     base64'd into the paste. This rewrites one packed buffer from only the
+     bufferViews something still points at. */
+
+  function compactBuffers(document, buffers, notes) {
+    var extensions = document.extensionsUsed || [];
+    if (extensions.indexOf('EXT_meshopt_compression') >= 0) {
+      notes.push('الملف مضغوط بـ meshopt — سيبت البيانات زي ما هي (إعادة الترتيب بتكسر الضغط).');
+      return { bytes: buffers.reduce(function (sum, b) { return sum + b.length; }, 0), packed: false };
+    }
+
+    var views = document.bufferViews || [];
+    var used = {};
+    eachObject(document, function (node) {
+      if (typeof node.bufferView === 'number') used[node.bufferView] = true;
+    });
+
+    var starts = [];
+    var cursor = 0;
+    buffers.forEach(function (buffer) {
+      starts.push(cursor);
+      cursor += buffer.length;
+    });
+
+    var pieces = [];
+    var total = 0;
+    var kept = [];
+    var remap = {};
+    for (var index = 0; index < views.length; index += 1) {
+      if (!used[index]) continue;
+      var view = views[index];
+      var buffer = buffers[view.buffer || 0];
+      if (!buffer) continue;
+      var start = (view.byteOffset || 0) + starts[view.buffer || 0];
+      var length = view.byteLength || 0;
+      var padding = (4 - (total % 4)) % 4;
+      if (padding) {
+        pieces.push(new Uint8Array(padding));
+        total += padding;
+      }
+      pieces.push(buffer.subarray(start, start + length));
+      view.buffer = 0;
+      view.byteOffset = total;
+      total += length;
+      remap[index] = kept.length;
+      kept.push(view);
+    }
+
+    if (kept.length !== views.length) {
+      document.bufferViews = kept;
+      eachObject(document, function (node) {
+        if (typeof node.bufferView === 'number' && typeof remap[node.bufferView] === 'number') {
+          node.bufferView = remap[node.bufferView];
+        }
+      });
+    }
+    if (!kept.length) delete document.bufferViews;
+
+    if (!total) {
+      delete document.buffers;
+      return { bytes: 0, packed: true };
+    }
+
+    document.buffers = [
+      {
+        byteLength: total,
+        uri: dataUri('application/octet-stream', concatBytes(pieces, total)),
+      },
+    ];
+    return { bytes: total, packed: true };
+  }
+
+  /* --------------------------------------------------------------- pruning
+     Vertex attributes the block never reads: it draws with its own material,
+     so a second UV set, tangents and vertex colours are payload with no
+     consumer. Dropping them is lossless for this block and often a third of
+     the geometry. */
+
+  function pruneAttributes(document, notes) {
+    var skinned = Boolean((document.skins || []).length);
+    var removed = 0;
+    (document.meshes || []).forEach(function (mesh) {
+      (mesh.primitives || []).forEach(function (primitive) {
+        var attributes = primitive.attributes || {};
+        var keep = { POSITION: true, NORMAL: true };
+        /* a second UV set is only safe to drop when the first one exists */
+        keep[attributes.TEXCOORD_0 === undefined ? 'TEXCOORD_1' : 'TEXCOORD_0'] = true;
+        if (skinned) {
+          keep.JOINTS_0 = true;
+          keep.WEIGHTS_0 = true;
+        }
+        Object.keys(attributes).forEach(function (name) {
+          if (keep[name]) return;
+          delete attributes[name];
+          var draco = primitive.extensions && primitive.extensions.KHR_draco_mesh_compression;
+          if (draco && draco.attributes) delete draco.attributes[name];
+          removed += 1;
+        });
+        /* morph targets are never driven here — they would only keep dead
+           accessors (and their bytes) alive */
+        if (primitive.targets) {
+          delete primitive.targets;
+          removed += 1;
+        }
+      });
+    });
+    if (removed) notes.push('اتشال ' + removed + ' مجموعة بيانات زيادة (ألوان رؤوس، UV تانية، morph).');
+    return removed;
+  }
+
+  /* Deleting an attribute frees nothing on its own: the accessor it named is
+     still listed in `document.accessors`, and its bufferView therefore still
+     counts as "used". The bytes only leave when the accessor does. */
+  function pruneAccessors(document) {
+    var accessors = document.accessors || [];
+    if (!accessors.length) return 0;
+
+    var used = {};
+    eachObject(document, function (node) {
+      if (typeof node.accessor === 'number') used[node.accessor] = true;
+    });
+    (document.meshes || []).forEach(function (mesh) {
+      (mesh.primitives || []).forEach(function (primitive) {
+        var attributes = primitive.attributes || {};
+        Object.keys(attributes).forEach(function (name) {
+          if (typeof attributes[name] === 'number') used[attributes[name]] = true;
+        });
+        /* `indices` is an accessor index that is *not* under an `accessor`
+           key, so the generic walk above cannot see it. Missing it drops the
+           index buffer and leaves the primitive pointing at whatever accessor
+           slid into its slot — a model that loads as garbage instead of not
+           loading at all, which is the worse failure. */
+        if (typeof primitive.indices === 'number') used[primitive.indices] = true;
+      });
+    });
+
+    var kept = [];
+    var remap = {};
+    for (var index = 0; index < accessors.length; index += 1) {
+      if (!used[index]) continue;
+      remap[index] = kept.length;
+      kept.push(accessors[index]);
+    }
+    if (kept.length === accessors.length) return 0;
+
+    document.accessors = kept;
+    eachObject(document, function (node) {
+      if (typeof node.accessor === 'number' && typeof remap[node.accessor] === 'number') {
+        node.accessor = remap[node.accessor];
+      }
+    });
+    (document.meshes || []).forEach(function (mesh) {
+      (mesh.primitives || []).forEach(function (primitive) {
+        var attributes = primitive.attributes || {};
+        Object.keys(attributes).forEach(function (name) {
+          if (typeof attributes[name] === 'number' && typeof remap[attributes[name]] === 'number') {
+            attributes[name] = remap[attributes[name]];
+          }
+        });
+        if (typeof primitive.indices === 'number' && typeof remap[primitive.indices] === 'number') {
+          primitive.indices = remap[primitive.indices];
+        }
+      });
+    });
+    return accessors.length - kept.length;
+  }
+
+  /* ------------------------------------------------------------------ build */
+
+  /**
+   * @param {{entry:{name:string,bytes:Uint8Array}, files?:Object<string,Uint8Array>,
+   *          textures?:('keep'|number|'strip'), maxTexture?:number,
+   *          prune?:boolean, encodeImage?:Function}} options
+   */
+  async function build(options) {
+    options = options || {};
+    var notes = [];
+    var parsed = parseEntry(options.entry);
+    var document = parsed.document;
+    var buffers = resolveBuffers(document, parsed.binary, options.files || {}, notes);
+
+    var textureMode = options.textures === undefined ? 'keep' : options.textures;
+    var textureStats = { before: 0, after: 0, changed: 0, stripped: 0 };
+    if (textureMode === 'strip') {
+      textureStats.stripped = stripTextures(document);
+    } else if (typeof textureMode === 'number' && textureMode > 0) {
+      textureStats = await shrinkTextures(
+        document,
+        buffers,
+        { encodeImage: options.encodeImage, maxTexture: textureMode },
+        notes
+      );
+    }
+
+    if (options.prune) {
+      pruneAttributes(document, notes);
+      var dropped = pruneAccessors(document);
+      if (dropped) notes.push('اتشال ' + dropped + ' accessor مابقاش له مستخدم.');
+    }
+
+    var packed = compactBuffers(document, buffers, notes);
+
+    /* the paste is measured in characters, not bytes: the field's `maxLength`
+       counts UTF-16 units, and the base64 payload is ASCII, so this is exact */
+    var text = JSON.stringify(document);
+    var textureChars = 0;
+    (document.images || []).forEach(function (image) {
+      if (typeof image.uri === 'string') textureChars += image.uri.length;
+    });
+
+    var fits = text.length <= MAX_MODEL_CODE;
+    return {
+      text: text,
+      chars: text.length,
+      budget: MAX_MODEL_CODE,
+      comfortable: COMFORTABLE,
+      fits: fits,
+      ratio: text.length / MAX_MODEL_CODE,
+      binaryBytes: packed.bytes,
+      textureChars: textureChars,
+      textureStats: textureStats,
+      meshes: (document.meshes || []).length,
+      images: (document.images || []).length,
+      document: document,
+      notes: notes,
+      sourceBytes: options.entry.bytes.length,
+    };
+  }
+
+  return {
+    MAX_MODEL_CODE: MAX_MODEL_CODE,
+    COMFORTABLE: COMFORTABLE,
+    build: build,
+    isGlb: isGlb,
+    parseGlb: parseGlb,
+    parseEntry: parseEntry,
+    decodeDataUri: decodeDataUri,
+    dataUri: dataUri,
+    humanBytes: humanBytes,
+  };
+})();
+/* == MODEL-CORE-END == */
+</script>
+<script>
+(function () {
+  'use strict';
+
+  var drop = document.getElementById('drop');
+  var picker = document.getElementById('picker');
+  var textures = document.getElementById('textures');
+  var prune = document.getElementById('prune');
+  var errorBox = document.getElementById('error');
+  var result = document.getElementById('result');
+  var verdict = document.getElementById('verdict');
+  var fill = document.getElementById('fill');
+  var chips = document.getElementById('chips');
+  var notes = document.getElementById('notes');
+  var advice = document.getElementById('advice');
+  var adviceList = document.getElementById('advice-list');
+  var copyBtn = document.getElementById('copy');
+  var downloadBtn = document.getElementById('download');
+  var preview = document.getElementById('preview');
+
+  /* The converter is inlined above, in this same file, on purpose: the page
+     gets copied around, mailed, and opened from a preview panel that serves
+     it under a different base path — and a sibling `<script src>` fails
+     silently in every one of those cases, leaving a page that looks ready and
+     does nothing. One file, no dependency, no way to half-load. */
+  var core = ModelCodeCore;
+
+  var current = null;   /* the last built result */
+  var files = {};       /* every dropped file, by name */
+
+  function human(number) {
+    return number.toLocaleString('en-US');
+  }
+
+  /* canvas is the only decoder the browser gives us for free; anything it
+     refuses (KTX2, exotic formats) is left exactly as it was */
+  function encodeImage(bytes, mime, maxPx) {
+    return new Promise(function (resolve) {
+      if (typeof createImageBitmap !== 'function') return resolve(null);
+      var blob = new Blob([bytes], { type: mime || 'image/png' });
+      createImageBitmap(blob).then(function (bitmap) {
+        var largest = Math.max(bitmap.width, bitmap.height);
+        var scale = Math.min(1, maxPx / largest);
+        var width = Math.max(1, Math.round(bitmap.width * scale));
+        var height = Math.max(1, Math.round(bitmap.height * scale));
+        var canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        var context = canvas.getContext('2d');
+        context.drawImage(bitmap, 0, 0, width, height);
+        bitmap.close && bitmap.close();
+        var finish = function (blob) {
+          if (!blob) return resolve(null);
+          blob.arrayBuffer().then(function (buffer) {
+            resolve({ bytes: new Uint8Array(buffer), mime: blob.type || 'image/png' });
+          });
+        };
+        canvas.toBlob(function (webp) {
+          if (webp) return finish(webp);
+          canvas.toBlob(finish, 'image/jpeg', 0.85);
+        }, 'image/webp', 0.85);
+      }).catch(function () {
+        resolve(null);
+      });
+    });
+  }
+
+  function pickEntry(map) {
+    var names = Object.keys(map);
+    var glb = names.filter(function (name) { return /\.glb$/i.test(name); });
+    if (glb.length) return glb[0];
+    var gltf = names.filter(function (name) { return /\.gltf$/i.test(name); });
+    if (gltf.length) return gltf[0];
+    return null;
+  }
+
+  function showError(message) {
+    errorBox.className = 'error on';
+    errorBox.textContent = message;
+    result.className = 'result';
+  }
+
+  function clearError() {
+    errorBox.className = 'error';
+    errorBox.textContent = '';
+  }
+
+  function buildNow() {
+    var name = pickEntry(files);
+    if (!name) return;
+    var mode = textures.value;
+    drop.classList.add('busy');
+    clearError();
+
+    /* one paint before the heavy work, so "بيقرا…" is actually visible */
+    setTimeout(function () {
+      core.build({
+        entry: { name: name, bytes: files[name] },
+        files: files,
+        textures: mode === 'keep' ? 'keep' : mode === 'strip' ? 'strip' : Number(mode),
+        maxTexture: Number(mode) || 512,
+        prune: prune.checked,
+        encodeImage: encodeImage
+      }).then(function (built) {
+        drop.classList.remove('busy');
+        current = built;
+        render(built);
+      }).catch(function (error) {
+        drop.classList.remove('busy');
+        current = null;
+        showError(error && error.message ? error.message : String(error));
+      });
+    }, 30);
+  }
+
+  function render(built) {
+    result.className = 'result on';
+    preview.value = built.text;
+
+    var share = Math.min(1, built.chars / built.budget);
+    var tone = built.chars > built.budget ? 'bad' : built.chars > built.comfortable ? 'warn' : 'ok';
+    fill.className = tone;
+    fill.style.width = Math.round(share * 100) + '%';
+
+    if (tone === 'ok') {
+      verdict.className = 'verdict ok';
+      verdict.innerHTML =
+        'يدخل الحقل ✔' +
+        '<small>' + human(built.chars) + ' حرف من ' + human(built.budget) +
+        ' — فاضي ' + human(built.budget - built.chars) + ' حرف. انسخ والصق في الحقل مرة واحدة.</small>';
+    } else if (tone === 'warn') {
+      verdict.className = 'verdict warn';
+      verdict.innerHTML =
+        'يدخل، بس تقيل على اللصق' +
+        '<small>' + human(built.chars) + ' حرف — تحت الحد، لكن محرّر الثيم ممكن يتلخم ثانية وانت بتلصق. ' +
+        'لو حصل، جرّب تصغير الصور أو «بدون صور».</small>';
+    } else {
+      verdict.className = 'verdict bad';
+      verdict.innerHTML =
+        'أكبر من الحقل بـ ' + built.ratio.toFixed(1) + ' مرة ✕' +
+        '<small>' + human(built.chars) + ' حرف، والحد ' + human(built.budget) +
+        '. اللصق هيتم رفضه — والأحسن إنك ما تحاولش، المحرّر بيهنّج.</small>';
+    }
+
+    var chipsHtml = [
+      '<span class="chip">المجسم <b>' + core.humanBytes(built.sourceBytes) + '</b> أصلي</span>',
+      '<span class="chip">البيانات بعد التقليم <b>' + core.humanBytes(built.binaryBytes) + '</b></span>',
+      '<span class="chip">النص <b>' + human(built.chars) + '</b> حرف</span>'
+    ];
+    if (built.images) chipsHtml.push('<span class="chip">صور <b>' + built.images + '</b></span>');
+    if (built.meshes) chipsHtml.push('<span class="chip">قطع <b>' + built.meshes + '</b></span>');
+    chips.innerHTML = chipsHtml.join('');
+
+    var notesHtml = (built.notes || []).map(function (note) {
+      return '<li>' + note + '</li>';
+    });
+    if (built.textureStats && built.textureStats.changed) {
+      notesHtml.unshift(
+        '<li>اتصغّرت ' + built.textureStats.changed + ' صورة: ' +
+        core.humanBytes(built.textureStats.before) + ' ← ' + core.humanBytes(built.textureStats.after) + '</li>'
+      );
+    }
+    notes.innerHTML = notesHtml.join('');
+
+    copyBtn.disabled = !built.fits;
+    downloadBtn.disabled = !built.fits;
+
+    if (built.fits) {
+      advice.style.display = 'none';
+      return;
+    }
+
+    advice.style.display = 'block';
+    var need = Math.round((1 - built.budget / built.chars) * 100);
+    var steps = [];
+    if (built.images && textures.value !== 'strip') {
+      steps.push('جرّب «بدون صور» أو 256px من فوق — الصور غالبًا نص الوزن، والحقل ده بيلوّن المجسم بنفسه.');
+    }
+    if (!prune.checked) {
+      steps.push('شغّل «قلّم بيانات الرؤوس الزايدة» — بتشيل ألوان الرؤوس و UV التانية اللي محدش بيقراها.');
+    }
+    steps.push('لازم تقلل حوالي <b>' + need + '%</b>. أسرع طريقة: Blender ← Modifier ← Decimate بنسبة 0.1–0.2.');
+    steps.push('صدّر من Blender: glTF 2.0 + Compression: Draco + صور 512px.');
+    steps.push('لسه كبير؟ ده مجسم محتاج استضافة: ارفعه على R2 أو S3 أو GitHub Releases واستخدم حقل الرابط اللي تحت حقل الكود.');
+    adviceList.innerHTML = steps.map(function (step) { return '<li>' + step + '</li>'; }).join('');
+  }
+
+  function readFiles(list) {
+    var chosen = Array.prototype.slice.call(list || []);
+    if (!chosen.length) return;
+    var pending = chosen.length;
+    chosen.forEach(function (file) {
+      file.arrayBuffer().then(function (buffer) {
+        files[file.name] = new Uint8Array(buffer);
+        pending -= 1;
+        if (!pending) buildNow();
+      });
+    });
+  }
+
+  drop.addEventListener('click', function () { picker.click(); });
+  drop.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      picker.click();
+    }
+  });
+  picker.addEventListener('change', function () {
+    readFiles(picker.files);
+    picker.value = '';
+  });
+
+  ['dragenter', 'dragover'].forEach(function (type) {
+    drop.addEventListener(type, function (event) {
+      event.preventDefault();
+      drop.classList.add('over');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (type) {
+    drop.addEventListener(type, function (event) {
+      event.preventDefault();
+      drop.classList.remove('over');
+    });
+  });
+  drop.addEventListener('drop', function (event) {
+    if (event.dataTransfer && event.dataTransfer.files) readFiles(event.dataTransfer.files);
+  });
+  window.addEventListener('dragover', function (e) { e.preventDefault(); });
+  window.addEventListener('drop', function (e) { e.preventDefault(); });
+
+  textures.addEventListener('change', function () { if (current) buildNow(); });
+  prune.addEventListener('change', function () { if (current) buildNow(); });
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-try]'), function (button) {
+    button.addEventListener('click', function () {
+      textures.value = button.getAttribute('data-try');
+      buildNow();
+    });
+  });
+
+  copyBtn.addEventListener('click', function () {
+    if (!current) return;
+    var done = function () {
+      copyBtn.textContent = 'اتنسخ ✔';
+      setTimeout(function () { copyBtn.textContent = 'انسخ النص'; }, 1800);
+    };
+    var fallback = function () {
+      preview.style.display = 'block';
+      preview.style.position = 'fixed';
+      preview.style.left = '0';
+      preview.style.top = '0';
+      preview.style.opacity = '0';
+      preview.select();
+      try { document.execCommand('copy'); done(); } catch (error) { /* nothing left to try */ }
+      preview.style.display = 'none';
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(current.text).then(done, fallback);
+    } else {
+      fallback();
+    }
+  });
+
+  downloadBtn.addEventListener('click', function () {
+    if (!current) return;
+    var blob = new Blob([current.text], { type: 'text/plain;charset=utf-8' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'model-code.txt';
+    link.click();
+    setTimeout(function () { URL.revokeObjectURL(link.href); }, 4000);
+  });
+})();
+</script>
+</body>
+</html>

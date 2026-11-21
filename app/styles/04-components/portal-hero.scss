@@ -1,0 +1,615 @@
+/* ==========================================================================
+   portal-hero — walk through a portal, land in a world, read the reviews.
+
+   One number owns the walk-through: `--ph-p` (0 → 1), the intro's own scroll
+   progress, written by `useScrollProgress`. `--ph-eased` is the same number
+   after the reference's ease, and the two transforms below are pure CSS
+   arithmetic on it, so a frame costs one style write and no React render.
+
+   Nothing here is `position: fixed`: the world layer is `sticky` inside the
+   block and pulls the next section up with a negative block-end margin, so it
+   covers this block and only this block.
+   ========================================================================== */
+
+.s-block--portal-hero {
+  @apply mt-0 sm:mt-0;
+}
+
+/* Reserved height for the lazy wrapper: the engine's `height` is a static
+   string, so the pacing tier arrives as a class that sets the variable the
+   string reads. The router and the component share `portalHeroRunClass`, so
+   the reservation cannot disagree with the block. */
+@each $key, $run in (short: 40, medium: 80, long: 140) {
+  .portal-hero-run--#{$key} {
+    --ph-run: #{$run}svh;
+  }
+}
+
+.portal-hero {
+  --ph-text: #ffffff;
+  --ph-accent: #d9d9d9;
+  --ph-card: #f7fbff;
+  --ph-card-ink: #2c2420;
+  --ph-scrim: 0.45;
+  /* 1 in LTR, -1 in RTL: every horizontal move and the card tilt are
+     multiplied by it, so the fan mirrors with the page instead of dragging the
+     reader the wrong way */
+  --ph-dir: 1;
+  --ph-run: 80svh;
+
+  /* written per frame by the scroll loop */
+  --ph-p: 0;
+  --ph-eased: 0;
+  /* written per frame by the pointer loop, ±1 */
+  --ph-mx: 0;
+  --ph-my: 0;
+
+  position: relative;
+  isolation: isolate;
+  background: #0b0d10;
+  color: var(--ph-text);
+  font-family: var(--font-main), system-ui, sans-serif;
+}
+
+.portal-hero *,
+.portal-hero *::before,
+.portal-hero *::after {
+  box-sizing: border-box;
+}
+
+/* ── the world ─────────────────────────────────────────────────────────────
+   Sticky with a negative block-end margin: it occupies one viewport of flow,
+   then hands that viewport back, so the intro starts at the block's top and
+   the reviews scroll over the same image. `overflow: hidden` is on the layer
+   itself (never on an ancestor) — an ancestor with `overflow: hidden` would
+   become a scroll container and the sticky stage would stop sticking. */
+
+.portal-hero__world {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  height: 100svh;
+  margin-block-end: -100svh;
+  overflow: hidden;
+  background: #0b0d10;
+}
+
+.portal-hero__world-inner {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 50%;
+  transform: scale(calc(1 + 0.18 * var(--ph-eased)))
+    translate(calc(var(--ph-mx) * -6px), calc(var(--ph-my) * -6px));
+  will-change: transform;
+}
+
+.portal-hero__world img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── act one: the walk-through ─────────────────────────────────────────────
+   The intro's height is the scroll budget: one viewport plus the run. The
+   stage sticks for exactly the run, which is also what `useScrollProgress`
+   measures — so the zoom is finished by the time the reviews arrive. */
+
+.portal-hero__intro {
+  position: relative;
+  z-index: 1;
+  height: calc(100svh + var(--ph-run));
+}
+
+.portal-hero__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.portal-hero__portal {
+  position: absolute;
+  inset: 0;
+  transform-origin: 52% 38%;
+  /* the doorway is 52% 38% of the frame, not the centre: that is where the
+     reference's portal actually is, and zooming about the middle slides the
+     opening out of frame on the way in */
+  transform: scale(calc(1 + 6.5 * var(--ph-eased)))
+    translate(calc(var(--ph-mx) * -7px), calc(var(--ph-my) * -7px));
+  /* 1 until 66%, then gone by 88% — the portal dissolves into the world it
+     was covering, so the hand-off is a fade and not a cut */
+  opacity: clamp(0, calc((0.88 - var(--ph-p)) / 0.22), 1);
+  will-change: transform, opacity;
+}
+
+.portal-hero__portal img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Readability only: the reference trusts the photo, which works for one photo
+   and fails for a merchant's bright product shot. */
+.portal-hero__veil {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / var(--ph-scrim)) 0%,
+    rgb(0 0 0 / calc(var(--ph-scrim) * 0.55)) 42%,
+    transparent 82%
+  );
+  opacity: clamp(0, calc(1 - var(--ph-p) / 0.22), 1);
+  pointer-events: none;
+}
+
+.portal-hero__copy {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(24px, 4vw, 80px);
+  padding: 0 clamp(22px, 3.4vw, 44px) clamp(40px, 5vh, 52px);
+  /* the copy leaves in the first fifth of the walk — the portal needs the
+     frame to itself while it opens */
+  opacity: clamp(0, calc(1 - var(--ph-p) / 0.22), 1);
+}
+
+/* `pointer-events` cannot read a number, and an invisible CTA that still
+   swallows clicks is worse than no CTA — the component toggles this class. */
+.portal-hero.is-past-intro .portal-hero__copy {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.portal-hero__lede {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  max-width: 560px;
+}
+
+.portal-hero__title {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(40px, 4vw, 58px);
+  line-height: 1.04;
+  color: var(--ph-text);
+  text-align: start;
+  text-wrap: balance;
+  animation: ph-rise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+}
+
+/* negative tracking tightens a Latin display line and mangles an Arabic one,
+   so it is a property of the flow, not of the block */
+.portal-hero[data-flow='ltr'] .portal-hero__title {
+  letter-spacing: -0.02em;
+}
+
+.portal-hero__line {
+  display: block;
+}
+
+.portal-hero__eyebrow {
+  display: inline-block;
+  margin-inline-end: 0.12em;
+  font-family: var(--font-script);
+  font-size: 1.15em;
+  line-height: 0.9;
+  color: var(--ph-accent);
+  letter-spacing: 0;
+}
+
+.portal-hero__body {
+  max-width: 340px;
+  margin: 0;
+  font-size: clamp(13px, 1.2vw, 15px);
+  line-height: 1.6;
+  color: var(--ph-text);
+  /* the reference runs this at 50%; on a bright photo that is a suggestion of
+     text rather than text. 72% still reads as secondary copy */
+  opacity: 0.72;
+  animation: ph-rise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both;
+}
+
+.portal-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: var(--ph-card);
+  color: var(--ph-card-ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease;
+  animation: ph-rise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.65s both;
+}
+
+.portal-hero__cta:hover {
+  filter: brightness(0.93);
+  transform: translateY(-1px);
+}
+
+.portal-hero__cta-arrow {
+  display: inline-flex;
+  /* points along the reading direction: → in LTR, ← in RTL */
+  transform: scaleX(var(--ph-dir));
+}
+
+.portal-hero__cta-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.portal-hero__sign {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  animation: ph-rise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.75s both;
+}
+
+.portal-hero__sign-mark {
+  font-family: var(--font-script);
+  font-size: 64px;
+  line-height: 0.8;
+  color: var(--ph-text);
+}
+
+.portal-hero__sign-text {
+  max-width: 150px;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ph-text);
+  opacity: 0.7;
+}
+
+@keyframes ph-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── act two: the reviews ──────────────────────────────────────────────────
+   Transparent on purpose: the world layer is still stuck behind it. */
+
+.portal-hero__reviews {
+  position: relative;
+  z-index: 1;
+  padding: clamp(72px, 14vh, 140px) 24px clamp(56px, 8vh, 90px);
+}
+
+.portal-hero__reviews-head {
+  text-align: center;
+}
+
+.portal-hero__reviews-title {
+  margin: 0;
+  font-weight: 500;
+  font-size: clamp(34px, 4vw, 52px);
+  line-height: 1.1;
+  color: var(--ph-text);
+  /* a tight shadow for definition plus the reference's wide one for lift: the
+     heading sits on a photo, and the wide blur alone leaves the letterforms
+     soft against a bright sky */
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 2px 20px rgb(0 0 0 / 0.35);
+}
+
+.portal-hero[data-flow='ltr'] .portal-hero__reviews-title {
+  letter-spacing: -0.02em;
+}
+
+.portal-hero__reviews-body {
+  max-width: 420px;
+  margin: 16px auto 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--ph-text);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.35),
+    0 2px 16px rgb(0 0 0 / 0.3);
+}
+
+.portal-hero__arc {
+  margin-top: clamp(60px, 8vh, 80px);
+}
+
+/* ── the arc ───────────────────────────────────────────────────────────────
+   Every number the reference switched in JS lives here, so the row reflows
+   with a media query instead of a re-render. The component writes only
+   `--pos` (signed distance from the active card) and `--abs`. */
+
+.portal-hero__cards {
+  --ph-card-w: 300px;
+  --ph-card-h: 420px;
+  --ph-step-x: 295px;
+  --ph-drop-y: 52px;
+  --ph-tilt: 8deg;
+  --ph-arc-h: 560px;
+  --ph-lift: 0px;
+
+  position: relative;
+  height: var(--ph-arc-h);
+  /* the fan is wider than the screen by design — clip the sides, keep the
+     vertical overflow (the outer cards sink below the row) */
+  overflow-x: clip;
+  touch-action: pan-y;
+}
+
+.portal-hero__card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: calc(100 - var(--abs));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: var(--ph-card-w);
+  height: var(--ph-card-h);
+  padding: 36px 28px;
+  border-radius: 28px;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  /* The reference paints the neighbours as white glass with white text. That
+     reads over its own dark photo and fails the moment a merchant drops a
+     bright one in — which the reference's own sky background already proves.
+     Same surface, same ink, one step dimmer: the hierarchy (lit centre, quiet
+     neighbours) survives any photo underneath. */
+  background: var(--ph-card);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--ph-card) 84%, transparent) 0%,
+    color-mix(in srgb, var(--ph-card) 62%, transparent) 100%
+  );
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: inset 0 1px 1px rgb(255 255 255 / 0.45);
+  color: var(--ph-card-ink);
+  text-align: center;
+  opacity: clamp(0, calc(0.6 - (var(--abs) - 1) * 0.2), 1);
+  pointer-events: none;
+  transform: translate(
+      calc(-50% + var(--pos) * var(--ph-step-x) * var(--ph-dir)),
+      calc(-50% + var(--abs) * var(--ph-drop-y) + var(--ph-lift))
+    )
+    rotate(calc(var(--pos) * var(--ph-tilt) * var(--ph-dir)));
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.55s ease;
+}
+
+.portal-hero__card.is-center {
+  --ph-lift: 30px;
+
+  opacity: 1;
+  border-color: rgb(255 255 255 / 0.6);
+  background: var(--ph-card);
+  color: var(--ph-card-ink);
+  box-shadow:
+    0 8px 24px rgb(0 0 0 / 0.08),
+    0 0 50px rgb(255 255 255 / 0.55),
+    0 0 90px rgb(255 255 255 / 0.35);
+  pointer-events: auto;
+}
+
+.portal-hero__quote {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+.portal-hero__author {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.portal-hero__author::before {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 1px;
+  margin: 0 auto 10px;
+  background: currentColor;
+  opacity: 0.4;
+}
+
+/* ── arrows ──────────────────────────────────────────────────────────────── */
+
+.portal-hero__nav {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.portal-hero__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  /* a dark disc for "back", the merchant's card colour for "forward": both
+     read on a bright photo, which a white-on-white pair does not */
+  background: rgb(0 0 0 / 0.32);
+  color: #ffffff;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.portal-hero__arrow--next {
+  background: var(--ph-card);
+  color: var(--ph-card-ink);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.18);
+}
+
+.portal-hero__arrow:hover {
+  transform: translateY(-1px);
+}
+
+.portal-hero__arrow:focus-visible {
+  outline: 2px solid var(--ph-text);
+  outline-offset: 3px;
+}
+
+.portal-hero__arrow svg {
+  width: 18px;
+  height: 18px;
+  filter: drop-shadow(0 0 6px rgb(255 255 255 / 0.7));
+}
+
+.portal-hero__arrow--next svg {
+  filter: none;
+}
+
+/* the arrows are chevrons, so they mirror with the page — the buttons
+   themselves keep their DOM order and their labels */
+.portal-hero[data-flow='rtl'] .portal-hero__arrow svg {
+  transform: scaleX(-1);
+}
+
+/* ── small screens ─────────────────────────────────────────────────────────
+   The reference's `useIsMobile` numbers, as a media query: same geometry, one
+   source of truth, and a resize never re-renders the row. */
+
+@media (max-width: 767px) {
+  .portal-hero__title {
+    font-size: clamp(30px, 9vw, 44px);
+  }
+
+  .portal-hero__lede {
+    max-width: 100%;
+  }
+
+  /* the mobile bottom bar is fixed over the page (76px + the safe area), and
+     the CTA is the last thing in the copy — without this the block's own
+     button is half-swallowed by the theme's chrome */
+  .portal-hero__copy {
+    padding-block-end: calc(92px + var(--safe-bottom, 0px));
+  }
+
+  /* the signature column is a desktop ornament — on a phone it would sit on
+     top of the paragraph */
+  .portal-hero__sign {
+    display: none;
+  }
+
+  .portal-hero__cards {
+    --ph-card-w: 230px;
+    --ph-card-h: 320px;
+    --ph-step-x: 170px;
+    --ph-drop-y: 34px;
+    --ph-tilt: 7deg;
+    --ph-arc-h: 460px;
+  }
+
+  .portal-hero__card {
+    padding: 24px 20px;
+    border-radius: 22px;
+  }
+
+  .portal-hero__card.is-center {
+    --ph-lift: 22px;
+  }
+
+  .portal-hero__quote {
+    font-size: 15px;
+  }
+
+  .portal-hero__arrow {
+    width: 42px;
+    height: 42px;
+  }
+
+  /* the arrows are the last row of the section, so the section's own bottom
+     padding is what keeps them clear of the fixed bottom bar */
+  .portal-hero__reviews {
+    padding-block-end: calc(100px + var(--safe-bottom, 0px));
+  }
+}
+
+/* ── reduced motion ─────────────────────────────────────────────────────────
+   The composition settles and the scroll budget collapses with it: a hero, a
+   heading and a row of cards. Leaving the run in place would make the visitor
+   scroll two viewports of a frozen image looking for something to happen.
+   `min-height` is what the engine writes inline, so the override is
+   `!important`; `:has()` keeps it scoped to a placement that really is flat. */
+
+@media (prefers-reduced-motion: reduce) {
+  .s-block--portal-hero {
+    --ph-run: 0svh !important;
+    min-height: 0 !important;
+  }
+
+  .portal-hero__intro {
+    height: 100svh;
+  }
+
+  .portal-hero__portal,
+  .portal-hero__world-inner {
+    transform: none;
+  }
+
+  /* The intro is one viewport here, so its scroll progress hits 1 on the first
+     pixel of scroll — and the portal's dissolve would take the hero's subject
+     with it. The still is the portal, not the world. */
+  .portal-hero__portal,
+  .portal-hero__veil,
+  .portal-hero__copy {
+    opacity: 1;
+  }
+
+  .portal-hero__copy {
+    visibility: visible;
+  }
+
+  .portal-hero__title,
+  .portal-hero__body,
+  .portal-hero__cta,
+  .portal-hero__sign {
+    animation: none;
+  }
+
+  .portal-hero__card {
+    transition: none;
+  }
+}
+
+.portal-hero.is-flat .portal-hero__copy {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.portal-hero.is-flat .portal-hero__portal {
+  opacity: 1;
+}
+
+.s-block--portal-hero:has(.portal-hero.is-flat) {
+  min-height: 0 !important;
+}

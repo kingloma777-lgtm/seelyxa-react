@@ -1,0 +1,856 @@
+/* ==========================================================================
+   shop-the-look — a scene photo with numbered hotspots, beside a product list
+   that totals the look.
+
+   Two colours in, everything else derived: `--look-bg` paints the section,
+   `--look-ink` is every piece of text, and the hairlines / muted greys are
+   mixes of the two. A third colour would be one more thing for a merchant to
+   get wrong in exchange for nothing the design needs.
+
+   The frame keeps ONE aspect ratio at every viewport. The dots are percentages
+   of the frame, and `object-fit: cover` makes the visible part of the photo a
+   function of that ratio alone — a mobile-specific ratio would slide every dot
+   off its object on phones only, which is exactly the class of bug nobody
+   notices until a customer taps empty wall.
+   ========================================================================== */
+
+.s-block--shop-the-look {
+  @apply mt-0 sm:mt-0;
+}
+
+/* The router reserves the block's height before it mounts; the ratio arrives as
+   a class so the reservation and the stylesheet cannot disagree. */
+.look-ar--portrait {
+  --look-ar: 0.86;
+}
+
+.look-ar--square {
+  --look-ar: 1;
+}
+
+.look-ar--landscape {
+  --look-ar: 1.25;
+}
+
+.shop-the-look {
+  --look-bg: #f4f2ec;
+  --look-ink: #2f3a2e;
+  /* NO `--look-ar` here. The router puts the merchant's tier on the WRAPPER
+     (`.look-ar--landscape`), and a custom property declared on this element
+     would shadow the inherited one — the frame then quietly kept the 0.86
+     default whatever the merchant chose. The default lives in the `var()`
+     fallback on the frame instead. */
+  --look-line: color-mix(in srgb, var(--look-ink) 14%, transparent);
+  --look-muted: color-mix(in srgb, var(--look-ink) 58%, var(--look-bg));
+  --look-sunken: color-mix(in srgb, var(--look-ink) 6%, var(--look-bg));
+
+  background: var(--look-bg);
+  color: var(--look-ink);
+  font-family: var(--font-main), system-ui, sans-serif;
+  padding-block: clamp(34px, 6vw, 88px);
+
+  /* A block that paints its own background must own a stacking context.
+     `portal-hero` keeps a `position: sticky; z-index: 0` world layer, and a
+     sticky element is not clipped by its block — so it paints over the next
+     sibling, which is this block, and the section's heading came out hidden
+     behind a sky photograph. `isolation` puts this block in the same layer as
+     that layer but later in DOM order, which is what `arc-coverflow` already
+     relies on. */
+  position: relative;
+  isolation: isolate;
+}
+
+.shop-the-look *,
+.shop-the-look *::before,
+.shop-the-look *::after {
+  box-sizing: border-box;
+}
+
+.shop-the-look__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  align-items: start;
+  gap: clamp(22px, 3.4vw, 56px);
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 40px);
+}
+
+/* No scene photo: the panel takes the whole width rather than sitting in a
+   half-empty two-column grid. */
+.shop-the-look.is-solo .shop-the-look__inner {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 720px;
+}
+
+/* ── the scene ──────────────────────────────────────────────────────────── */
+
+/* The list is usually taller than the photo (three rows plus the total already
+   outgrow a 1.25 frame at desktop width), so the photo would sit at the top
+   with a column of empty paper under it. The wrapper takes the grid row's full
+   height and the figure sticks inside it, which also keeps the picture — and
+   therefore the numbers on it — in view while the customer reads the list.
+   `align-self: stretch` is what gives the sticky element room to move; without
+   it the figure's own height is the whole containing block and it cannot. */
+.shop-the-look__media {
+  align-self: stretch;
+  min-width: 0;
+}
+
+.shop-the-look__scene {
+  position: sticky;
+  top: calc(var(--look-header-offset, 88px));
+  margin: 0;
+  aspect-ratio: var(--look-ar, 0.86);
+  overflow: hidden;
+  border-radius: clamp(14px, 2.2vw, 28px);
+  background: var(--look-sunken);
+  isolation: isolate;
+}
+
+.shop-the-look__photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* The caption sits over the photo's foot on a scrim, because a light caption
+   on a light photo is unreadable and a dark one is unreadable on a dark photo. */
+.shop-the-look__caption {
+  position: absolute;
+  inset: auto 0 0 0;
+  margin: 0;
+  padding: 34px clamp(14px, 2vw, 22px) clamp(12px, 1.6vw, 18px);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #fff;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.52), rgb(0 0 0 / 0));
+  pointer-events: none;
+}
+
+/* ── hotspots ───────────────────────────────────────────────────────────── */
+
+.shop-the-look__dot {
+  position: absolute;
+  /* physical, not logical: the dot belongs to the PHOTO, so it must not swing
+     to the other edge when the store is read left-to-right */
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  /* 44px is the comfortable thumb target; the visible circle inside is 30px */
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--look-ink);
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: transform 0.24s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shop-the-look__dot::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.78);
+  border: 1px solid rgb(255 255 255 / 0.9);
+  box-shadow: 0 8px 22px -10px rgb(0 0 0 / 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* Two breaths when the block scrolls into view, then still: a dot that pulses
+   forever competes with the product it is pointing at. */
+.shop-the-look__dot::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 0.85);
+  animation: shop-the-look-breathe 3s ease-in-out 2;
+  pointer-events: none;
+}
+
+@keyframes shop-the-look-breathe {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  35% {
+    opacity: 0.85;
+    transform: scale(1.42);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.62);
+  }
+}
+
+.shop-the-look__dot:hover,
+.shop-the-look__dot.is-linked,
+.shop-the-look__dot:focus-visible {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.shop-the-look__dot:focus-visible {
+  outline: none;
+}
+
+.shop-the-look__dot:focus-visible::before {
+  box-shadow:
+    0 0 0 3px var(--look-bg),
+    0 0 0 5px var(--look-ink);
+}
+
+.shop-the-look__dot-num {
+  position: relative;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--look-ink);
+}
+
+/* ── the panel ──────────────────────────────────────────────────────────── */
+
+.shop-the-look__panel {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2vw, 26px);
+  min-width: 0;
+}
+
+.shop-the-look__head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shop-the-look__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--look-muted);
+}
+
+.shop-the-look__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.9vw, 2.35rem);
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  color: var(--look-ink);
+}
+
+.shop-the-look__body {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--look-muted);
+}
+
+.shop-the-look__hint {
+  margin: 0;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--look-ink) 46%, var(--look-bg));
+}
+
+/* ── the product list ───────────────────────────────────────────────────── */
+
+.shop-the-look__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The row is a column so that the options panel can open *under* its own row:
+   a grid item inside the four-column track would have had to span the whole
+   width with `grid-column`, and the mobile `grid-template-areas` would have
+   pushed it into an implicit row of its own anyway. */
+.shop-the-look__row {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.shop-the-look__rowhead {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px;
+  border-radius: 12px;
+}
+
+/* A row that opens says so before it is touched. */
+.shop-the-look__row.is-expandable .shop-the-look__rowhead {
+  cursor: pointer;
+}
+
+.shop-the-look__row.is-open {
+  background: color-mix(in srgb, var(--look-ink) 5%, var(--look-bg));
+  box-shadow: inset 0 0 0 1px var(--look-line);
+}
+
+.shop-the-look__row.is-picked {
+  background: color-mix(in srgb, var(--look-ink) 4.5%, var(--look-bg));
+}
+
+.shop-the-look__row.is-linked {
+  background: color-mix(in srgb, var(--look-ink) 8%, var(--look-bg));
+  box-shadow: inset 0 0 0 1px var(--look-line);
+}
+
+/* ── the tick ───────────────────────────────────────────────────────────── */
+
+.shop-the-look__pick {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+}
+
+/* The native box is the control (and the accessible name); it stays in the
+   layout at full size and is made invisible, so the tap target, the focus ring
+   and the keyboard behaviour are the browser's own. */
+.shop-the-look__pick input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.shop-the-look__box {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid color-mix(in srgb, var(--look-ink) 38%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.shop-the-look__box::after {
+  content: '';
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid var(--look-bg);
+  border-bottom: 2px solid var(--look-bg);
+  opacity: 0;
+  transform: translateY(-1px) rotate(-45deg) scale(0.6);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.shop-the-look__pick input:checked + .shop-the-look__box {
+  background: var(--look-ink);
+  border-color: var(--look-ink);
+}
+
+.shop-the-look__pick input:checked + .shop-the-look__box::after {
+  opacity: 1;
+  transform: translateY(-1px) rotate(-45deg) scale(1);
+}
+
+.shop-the-look__pick input:focus-visible + .shop-the-look__box {
+  box-shadow:
+    0 0 0 2px var(--look-bg),
+    0 0 0 4px var(--look-ink);
+}
+
+/* ── the thumbnail, wearing the number of its dot ───────────────────────── */
+
+.shop-the-look__thumb {
+  position: relative;
+  display: block;
+  width: 58px;
+  height: 58px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--look-sunken);
+}
+
+.shop-the-look__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.shop-the-look__badge {
+  position: absolute;
+  top: 4px;
+  inset-inline-start: 4px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: 4px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.92);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--look-ink);
+  box-shadow: 0 2px 8px -4px rgb(0 0 0 / 0.5);
+}
+
+/* ── name, note, price, action ──────────────────────────────────────────── */
+
+.shop-the-look__info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.shop-the-look__name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--look-ink);
+  text-decoration: none;
+  /* two lines then an ellipsis: a long name must not push the price column */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.shop-the-look__name:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.shop-the-look__name:focus-visible {
+  outline: 2px solid var(--look-ink);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* The waiting state for a row whose product has not arrived yet. */
+.shop-the-look__name.is-waiting {
+  width: 62%;
+  height: 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--look-ink) 11%, var(--look-bg));
+}
+
+.shop-the-look__note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--look-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shop-the-look__trade {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  text-align: end;
+}
+
+.shop-the-look__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.shop-the-look__from {
+  font-size: 10.5px;
+  font-style: normal;
+  color: var(--look-muted);
+}
+
+.shop-the-look__now {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--look-ink);
+}
+
+.shop-the-look__was {
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--look-ink) 45%, var(--look-bg));
+}
+
+.shop-the-look__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--look-line);
+  border-radius: 999px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--look-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.shop-the-look__cta:hover {
+  background: var(--look-ink);
+  border-color: var(--look-ink);
+  color: var(--look-bg);
+}
+
+.shop-the-look__cta:focus-visible {
+  outline: 2px solid var(--look-ink);
+  outline-offset: 2px;
+}
+
+.shop-the-look__cta.is-toggle {
+  border-style: dashed;
+}
+
+/* Open, the control is inverted: the row it belongs to is now showing more
+   than the summary, and the button is the way back. */
+.shop-the-look__cta.is-toggle[aria-expanded='true'] {
+  border-style: solid;
+  border-color: var(--look-ink);
+  background: var(--look-ink);
+  color: var(--look-bg);
+}
+
+.shop-the-look__chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.24s ease;
+}
+
+.shop-the-look__cta.is-toggle[aria-expanded='true'] .shop-the-look__chevron {
+  transform: rotate(180deg);
+}
+
+/* Out of stock: still visible (the customer needs to know the look is broken
+   here) but plainly not a control. */
+.shop-the-look__cta.is-off {
+  border-color: transparent;
+  color: color-mix(in srgb, var(--look-ink) 45%, var(--look-bg));
+  cursor: default;
+}
+
+.shop-the-look__plus {
+  width: 12px;
+  height: 12px;
+}
+
+/* ── the options panel, opened inside its own row ────────────────────────── */
+
+.shop-the-look__drop {
+  padding: 0 10px 14px;
+  animation: shop-the-look-drop 0.26s ease both;
+}
+
+@keyframes shop-the-look-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* `salla-product-options` is a third-party control with its own palette, so it
+   gets a surface of its own rather than inheriting the merchant's two colours:
+   a dark `--look-bg` would put the component's dark labels on a dark panel.
+   The tints still come from the block's ink, so it does not look pasted on. */
+.shop-the-look__form {
+  --look-panel-bg: color-mix(in srgb, #fff 93%, var(--look-ink));
+  --look-panel-ink: color-mix(in srgb, var(--look-ink) 25%, #101010);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--look-panel-bg);
+  color: var(--look-panel-ink);
+}
+
+/* The wrapper arrives with the product page's card padding and background. */
+.shop-the-look__form salla-product-options {
+  display: block;
+}
+
+.shop-the-look__form .s-product-options-wrapper {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  margin: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.shop-the-look__form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.shop-the-look__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--look-panel-ink);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.shop-the-look__submit:hover {
+  opacity: 0.9;
+}
+
+.shop-the-look__submit:active {
+  transform: scale(0.985);
+}
+
+.shop-the-look__submit:focus-visible {
+  outline: 2px solid var(--look-ink);
+  outline-offset: 3px;
+}
+
+.shop-the-look__submit svg {
+  width: 15px;
+  height: 15px;
+}
+
+.shop-the-look__waiting {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, #fff 93%, var(--look-ink));
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--look-ink) 25%, #101010);
+}
+
+.shop-the-look__inline-link {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.shop-the-look__inline-link:hover {
+  opacity: 0.75;
+}
+
+/* ── the total ──────────────────────────────────────────────────────────── */
+
+.shop-the-look__total {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--look-line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--look-ink) 3%, var(--look-bg));
+}
+
+.shop-the-look__sum {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.shop-the-look__sum-label {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--look-muted);
+}
+
+.shop-the-look__sum-value {
+  margin-inline-start: auto;
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  font-weight: 700;
+  color: var(--look-ink);
+}
+
+.shop-the-look__sum-count {
+  width: 100%;
+  font-size: 11.5px;
+  color: var(--look-muted);
+  text-align: end;
+}
+
+.shop-the-look__sum-note {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--look-muted);
+}
+
+.shop-the-look__add-all {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--look-ink);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--look-bg);
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.shop-the-look__add-all:hover {
+  opacity: 0.9;
+}
+
+.shop-the-look__add-all:active {
+  transform: scale(0.985);
+}
+
+.shop-the-look__add-all:focus-visible {
+  outline: 2px solid var(--look-ink);
+  outline-offset: 3px;
+}
+
+.shop-the-look__add-all svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Letter-spacing is a Latin-only move: on Arabic it pulls the joins apart
+   without adding air, so the tracked labels drop it. */
+[dir='rtl'] .shop-the-look__eyebrow {
+  letter-spacing: normal;
+}
+
+/* ── small screens ──────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .shop-the-look__inner {
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(18px, 4vw, 30px);
+  }
+
+  /* Stacked, a sticky photo would sit on top of the list it is supposed to
+     illustrate, so it scrolls like everything else. */
+  .shop-the-look__scene {
+    position: relative;
+    top: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .shop-the-look__rowhead {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-areas:
+      'pick thumb info'
+      'trade trade trade';
+    align-items: start;
+    row-gap: 10px;
+    padding: 12px 6px;
+  }
+
+  .shop-the-look__drop {
+    padding: 0 6px 12px;
+  }
+
+  .shop-the-look__pick {
+    grid-area: pick;
+  }
+
+  .shop-the-look__thumb {
+    grid-area: thumb;
+    width: 52px;
+    height: 52px;
+  }
+
+  .shop-the-look__info {
+    grid-area: info;
+  }
+
+  /* Price and action on their own line, one at each end: in the info column
+     they were squeezed into a third of the width and the button wrapped. */
+  .shop-the-look__trade {
+    grid-area: trade;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-the-look__dot::after,
+  .shop-the-look__drop {
+    animation: none;
+  }
+
+  .shop-the-look__dot,
+  .shop-the-look__row,
+  .shop-the-look__cta,
+  .shop-the-look__chevron,
+  .shop-the-look__submit,
+  .shop-the-look__add-all {
+    transition: none;
+  }
+}

@@ -1,0 +1,369 @@
+/* ==========================================================================
+   stamp-story — a cinematic "field journal" journey across three postage
+   stamps. Photos + motion only: no fixed UI chrome, no page-level scroll
+   hijack, no blend modes.
+
+   One variable owns the whole scene: `--stamp-progress` (0 → 1), written by
+   the component on scroll. The camera, the handwriting reveals and the trail
+   draw are all derived from it in CSS, so a frame costs one style write.
+   ========================================================================== */
+
+.s-block--stamp-story {
+  @apply mt-0 sm:mt-0;
+}
+
+/* ── reserved height for the lazy wrapper ────────────────────────────────────
+   The engine reserves space for a block before it mounts, from a static
+   `height` string — which cannot know how many stamps this placement has. So
+   the height string reads `--stamp-run`, and these classes supply it from the
+   className, which CAN be computed from the data. Every combination the
+   merchant can produce is enumerated here: 3 pacings × 0–11 legs. */
+@each $key, $per in (s: 130, m: 200, l: 300) {
+  @for $legs from 0 through 11 {
+    .stamp-story-run--#{$key}#{$legs} {
+      --stamp-run: #{$legs * $per}vw;
+    }
+  }
+}
+
+.stamp-story {
+  /* travel direction: the journey reads inline-start → inline-end, which is
+     left-to-right in LTR and right-to-left in RTL */
+  --stamp-dir: -1;
+  --stamp-journey: 400vw;
+  --stamp-bg: #050505;
+  --stamp-paper: #fdfbf7;
+  --stamp-inner: #f4f0e6;
+  --stamp-trail: #f5d44f;
+  --stamp-card-w: clamp(200px, 19vw, 320px);
+  --stamp-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  /* The block's poster face, declared once. A component token, not a global
+     role: this is the one block that prints in a condensed poster face, and
+     promoting it to `tokens.scss` would invent a role nothing else uses. */
+  --stamp-poster: 'Anton', var(--font-main), sans-serif;
+
+  position: relative;
+  /* the block's own height IS the journey — nothing else reserves scroll */
+  height: calc(100svh + var(--stamp-journey));
+  background: var(--stamp-bg);
+  color: #fff;
+  isolation: isolate;
+}
+
+[dir='rtl'] .stamp-story {
+  --stamp-dir: 1;
+}
+
+.stamp-story:dir(rtl) {
+  --stamp-dir: 1;
+}
+
+.stamp-story__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--stamp-bg);
+}
+
+/* The travelling sheet, sized from the stamp count (one variable pair, set by
+   the component): only the window the stage shows is ever painted. No
+   `will-change` on purpose — a promoted multi-viewport layer gets rastered
+   once and stretched on large screens, which is exactly how scrub animations
+   end up looking pixelated. */
+.stamp-story__scene {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: var(--stamp-sheet-w, 400vw);
+  height: var(--stamp-sheet-h, 300svh);
+  /* the camera is driven from JS because the journey reverses every three
+     stamps: a straight linear travel would slide the sheet the wrong way on
+     the return legs and lose the stamp it is chasing */
+  transform: translate3d(
+      calc(var(--stamp-cam-x, 0) * var(--stamp-dir) * 1vw),
+      calc(var(--stamp-cam-y, 0) * -1 * 1svh),
+      0
+    )
+    translateY(var(--stamp-lift, 0svh));
+}
+
+/* A phone shows one stamp at a time, so the whole sheet rides a little higher:
+   the stamp lands just above centre with its handwritten name below it,
+   instead of hugging the bottom half and leaving the top empty. The lift is on
+   the scene, not the cards, so the trail moves with them and never desyncs. */
+@media (max-width: 767px) {
+  .stamp-story__scene {
+    --stamp-lift: -7svh;
+  }
+}
+
+/* ── the inked trail ─────────────────────────────────────────────────────── */
+
+.stamp-story__trail {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* mirroring the path about the scene's centre puts the trail on the same
+   stops the cards sit on once the anchors are laid out inline-start */
+[dir='rtl'] .stamp-story__trail {
+  transform: scaleX(-1);
+}
+
+.stamp-story__trail:dir(rtl) {
+  transform: scaleX(-1);
+}
+
+/* Short strokes, not dots. The reference draws 16-on / 20-off with round
+   caps, which is what makes the line read as inked dashes rather than a
+   beaded string — the caps add the stroke width back onto both ends of every
+   dash, so the mark ends up longer than the gap.
+
+   Everything here is in SVG USER units, deliberately: the reveal offset is
+   derived from `getTotalLength()`, which only speaks user units. Mixing in a
+   `vector-effect: non-scaling-stroke` would put the dash array in screen
+   pixels and the line would stop mid-air. */
+.stamp-story__trail-dots {
+  fill: none;
+  stroke: var(--stamp-trail);
+  stroke-linecap: round;
+  /* long-ish mark, thin-ish line: at the reference's 16/20 the mark is barely
+     twice its own thickness and reads as a row of lozenges, not strokes */
+  stroke-dasharray: 22 24;
+  stroke-width: 6;
+}
+
+/* the reveal: this path is never painted, it only masks the inked one. It has
+   to stay wider than the stroke so the reveal front reads as a clean cut
+   across the line rather than a bite out of it. */
+.stamp-story__trail-mask {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 60;
+}
+
+/* A phone squashes 4000 user units into ~390px, so the same numbers come out
+   hair-thin there. Bump the dash up rather than the mask, which is already
+   comfortably wider. */
+@media (max-width: 767px) {
+  .stamp-story__trail-dots {
+    stroke-dasharray: 34 36;
+    stroke-width: 12;
+  }
+}
+
+/* ── the stamps ──────────────────────────────────────────────────────────── */
+
+.stamp-story__card {
+  --card-x: -50%;
+  position: absolute;
+  inset-block-start: var(--stamp-y);
+  inset-inline-start: var(--stamp-x);
+  width: var(--stamp-card-w);
+  /* `translate` is physical, so RTL needs the opposite sign to stay centred
+     on its logical anchor */
+  transform: translate(var(--card-x), -50%) rotate(var(--tilt, 0deg));
+  z-index: 5;
+}
+
+[dir='rtl'] .stamp-story__card {
+  --card-x: 50%;
+}
+
+.stamp-story__card:dir(rtl) {
+  --card-x: 50%;
+}
+
+.stamp-story__stamp {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 280 / 380;
+  margin: 0;
+  filter: drop-shadow(0 26px 44px rgba(0, 0, 0, 0.38));
+  transition: transform 0.45s var(--stamp-ease);
+}
+
+.stamp-story__stamp:hover {
+  transform: scale(1.04);
+}
+
+/* perforated paper edge — the classic stamp silhouette */
+.stamp-story__paper {
+  position: absolute;
+  inset: 0;
+  background: var(--stamp-paper);
+  -webkit-mask:
+    linear-gradient(#000 0 0) center / calc(100% - 22px) calc(100% - 22px) no-repeat,
+    radial-gradient(circle at 11px 11px, transparent 5.2px, #000 5.6px) -11px -11px / 22px 22px;
+  mask:
+    linear-gradient(#000 0 0) center / calc(100% - 22px) calc(100% - 22px) no-repeat,
+    radial-gradient(circle at 11px 11px, transparent 5.2px, #000 5.6px) -11px -11px / 22px 22px;
+}
+
+.stamp-story__inner {
+  position: absolute;
+  inset: 22px;
+  overflow: hidden;
+  background: var(--stamp-inner);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.09);
+}
+
+.stamp-story__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* a single film pass, not a filter chain: keeps the photo sharp */
+  filter: sepia(0.18) contrast(1.06) brightness(0.94);
+}
+
+.stamp-story__header {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: clamp(9px, 1vw, 15px);
+  font-family: var(--stamp-poster);
+  font-size: clamp(12px, 1.05vw, 18px);
+  letter-spacing: 0.12em;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.stamp-story__symbol {
+  display: grid;
+  place-items: center;
+  width: clamp(20px, 1.6vw, 27px);
+  height: clamp(20px, 1.6vw, 27px);
+  border: 1.5px solid currentColor;
+  font-family: var(--font-display);
+  font-size: clamp(10px, 0.9vw, 14px);
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.stamp-story__footer {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  padding: clamp(26px, 2.6vw, 40px) clamp(9px, 1vw, 15px) clamp(9px, 1vw, 15px);
+  font-family: var(--stamp-poster);
+  font-size: clamp(13px, 1.25vw, 21px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65);
+  /* a scrim, so the caption survives a bright photo without a box */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+}
+
+/* ── the handwritten name beside each stamp ──────────────────────────────── */
+
+.stamp-story__hw {
+  --stamp-on: clamp(0, calc((var(--stamp-progress, 0) - var(--hw-at, 0)) * 16), 1);
+  position: absolute;
+  inset-block-start: 24%;
+  inset-inline-start: 118%;
+  z-index: 6;
+  font-family: var(--font-script);
+  font-size: clamp(30px, 4.4vw, 72px);
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: var(--stamp-on);
+  transform: translateY(calc((1 - var(--stamp-on)) * 26px)) rotate(var(--hw-rot, -6deg));
+  text-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* A phone has no room beside the stamp: the name moves UNDER it, centred and
+   allowed to wrap, so it never runs off the edge. */
+@media (max-width: 767px) {
+  .stamp-story__hw {
+    inset-inline: 0;
+    inset-block-start: auto;
+    inset-block-end: -16%;
+    font-size: clamp(21px, 6.2vw, 32px);
+    text-align: center;
+    white-space: normal;
+    transform: translateY(calc((1 - var(--stamp-on)) * 20px));
+  }
+}
+
+/* ── film overlays (scoped to the stage, never `position: fixed`) ────────── */
+
+.stamp-story__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 220px 220px;
+}
+
+.stamp-story__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, transparent 38%, rgba(0, 0, 0, 0.62) 118%);
+}
+
+/* ── reduced motion / no scrub: a composed still, three stamps in a row ──── */
+
+@media (prefers-reduced-motion: reduce) {
+  .stamp-story {
+    height: auto;
+  }
+
+  .stamp-story__stage {
+    position: relative;
+    height: auto;
+    padding-block: clamp(40px, 7vw, 90px);
+  }
+
+  .stamp-story__scene {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: clamp(26px, 4vw, 60px);
+    width: 100%;
+    height: auto;
+    padding-inline: 24px;
+    transform: none;
+  }
+
+  .stamp-story__trail {
+    display: none;
+  }
+
+  .stamp-story__card {
+    position: relative;
+    inset: auto;
+    width: min(44%, 250px);
+    transform: rotate(var(--tilt, 0deg));
+  }
+
+  .stamp-story__hw {
+    --stamp-on: 1;
+    position: static;
+    display: block;
+    margin-block-start: 14px;
+    font-size: clamp(24px, 3.2vw, 40px);
+    text-align: center;
+    transform: none;
+  }
+}

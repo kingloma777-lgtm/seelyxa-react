@@ -1,0 +1,301 @@
+/* ==========================================================================
+   arc-coverflow — an endless cosine-arc coverflow of merchant cards.
+
+   The whole composition is three numbers per card, written as custom
+   properties from one rAF loop: `--x` (offset from the centre line), `--y`
+   (the arc drop) and `--s` (the scale). The transform string lives here, so a
+   frame costs three style writes and no layout — the reference wrote x, y,
+   width and height inline, four layout-affecting properties per card.
+
+   Card size, gap and the centre line are all derived from the block's own box
+   in JS and published as `--ac-w` / `--ac-h` / `--ac-gap`; the values below are
+   the no-JS frame (a centred, un-scaled row), not a second source of truth.
+   ========================================================================== */
+
+.s-block--arc-coverflow {
+  @apply mt-0 sm:mt-0;
+}
+
+/* The router reserves the block's height with a static string that reads
+   `--ac-height`, so the tier arrives as a class and both sides call
+   `arcCoverflowHeightClass`. */
+@each $key, $height in (compact: 60, medium: 78, tall: 95) {
+  .arc-coverflow-h--#{$key} {
+    --ac-height: #{$height};
+  }
+}
+
+.arc-coverflow {
+  --ac-height: 78;
+  --ac-bg: #e9e7e2;
+  --ac-ink: #1b1916;
+  --ac-w: 200px;
+  --ac-h: 275px;
+  --ac-gap: 100px;
+  --ac-n: 9;
+  --ac-dir: 1;
+
+  position: relative;
+  height: max(360px, calc(var(--ac-height) * 1svh));
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(
+      120% 90% at 50% 6%,
+      var(--ac-bg) 40%,
+      color-mix(in srgb, var(--ac-bg) 86%, #000) 100%
+    );
+  color: var(--ac-ink);
+  font-family: var(--font-main), system-ui, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  /* a vertical swipe belongs to the page; only the horizontal one is ours */
+  touch-action: pan-y;
+}
+
+.arc-coverflow *,
+.arc-coverflow *::before,
+.arc-coverflow *::after {
+  box-sizing: border-box;
+}
+
+/* ── stage ──────────────────────────────────────────────────────────────── */
+
+.arc-coverflow__stage {
+  position: absolute;
+  inset: 0;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.arc-coverflow.is-dragging .arc-coverflow__stage {
+  cursor: grabbing;
+}
+
+/* ── cards ──────────────────────────────────────────────────────────────── */
+
+.arc-coverflow__slide {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--ac-w);
+  height: var(--ac-h);
+  overflow: hidden;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ac-ink) 88%, #000);
+  box-shadow: 0 26px 60px -32px rgb(0 0 0 / 0.55);
+  /* the fallback row: no JS means no arc, but the row still reads as a
+     collection instead of a pile at the left edge */
+  transform: translate3d(
+      var(--x, calc(var(--ac-gap) * var(--ac-dir) * (var(--i) - (var(--ac-n) - 1) / 2))),
+      var(--y, 0px),
+      0
+    )
+    scale(var(--s, 1));
+  transform-origin: 0 0;
+  z-index: var(--z, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.arc-coverflow__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.arc-coverflow__link {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.arc-coverflow__link:focus-visible {
+  outline: 2px solid var(--ac-ink);
+  outline-offset: -2px;
+}
+
+/* ── masthead ───────────────────────────────────────────────────────────── */
+
+.arc-coverflow__masthead {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 200;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(18px, 3.4vw, 40px) clamp(20px, 5vw, 64px);
+  pointer-events: none;
+}
+
+.arc-coverflow__brand {
+  font-weight: 700;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ac-ink);
+}
+
+.arc-coverflow__masthead-note {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: end;
+  color: color-mix(in srgb, var(--ac-ink) 58%, var(--ac-bg));
+}
+
+/* ── caption ────────────────────────────────────────────────────────────── */
+
+.arc-coverflow__caption {
+  position: absolute;
+  inset-inline: 0;
+  bottom: clamp(16px, 5%, 52px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 20px;
+  text-align: center;
+  /* the caption sits over the arc's lower half — dragging through it must
+     still turn the cards, so only the buttons take the pointer */
+  pointer-events: none;
+}
+
+.arc-coverflow__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ac-ink) 62%, var(--ac-bg));
+}
+
+.arc-coverflow__eyebrow::before,
+.arc-coverflow__eyebrow::after {
+  content: '';
+  display: block;
+  width: 1.6rem;
+  height: 1px;
+  background: color-mix(in srgb, var(--ac-ink) 20%, transparent);
+}
+
+.arc-coverflow__title {
+  margin: 0;
+  font-size: clamp(1.35rem, 3.2vw, 2.1rem);
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--ac-ink);
+}
+
+.arc-coverflow__note {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 13px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--ac-ink) 70%, var(--ac-bg));
+}
+
+.arc-coverflow__hint {
+  margin: 0;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--ac-ink) 52%, var(--ac-bg));
+}
+
+.arc-coverflow__nav {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  pointer-events: auto;
+}
+
+.arc-coverflow__nav button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ac-ink) 22%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ac-bg) 72%, transparent);
+  color: var(--ac-ink);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.arc-coverflow__nav button:hover {
+  background: var(--ac-ink);
+  border-color: var(--ac-ink);
+  color: var(--ac-bg);
+}
+
+.arc-coverflow__nav button:active {
+  transform: scale(0.94);
+}
+
+.arc-coverflow__nav button:focus-visible {
+  outline: 2px solid var(--ac-ink);
+  outline-offset: 3px;
+}
+
+/* Letter-spacing is a Latin-only typographic move: applied to Arabic it pulls
+   the joins apart without adding air, so the tracked labels drop it. */
+[dir='rtl'] .arc-coverflow__eyebrow,
+[dir='rtl'] .arc-coverflow__brand,
+[dir='rtl'] .arc-coverflow__masthead-note,
+[dir='rtl'] .arc-coverflow__hint {
+  letter-spacing: normal;
+}
+
+/* ── small screens ──────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .arc-coverflow__masthead {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+  }
+
+  .arc-coverflow__masthead-note {
+    text-align: center;
+    letter-spacing: 0.1em;
+  }
+
+  .arc-coverflow__eyebrow::before,
+  .arc-coverflow__eyebrow::after {
+    width: 0.9rem;
+  }
+
+  .arc-coverflow__caption {
+    gap: 6px;
+    /* the theme's fixed bottom bar (76px + safe area) would swallow the
+       arrows on a phone */
+    bottom: calc(12px + var(--safe-bottom, 0px));
+  }
+
+  .arc-coverflow__nav {
+    margin-top: 4px;
+  }
+
+  .arc-coverflow__nav button {
+    width: 40px;
+    height: 40px;
+  }
+}

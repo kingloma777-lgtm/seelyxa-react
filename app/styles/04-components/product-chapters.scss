@@ -1,0 +1,579 @@
+/* ==========================================================================
+   product-chapters — a pinned stage where each product owns the frame.
+
+   One number owns the scene: `--pc-pos`, the FLOAT chapter index (0 … n−1),
+   written by the component from the block's own scroll progress. Everything
+   else is derived from each chapter's signed distance to it:
+
+       --d = var(--pc-pos) - var(--k)        +1 = already left, -1 = not here yet
+
+   so the sequence is reversible frame-for-frame and a frame costs two style
+   writes. No timeline, no library, no page scroll touched.
+
+   The reference interpolates its background colour with scroll (measured:
+   rgb(214,67,23) → rgb(244,80,22) → rgb(241,153,21) → rgb(239,196,21)). Here
+   each chapter paints its own opaque layer and the layers cross-fade, which
+   is the same ramp without any colour arithmetic — and the stage underneath
+   already holds the colour being moved TOWARDS, so the mix never dips through
+   the page's own background.
+   ========================================================================== */
+
+.s-block--product-chapters {
+  @apply mt-0 sm:mt-0;
+}
+
+/* Reserved height for the lazy wrapper: the engine's `height` is a static
+   string, so the budget arrives as a class — one per (pacing tier × chapter
+   count). The router and the component share `productChaptersRunClass`, so the
+   reservation cannot disagree with the block. */
+@each $tier, $per in (short: 70, medium: 105, long: 140) {
+  @for $n from 2 through 6 {
+    .pc-run--#{$tier}#{$n} {
+      --pc-run: #{$n * $per}svh;
+    }
+  }
+}
+
+.product-chapters {
+  --pc-pos: 0;
+  --pc-base: #c52826;
+  --pc-ink: #ffffff;
+  --pc-word: 1;
+  --pc-dir: 1;
+  --pc-run: 210svh;
+  /* per-chapter geometry, re-declared inline by the component; these are only
+     the values a stray element outside a chapter would inherit */
+  --n: 1;
+  --chars: 1;
+  --k: 0;
+  /* how long one hand-over takes, as a fraction of the letter's own window */
+  --pc-dur: 0.7;
+  /* Travel distances, as variables because a phone needs different ones: the
+     word sits higher there, so it needs a longer run to clear the bottom edge,
+     and its pack is only 30svh tall, so a percentage of the pack has to be
+     nearly twice as large to leave the frame at all. */
+  --pc-word-travel: -80svh;
+  --pc-pack-travel: -160%;
+
+  position: relative;
+  /* the block paints its own background, so it owns a stacking context — a
+     sticky neighbour above it must not paint over the stage */
+  isolation: isolate;
+  /* the block's own height IS the scroll budget: one pinned viewport plus the
+     run. No `overflow` here — that would make this a scroll container and the
+     sticky stage would stop sticking. */
+  height: calc(100svh + var(--pc-run));
+  background: var(--pc-base);
+  color: var(--pc-ink);
+  font-family: var(--font-main), system-ui, sans-serif;
+}
+
+[dir='rtl'] .product-chapters {
+  --pc-dir: -1;
+}
+
+.product-chapters__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  /* the giant word is wider than the frame on purpose — clip it here, never on
+     an ancestor, or this element stops sticking */
+  overflow: hidden;
+}
+
+/* ── one chapter = one full-bleed layer ─────────────────────────────────── */
+
+.product-chapters__chapter {
+  --d: calc(var(--pc-pos) - var(--k));
+  --ad: max(var(--d), calc(-1 * var(--d)));
+
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /* The LAYER does not fade — only its colour does. Fading the layer fades the
+     word and the product with it, so at the hand-over two half-transparent
+     words sit on top of each other and read as a double-exposure; the recording
+     keeps its word fully opaque the whole way out. So the flat colour moves to
+     a pseudo-element that fades, and the content above it stays solid. */
+  background: transparent;
+  /* Solid for the whole hand-over, and gone only once the chapter is a full
+     segment away and already outside the frame. This is a guard for the last
+     few pixels of a long word's edge, not a fade: the recording never dims the
+     word that is leaving. */
+  opacity: clamp(0, calc((1.08 - var(--ad)) * 12), 1);
+  pointer-events: none;
+}
+
+.product-chapters__chapter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--pc-bg);
+  /* 1 while the chapter is at rest, 0 once its neighbour has fully arrived.
+     Two neighbours at 0.325 over a base that already holds the incoming colour
+     is a linear cross-fade between the two chapter colours. */
+  opacity: calc(1 - min(1, var(--ad) * 1.35));
+}
+
+.product-chapters__chapter.is-active {
+  pointer-events: auto;
+}
+
+/* ── the giant word ─────────────────────────────────────────────────────── */
+
+.product-chapters__word {
+  position: absolute;
+  inset-inline: 0;
+  /* Measured on the reference recording at 1902×848: the cap band runs from
+     27.6% to 71.6% of the frame, so its centre is at 49.6% — the word sits
+     behind the product's middle, not above it.
+     (An earlier pass read "19% to 55%, centre 37%" from a probe that scanned
+     rows 0.15–0.55 only; the letters ran past the bottom of that window and
+     the number was the window, not the type. That single window put the word
+     12% too high and made it 24% too small.) */
+  top: 51.5%;
+  z-index: 0;
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+  /* A FIXED size, and that is the reference's rule, not an approximation of it:
+     across five chapters its cap height is 373px at every one — 44% of the
+     frame — while the word's width runs 83% to 96%. A word is therefore never
+     stretched to fill the frame; a short word stays short. `--fit` can only
+     SHRINK (see ChapterWord), so an unusually long word is the single case that
+     gets scaled down instead of running off both edges.
+     The number is derived, not eyeballed: 44% of 848 is 373px of cap, and this
+     face's cap is 0.675em, so the font is 553px — 65svh, or 29vw on a frame
+     wide enough for width to bind first. */
+  font-size: calc(min(29vw, 65svh) * var(--pc-word) * var(--fit, 1));
+  font-weight: 800;
+  line-height: 0.84;
+  /* The reference's 7-letter words land at 92.8% of the frame WITH a 44% cap —
+     which is only possible because its letters are set almost touching, about
+     0.47em of advance each. This face is wider per letter (0.56em at −0.02em),
+     so the width fit would shrink it back to a 37% cap and the type would stay
+     visibly smaller than the reference no matter how large the base size is.
+     Tracking is the only lever: −0.11em brings the advance to 0.47em and the
+     cap to 44% at the same width. */
+  letter-spacing: -0.11em;
+  /* A pale tint of the chapter colour, NOT white: sampled on the reference the
+     word is rgb(227,168,152) on rgb(244,80,22) — about a 55% mix. At 92% it
+     turns into a headline and fights the product; at 26% it becomes texture.
+     This is the chapter's graphic, so it has to be seen and still sit behind. */
+  color: color-mix(in srgb, var(--pc-ink) 55%, var(--pc-bg));
+  pointer-events: none;
+  user-select: none;
+  /* No sideways drift. The reference's letters travel on ONE axis only — the
+     word rises and the next rises after it. A horizontal component reads as a
+     slide, and a slide is a different gesture. */
+  transform: translateY(-50%);
+}
+
+/* Latin: one inline-block per character. Free and exact — no shaping to lose. */
+.product-chapters__wordgroup {
+  display: inline-flex;
+}
+
+.product-chapters__ink {
+  display: inline-block;
+}
+
+/* Latin: the per-letter units ARE the visible layer, so the measuring copy has
+   to leave the line. In flow it keeps its full width and the units start after
+   it — the word then paints once as the copy and once as the letters, the line
+   overflows the frame, and `text-align: center` can no longer shift it, so the
+   first letter is cut at the frame's edge. Out of flow it is still measurable
+   (`width: max-content` is the shaped word) and still read out by a screen
+   reader, which is all it is for. */
+.product-chapters__word:not(.is-sliced) .product-chapters__ink {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: max-content;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Joined scripts keep the word whole and get their per-letter motion from
+   clipped copies instead (see ChapterWord). The measuring copy stays in the
+   layout and in the accessibility tree, and is simply not painted. */
+.product-chapters__word.is-sliced .product-chapters__ink {
+  opacity: 0;
+}
+
+/* The cascade: a letter starts moving only after the one before it, and every
+   letter is home when the chapter is at rest. `--s` is normalised by the
+   letter count so `--s + --pc-dur ≤ 1` for any word length — otherwise the
+   last letters of a long word would still be travelling when the next chapter
+   arrives. */
+.product-chapters__unit,
+.product-chapters__slice {
+  --s: calc(var(--i) * 0.3 / var(--n));
+  --out: clamp(0, calc((var(--d) - var(--s)) / var(--pc-dur)), 1);
+  --in: clamp(0, calc((var(--d) + 1 - var(--s)) / var(--pc-dur)), 1);
+  /* −1 = still below the frame, 0 = at rest, +1 = gone above it. The sign
+     MATTERS: a chapter that has left must travel UP and one that has not
+     arrived must come from BELOW. Inverting it makes both words move the same
+     way, so at the hand-over they stack on top of each other instead of
+     trading places — which reads as a double-exposure, not as motion. */
+  --signed: calc(var(--out) - (1 - var(--in)));
+}
+
+.product-chapters__unit {
+  display: inline-block;
+  /* The travel is measured in FRAME heights, not in letter heights. A letter is
+     about 20% of the frame tall, so "a full letter height" moves the word 150px
+     and leaves it sitting in the middle of the frame while the next one arrives
+     on top of it — which is a cross-fade with a wobble, not a cascade. Half a
+     frame is what makes the outgoing word leave through the top edge and the
+     incoming one climb in from the bottom, exactly as the recording does. */
+  transform: translateY(calc(var(--signed) * var(--pc-word-travel)));
+}
+
+/* One clipped column per letter of the whole, correctly shaped word. The clip
+   is in the slice's own coordinate space, so the strip travels WITH the letter
+   — the letter slides vertically and never reveals its neighbour. The strip is
+   far taller than the line so a full travel cannot reach its end. */
+.product-chapters__slice {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(-140% calc((1 - var(--b)) * 100%) -140% calc(var(--a) * 100%));
+  transform: translateY(calc(var(--signed) * var(--pc-word-travel)));
+  will-change: transform;
+}
+
+.product-chapters__slice-word {
+  display: block;
+}
+
+/* ── the pack ───────────────────────────────────────────────────────────── */
+
+/* The figure is the pack plus its circle. Its width IS the pack's width (a
+   grid sizes to its widest item), which is what lets the circle anchor to the
+   product's edge instead of to the frame's. */
+.product-chapters__figure {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  /* The reference's product is centred at 47.5% of the frame, not 50%: it sits
+     a touch above the middle, which is what leaves the caption a band of its
+     own at the foot and puts the product's top edge just above the word's cap
+     line. Measured, not nudged by eye. */
+  transform: translateY(-2.5svh);
+}
+
+.product-chapters__pack {
+  --pd: clamp(-1, var(--d), 1);
+
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  /* NO fixed height and no fixed width: the box is exactly the photo, so a
+     square catalogue shot never gets letterboxed inside its own card, and a
+     cut-out keeps its own silhouette. */
+  max-width: min(42vw, 460px);
+  /* The reference does not slide its product out and back in on one axis: the
+     pack TILTS as it leaves and tilts the other way as it arrives, travelling
+     up-and-out then in-from-below with a diagonal. One full pack height keeps
+     the two from ever sharing a pixel; the tilt is what makes it read as a
+     hand-over rather than a cross-fade. */
+  transform: translateY(calc(var(--pd) * var(--pc-pack-travel)))
+    translateX(calc(var(--pd) * -7% * var(--pc-dir)))
+    rotate(calc(var(--pd) * -26deg * var(--pc-dir)))
+    scale(calc(1 - max(var(--pd), calc(-1 * var(--pd))) * 0.06));
+}
+
+.product-chapters__pack img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  /* 58.8% of the frame: the reference's pack runs 19.1% to 77.9% of 848. */
+  max-height: 58.8svh;
+  object-fit: contain;
+}
+
+/* `blend` — the merchant's own studio shot, dropped onto the colour. Multiply
+   treats white as neutral, so a white background becomes the chapter colour and
+   the product reads as a cut-out with no file to prepare. `surface` puts the
+   photo on a light card, which is the default: multiply also tints the PRODUCT
+   by the chapter colour, and on a dark chapter that is a green chair.
+   `bare` is for a product photo that is already a transparent PNG.
+
+   Every one of them is scoped `:not(.is-cutout)`. A chapter with its own
+   cut-out needs none of this — the file is already transparent, so there is
+   nothing to knock out, nothing to put on a card, and a card would put the
+   rectangle back. */
+.product-chapters__pack.is-cutout img {
+  filter: drop-shadow(0 24px 38px rgb(0 0 0 / 0.26));
+}
+
+.product-chapters.is-pack-blend .product-chapters__pack:not(.is-cutout) {
+  mix-blend-mode: multiply;
+}
+
+.product-chapters.is-pack-bare .product-chapters__pack:not(.is-cutout) img {
+  filter: drop-shadow(0 26px 40px rgb(0 0 0 / 0.3));
+}
+
+.product-chapters.is-pack-surface .product-chapters__pack:not(.is-cutout) {
+  padding: clamp(6px, 1vw, 14px);
+  border-radius: clamp(12px, 1.6vw, 22px);
+  background: color-mix(in srgb, #fff 92%, var(--pc-bg));
+  box-shadow: 0 34px 70px -28px rgb(0 0 0 / 0.45);
+}
+
+/* ── the label ribbon, at the reference's −5° ────────────────────────────── */
+
+.product-chapters__pill {
+  position: absolute;
+  inset-inline-start: 6%;
+  /* level with the product's centre, not the frame's: on the reference the chip
+     sits on the word's line but is aligned to the pack */
+  top: 44%;
+  z-index: 2;
+  max-width: 26%;
+  padding: 0.5em 1.1em;
+  border-radius: 2px;
+  /* the reference's chip is the light tint, not the ink: cream card, chapter
+     colour inside it, so it belongs to the same palette as the word */
+  background: color-mix(in srgb, var(--pc-ink) 88%, var(--pc-bg));
+  color: var(--pc-bg);
+  font-size: clamp(13px, 1.35vw, 20px);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+  transform: translateY(-50%) rotate(calc(-5deg * var(--pc-dir)));
+  box-shadow: 6px 6px 0 rgb(0 0 0 / 0.14);
+}
+
+/* ── the circular call to action, price inside ──────────────────────────── */
+
+/* It lives INSIDE the pack, not beside it in the chapter. On the reference the
+   circle touches the product's edge, and the product's width is the merchant's
+   photo, not a number CSS can know — anchoring to the frame edge (the first
+   attempt) left the circle stranded in the corner of a wide shot and on top of
+   a narrow one. Anchored to the pack, it is always one gap away from the
+   product whatever shape it is. */
+.product-chapters__cta {
+  position: absolute;
+  inset-inline-start: 100%;
+  margin-inline-start: clamp(8px, 1.1vw, 18px);
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-content: center;
+  gap: 1px;
+  width: clamp(74px, 6.8vw, 106px);
+  aspect-ratio: 1;
+  /* The reference's circle is a translucent wash of the same tint as the word,
+     with the chapter colour inside it — a sticker pressed on the background.
+     It is more opaque here than there: the circle is anchored to the product,
+     so a narrow product puts it ON the giant word, and a 34% wash over a 55%
+     word is invisible. */
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pc-ink) 72%, var(--pc-bg));
+  color: var(--pc-bg);
+  text-align: center;
+  text-decoration: none;
+  transform: translateY(-50%) rotate(calc(4deg * var(--pc-dir)));
+  transition:
+    background 0.24s ease,
+    color 0.24s ease;
+}
+
+.product-chapters__cta:hover,
+.product-chapters__cta:focus-visible {
+  background: color-mix(in srgb, var(--pc-ink) 88%, var(--pc-bg));
+  color: var(--pc-bg);
+}
+
+.product-chapters__cta:focus-visible {
+  outline: 2px solid var(--pc-ink);
+  outline-offset: 4px;
+}
+
+.product-chapters__price {
+  font-size: clamp(13px, 1.15vw, 17px);
+}
+
+.product-chapters__price {
+  display: block;
+  font-size: clamp(13px, 1.15vw, 17px);
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.product-chapters__cta-label {
+  display: block;
+  /* The circle is sized from the viewport, the label from the same unit — but
+     "Shop the piece" is 14 characters and does not scale with them, so on a
+     narrow circle it spills over the edge. Cap it to the circle's inner width
+     and let it break onto two lines, the way the reference's "VIEW PRODUCT"
+     does. */
+  max-width: 76%;
+  margin-inline: auto;
+  font-size: clamp(9px, 0.72vw, 10.5px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+/* ── the caption line ───────────────────────────────────────────────────── */
+
+.product-chapters__note {
+  position: absolute;
+  inset-inline: 0;
+  /* The reference puts its caption a fifth of the frame up, not against the
+     bottom edge — it reads as a foot line to the composition, and it is far
+     enough from the word's descenders that the two never meet. */
+  bottom: clamp(28px, 16svh, 170px);
+  z-index: 2;
+  max-width: min(74ch, 74%);
+  margin: 0 auto;
+  padding-inline: 18px;
+  font-size: clamp(11px, 1.02vw, 13.5px);
+  line-height: 1.55;
+  letter-spacing: 0.03em;
+  text-align: center;
+  /* the caption sits at the foot of the frame, where the giant word's
+     descenders reach — at 88% it crossed a letter and vanished into it */
+  color: color-mix(in srgb, var(--pc-ink) 96%, var(--pc-bg));
+}
+
+/* Type leaves faster than the colour plane. Two ribbons, two prices and two
+   captions cross-fading in place read as blur — and at the hand-over neither
+   chapter is the one being read, so only the settled chapter's copy should be
+   legible. The colour keeps its own slower ramp. */
+.product-chapters__pill,
+.product-chapters__cta,
+.product-chapters__note {
+  opacity: calc(1 - min(1, var(--ad) * 2.4));
+}
+
+/* Letter-spacing is a Latin-only move: on Arabic it pulls the joins apart
+   without adding air, so the tracked labels drop it — and so does the giant
+   word, where at 500px the −0.02em that tightens BUFFALO would close the
+   joins of «الكرسي» into one black mass. */
+[dir='rtl'] .product-chapters__pill,
+[dir='rtl'] .product-chapters__note,
+[dir='rtl'] .product-chapters__cta-label,
+[dir='rtl'] .product-chapters__word {
+  letter-spacing: normal;
+}
+
+/* ── phones ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 700px) {
+  /* A phone gets a STACK, not the reference's overlap. At 390px a card over
+     the middle of the word hides nearly all of it — the word takes the top
+     band, the chip sits under it, and the pack takes the lower half. */
+  .product-chapters {
+    /* the word sits at 22% here, so it needs 100svh of run to clear the bottom
+       edge; and the pack is only 30svh tall, so a percentage of the PACK has to
+       be ~3x to leave the frame — at 160% the next chapter's product hangs in
+       at the bottom of the settled frame */
+    --pc-word-travel: -105svh;
+    --pc-pack-travel: -300%;
+  }
+
+  /* the same bleed, one band higher: the word takes the top of the frame and
+     the pack the lower half, so neither covers the other */
+  .product-chapters__word {
+    top: 22%;
+    /* 23vw is tuned for a desktop frame; at 390px it leaves the word at
+       two-thirds of the width and it reads as a caption, not as the graphic */
+    font-size: calc(min(30vw, 34svh) * var(--pc-word) * var(--fit, 1));
+  }
+
+  .product-chapters__pack {
+    max-width: 64vw;
+    /* down out of the word's band, and off the note at the foot */
+    margin-top: 10svh;
+  }
+
+  .product-chapters__pack img {
+    max-height: 30svh;
+  }
+
+  /* the ribbon and the circle leave the pack's sides for the top and the foot:
+     at 390px they would both sit on the product */
+  .product-chapters__pill {
+    inset-inline-start: 6%;
+    top: 40%;
+    max-width: 54%;
+    font-size: 12px;
+    padding: 0.5em 1em;
+    box-shadow: 5px 5px 0 rgb(0 0 0 / 0.16);
+  }
+
+  /* under the pack, not beside it: a 64vw product leaves no room for a circle
+     at 390px, and the stage would crop it rather than move it. Physical `left`
+     because the circle is a circle — there is no side to mirror. */
+  .product-chapters__cta {
+    inset-inline-start: auto;
+    left: 50%;
+    top: calc(100% + clamp(8px, 1.6svh, 16px));
+    margin-inline-start: 0;
+    width: 74px;
+    transform: translateX(-50%) rotate(calc(4deg * var(--pc-dir)));
+  }
+
+  /* the caption moves UNDER the word: at the foot it would sit behind the
+     theme's mobile bar, which is 64px tall and painted over the block */
+  .product-chapters__note {
+    top: 31%;
+    bottom: auto;
+    max-width: 84%;
+    font-size: 10.5px;
+  }
+}
+
+/* ── reduced motion ────────────────────────────────────────────────────────
+   The chapters are laid out one after another at full opacity and the scroll
+   budget collapses with them: a six-viewport block that never changes would
+   be worse than no animation, because the visitor would scroll through empty
+   colour looking for something to happen. `min-height` is what the engine
+   writes inline, so the override has to be `!important`. */
+
+.product-chapters.is-flat {
+  height: auto;
+}
+
+.product-chapters.is-flat .product-chapters__stage {
+  position: static;
+  height: auto;
+  overflow: visible;
+}
+
+.product-chapters.is-flat .product-chapters__chapter {
+  --d: 0;
+  --ad: 0;
+
+  position: relative;
+  height: 100svh;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.s-block--product-chapters:has(.product-chapters.is-flat) {
+  min-height: 0 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-chapters__cta {
+    transition: none;
+  }
+}

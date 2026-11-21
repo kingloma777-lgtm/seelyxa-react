@@ -1,0 +1,265 @@
+/* ==========================================================================
+   second-skin — a full-bleed portrait that gets submerged.
+
+   Two variables drive everything the block does after mount:
+     `--ss-words` (0 → 1) is the paragraph's timeline, written once per frame;
+     the dissolve itself lives in the shader, not here.
+   Both are optional: without JS, or under reduced motion, the stylesheet's
+   defaults produce the finished composition rather than an empty frame.
+   ========================================================================== */
+
+.s-block--second-skin {
+  @apply mt-0 sm:mt-0;
+}
+
+.second-skin {
+  --ss-fill: #141414;
+  --ss-tint: #f04e23;
+  /* every piece of type inherits this one variable — eyebrow, title, subtitle,
+     the closing paragraph and the mark — so one merchant field inks the whole
+     block. The dissolve layer covers the header while it climbs, so this is the
+     colour the type wears before the photo is submerged. */
+  --ss-text: #efece3;
+  --ss-words: 0;
+  --ss-total: 1;
+  /* how opaque the submerge layer gets: 1 = swallows the photo, < 1 = the
+     chosen fill colour and the photo's own colours average into each other */
+  --ss-mix: 1;
+  /* The block's three faces, declared once instead of repeated at every
+     declaration site. They are COMPONENT tokens on purpose: a Latin editorial
+     block keeps its own typographic voice, and none of these is the store's
+     body face. */
+  --ss-mono: 'Space Mono', ui-monospace, monospace;
+  --ss-display: 'Space Grotesk', var(--font-main), sans-serif;
+  --ss-ui: 'Inter', var(--font-main), sans-serif;
+
+  position: relative;
+  background: var(--ss-fill);
+  color: var(--ss-text);
+  isolation: isolate;
+}
+
+.second-skin *,
+.second-skin *::before,
+.second-skin *::after {
+  box-sizing: border-box;
+}
+
+/* ── the hero ────────────────────────────────────────────────────────────── */
+
+.second-skin__hero {
+  position: relative;
+  width: 100%;
+  height: 175svh;
+  overflow: hidden;
+  color: var(--ss-text);
+}
+
+/* Stacking, in one place, because the dissolve has to submerge the title but
+   the flat fallback's scrim must NOT — it sits under the type, not over it. */
+.second-skin__wall {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.second-skin__wall img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The tint, in two passes, because one pass lies to the merchant.
+
+   `multiply` alone cannot tint: multiplying by white is a no-op and
+   multiplying by any light colour barely moves the photo, so picking #FFFFFF
+   (or any pastel) looked exactly like doing nothing. The hue has to come from
+   a `color` blend, which takes hue + saturation from the tint and keeps the
+   photo's own light and shade — that is what makes a duotone respond to every
+   colour, white included (white desaturates). The multiply ramp on top then
+   does only the darkening toward the bottom, which is a job it is good at. */
+.second-skin__wall::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--ss-tint);
+  mix-blend-mode: color;
+  opacity: 0.62;
+}
+
+/* the ramp: neutral, so it darkens without doubling the tint */
+.second-skin__wall::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, #ffffff 0%, #dedede 55%, #4f4f4f 130%);
+  mix-blend-mode: multiply;
+}
+
+.second-skin__header {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  padding-inline: 1.5rem;
+  z-index: 2;
+}
+
+.second-skin__eyebrow {
+  font-family: var(--ss-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.second-skin__title {
+  font-family: var(--ss-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  font-size: clamp(3.75rem, 12vw, 11rem);
+  margin: 0;
+}
+
+/* Arabic is joined script: negative tracking pulls the letters into each
+   other. Only the Latin display face gets the tight setting. */
+[dir='rtl'] .second-skin__title,
+.second-skin:dir(rtl) .second-skin__title {
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+.second-skin__subtitle {
+  font-family: var(--ss-ui);
+  font-size: 1.0625rem;
+  font-weight: 400;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 34ch;
+}
+
+/* the dissolve canvas: one quad, no pointer events, sits above the portrait
+   and below the closing paragraph */
+.second-skin__canvas {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ── the closing paragraph ───────────────────────────────────────────────── */
+
+.second-skin__content {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  height: 125svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+  padding-inline: 2rem;
+  z-index: 4;
+}
+
+/* a scrim under the copy: the paragraph starts fading in while the fill is
+   still climbing, so the first words need something to sit on */
+.second-skin__content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--ss-fill) 72%, transparent) 0%,
+    color-mix(in srgb, var(--ss-fill) 0%, transparent) 70%
+  );
+}
+
+.second-skin__mark {
+  position: relative;
+  font-family: var(--ss-mono);
+  opacity: 0.55;
+}
+
+.second-skin__body {
+  position: relative;
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--ss-display);
+  font-weight: 600;
+  line-height: 1.06;
+  font-size: clamp(2rem, 4.2vw, 4.25rem);
+}
+
+/* The word fade, as arithmetic. Each word owns an equal slice of the
+   timeline; `--ss-from` is where its slice starts, `--ss-total` how many
+   slices there are. One `--ss-words` write per frame inks every word — the
+   reference ran a tween per word per frame to do the same thing. */
+.second-skin__word {
+  opacity: clamp(0, calc((var(--ss-words) - var(--ss-from, 0)) * var(--ss-total, 1)), 1);
+}
+
+/* ── narrow screens ──────────────────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  .second-skin__body {
+    max-width: none;
+    width: calc(100% - 4rem);
+  }
+}
+
+/* ── no dissolve available ───────────────────────────────────────────────── */
+
+/* WebGL blocked, module failed, or the visitor asked for less motion: the
+   portrait stays, the fill becomes a fixed ramp that still sinks the bottom
+   of the frame, and the paragraph is simply already written. A block must not
+   depend on a GPU to be readable. */
+.second-skin.is-flat .second-skin__canvas {
+  display: none;
+}
+
+.second-skin.is-flat .second-skin__hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* under the type (z 2), over the portrait (z 0): a scrim that dims the
+     headline it is supposed to sit behind is worse than no scrim */
+  z-index: 1;
+  /* The closing paragraph sits around 55% of the hero's height (it is centred
+     in the bottom 125svh), so the ramp has to be fully opaque well before
+     that — a ramp keyed to the viewport would leave the first line of copy
+     sitting on bare photograph. */
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 26%,
+    color-mix(in srgb, var(--ss-fill) calc(var(--ss-mix) * 90%), transparent) 44%,
+    color-mix(in srgb, var(--ss-fill) calc(var(--ss-mix) * 100%), transparent) 54%
+  );
+}
+
+.second-skin.is-flat .second-skin__word {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .second-skin__word {
+    opacity: 1;
+  }
+}

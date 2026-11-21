@@ -1,0 +1,442 @@
+/* ==========================================================================
+   product-scrub — a pinned product stage.
+
+   One number owns the whole scene: `--ps-p` (0 → 1), the block's own scroll
+   progress, written by `useScrollProgress` on the element. Every beat of the
+   reference's ScrollTrigger timeline is a clamped ramp of that number, so the
+   sequence is reversible frame-for-frame and a frame costs one style write.
+
+   The reference pinned with ScrollTrigger (`pin: true`) for ten viewports and
+   smoothed it with Lenis. Here the block's height IS the scroll budget and the
+   stage is `position: sticky` inside it — the page scroll is never touched.
+   ========================================================================== */
+
+.s-block--product-scrub {
+  @apply mt-0 sm:mt-0;
+}
+
+/* Reserved height for the lazy wrapper: the engine's `height` is a static
+   string, so the pacing tier arrives as a class that sets the variable the
+   string reads. One rule per tier, and the router and the component share
+   `productScrubRunClass`, so the reservation cannot disagree with the block. */
+@each $key, $run in (short: 400, medium: 600, long: 800) {
+  .product-scrub-run--#{$key} {
+    --ps-run: #{$run}svh;
+  }
+}
+
+.product-scrub {
+  --ps-light: #e0dfdf;
+  --ps-dark: #0d0d0d;
+  --ps-ink: #0d0d0d;
+  --ps-chalk: #e0dfdf;
+  --ps-muted: #8f8f8f;
+  /* 1 in LTR, -1 in RTL: every horizontal move is multiplied by it, so the
+     composition mirrors with the page instead of dragging the reader the
+     wrong way */
+  --ps-dir: 1;
+  --ps-run: 600svh;
+
+  /* the one scroll value — `useScrollProgress` writes `--block-progress` on
+     this element, and everything below reads it through this alias */
+  --ps-p: var(--block-progress, 0);
+
+  /* ── the timeline, as arithmetic ─────────────────────────────────────── */
+  /* 0.05 → 0.35: the light headline leaves towards the inline-start edge */
+  --ps-h1: clamp(0, calc((var(--ps-p) - 0.05) / 0.3), 1);
+  /* 0.20 → 0.30: the dark disc opens from the centre */
+  --ps-disc: clamp(0, calc((var(--ps-p) - 0.2) / 0.1), 1);
+  /* 0.15 → 0.50: 100% → -200%, i.e. 300% of travel. The reference's three
+     branches collapse into one ramp because they are already continuous. */
+  --ps-h2: calc(100 - 300 * clamp(0, calc((var(--ps-p) - 0.15) / 0.35), 1));
+  /* 0.45 → 0.65: both rules draw themselves */
+  --ps-rule: clamp(0, calc((var(--ps-p) - 0.45) / 0.2), 1);
+
+  position: relative;
+  /* the block's own height IS the scroll budget: one pinned viewport + the
+     run. No `overflow` here — it would make this a scroll container and the
+     sticky stage would stop sticking to the viewport. */
+  height: calc(100svh + var(--ps-run));
+  background: var(--ps-dark);
+  color: var(--ps-ink);
+  isolation: isolate;
+}
+
+[dir='rtl'] .product-scrub,
+.product-scrub:dir(rtl) {
+  --ps-dir: -1;
+}
+
+.product-scrub *,
+.product-scrub *::before,
+.product-scrub *::after {
+  box-sizing: border-box;
+}
+
+/* ── the pinned stage ────────────────────────────────────────────────────── */
+
+.product-scrub__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--ps-light);
+}
+
+/* ── the two headline panels ─────────────────────────────────────────────── */
+
+.product-scrub__panel {
+  position: absolute;
+  inset: 0;
+}
+
+.product-scrub__panel--light {
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* no background: the dark comes from the disc, which is the point of the
+   sequence. This layer only carries the second headline. */
+.product-scrub__panel--dark {
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ── the headlines ───────────────────────────────────────────────────────────
+   Both lines are 200vw / 150vw wide — the reference's `.header-1` and
+   `.header-2` — and both hang off the edge where their own TEXT begins:
+
+     `inset-inline-start: 0` is resolved against the element's OWN direction,
+     which `dir="auto"` takes from the copy. So a Latin line hangs off the left
+     edge and bleeds right, and an Arabic line hangs off the right edge and
+     bleeds left. Every other combination (Latin copy on an Arabic page,
+     Arabic copy on an English one) lands the way it is read, instead of
+     showing the tail of the sentence before the scroll has even started.
+
+   `--ps-flow` follows the same direction, so the line always travels the way
+   it is read: out through its own start edge.
+
+   The direction is written back from JS as `data-flow`, not asked for with
+   `:dir(rtl)`: the production CSS minifier downlevels `:dir()` into a
+   `:lang(ar), :lang(he)…` list, which answers "what language is the page",
+   not "which way does this line read" — and would hand a Latin headline on
+   an Arabic page the wrong direction. */
+
+.product-scrub__headline {
+  --ps-flow: 1;
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  margin: 0;
+  padding-inline: clamp(1.5rem, 5vw, 5rem);
+  font-family: 'Space Grotesk', var(--font-main), sans-serif;
+  font-weight: 500;
+  /* the reference's own scale: the line is sized off the viewport, not off a
+     comfortable reading measure, and it is meant to bleed past the edge */
+  font-size: 15vw;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  /* stated, not inherited: the theme sets a page-level `text-align`, and
+     `start` is what makes the line agree with `inset-inline-start` above */
+  text-align: start;
+}
+
+.product-scrub__headline[data-flow='rtl'] {
+  --ps-flow: -1;
+  /* Arabic is joined script: negative tracking pulls the letters into each
+     other, so the tight setting stays with the Latin face only */
+  letter-spacing: 0;
+}
+
+.product-scrub__headline--out {
+  width: 200vw;
+  /* a full 200vw of travel, the reference's `xPercent: -100` on a 200vw
+     header: the whole line clears the frame, not just one screen of it */
+  transform: translate(calc(-100% * var(--ps-h1) * var(--ps-flow)), -50%);
+}
+
+.product-scrub__headline--sweep {
+  width: 150vw;
+  color: var(--ps-chalk);
+  transform: translate(calc(1% * var(--ps-h2) * var(--ps-flow)), -50%);
+}
+
+/* ── the disc ────────────────────────────────────────────────────────────── */
+
+.product-scrub__disc {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--ps-dark);
+  /* 100% of a circle() radius is resolved against sqrt(w² + h²)/√2, which is
+     always larger than the half-diagonal — so 100% really does reach the
+     corners on both a phone and an ultrawide */
+  clip-path: circle(calc(var(--ps-disc) * 100%) at 50% 50%);
+}
+
+/* ── the masks ───────────────────────────────────────────────────────────────
+   The reference split every line into a masked span with SplitText. Line boxes
+   are unknowable without measuring, and splitting Arabic into characters
+   destroys the joins — so the mask is per WORD for titles and per BLOCK for
+   the paragraph. Same reveal, script-safe. */
+
+.product-scrub__mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  /* descender room: a clipped `g` is the classic failure of this technique,
+     and the negative margin keeps the layout box unchanged */
+  padding-block-end: 0.14em;
+  margin-block-end: -0.14em;
+}
+
+.product-scrub__mask--body {
+  display: block;
+}
+
+.product-scrub__mask--icon {
+  line-height: 0;
+}
+
+/* ── the opening line's entrance ─────────────────────────────────────────────
+   One unit at a time, 25ms apart, 1s, power3.out — the reference's SplitText
+   tween (`{duration:1, ease:"power3.out", stagger:0.025}`), unchanged. The
+   unit is a character in Latin and a word in Arabic; `splitForMask` decides.
+   130% rather than the reference's 100%: the mask carries 0.14em of descender
+   padding, so 100% of the inner box would leave the cap-height sliver showing
+   through the clip. */
+
+.product-scrub__wordgroup {
+  display: inline-block;
+  /* a break may fall between words, never inside one */
+  white-space: nowrap;
+}
+
+.product-scrub__unit {
+  display: block;
+  transform: translateY(130%);
+  /* cubic-bezier(0.215, 0.61, 0.355, 1) is power3.out */
+  transition: transform 1000ms cubic-bezier(0.215, 0.61, 0.355, 1);
+  transition-delay: calc(var(--i, 0) * 25ms);
+}
+
+.product-scrub__headline--out.is-visible .product-scrub__unit {
+  transform: translateY(0);
+}
+
+/* ── the cards' entrance ─────────────────────────────────────────────────────
+   A threshold, not a ramp. The reference toggled a 1s power3.out tween at
+   0.65 and 0.85 (`gsap.to(..., y: progress >= 0.65 ? "0%" : "125%")`); the
+   crossing writes `is-in` and the stylesheet plays the tween, so the eased
+   motion is the browser's instead of a per-frame style write. */
+
+.product-scrub__rise {
+  display: block;
+  transform: translateY(125%);
+  transition: transform 1000ms cubic-bezier(0.215, 0.61, 0.355, 1);
+  /* the reference staggered 25ms across six or seven split lines; with three
+     elements per card a literal 25ms would read as no stagger at all */
+  transition-delay: calc(var(--i, 0) * 80ms);
+}
+
+.product-scrub__card.is-in .product-scrub__rise {
+  transform: translateY(0);
+}
+
+/* ── the cards ───────────────────────────────────────────────────────────── */
+
+.product-scrub__cards {
+  position: absolute;
+  /* the site header floats over the top of every block, so the first card
+     starts below it instead of behind it */
+  inset-block: 12% 10%;
+  /* The reference frames the cards at 75% of the width (12.5% a side) around a
+     product it also pushed off-centre. With the product centred and at the
+     reference's 1.25× framing, 12.5% leaves the copy's inner edge under the
+     bottle, so the frame opens to 8%: the cards keep their corners and the
+     paragraphs clear the product. */
+  inset-inline: 8%;
+  z-index: 4;
+  display: flex;
+  /* the reference's 15rem gutter between the two corners */
+  gap: clamp(2rem, 15vw, 15rem);
+  color: var(--ps-chalk);
+  pointer-events: none;
+}
+
+.product-scrub__card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-self: flex-start;
+  gap: 0.5rem;
+  /* physical sides for the same reason as the headline: the corner is the
+     page's, the word order is the content's */
+  text-align: left;
+}
+
+/* the second card sits in the opposite corner, as in the reference */
+.product-scrub__card:nth-child(2) {
+  align-self: flex-end;
+  align-items: flex-end;
+  text-align: right;
+}
+
+[dir='rtl'] .product-scrub__card,
+.product-scrub:dir(rtl) .product-scrub__card {
+  text-align: right;
+}
+
+[dir='rtl'] .product-scrub__card:nth-child(2),
+.product-scrub:dir(rtl) .product-scrub__card:nth-child(2) {
+  text-align: left;
+}
+
+.product-scrub__card-title {
+  margin: 0;
+  font-family: 'Space Grotesk', var(--font-main), sans-serif;
+  font-weight: 500;
+  font-size: clamp(1.5rem, 2.6vw, 2.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+[dir='rtl'] .product-scrub__card-title,
+.product-scrub:dir(rtl) .product-scrub__card-title {
+  letter-spacing: 0;
+}
+
+.product-scrub__card-body {
+  margin: 0;
+  max-width: 34ch;
+  font-family: 'Inter', var(--font-main), sans-serif;
+  font-size: clamp(0.9375rem, 1.1vw, 1.125rem);
+  line-height: 1.55;
+  color: var(--ps-muted);
+}
+
+.product-scrub__rule {
+  display: block;
+  width: 100%;
+  height: 1px;
+  margin-block: 0.5rem;
+  background: var(--ps-muted);
+  transform: scaleX(var(--ps-rule));
+  /* draws outwards from the outer edge: right→left for the first card in LTR,
+     mirrored with the page in RTL */
+  transform-origin: calc(50% + 50% * var(--ps-dir)) center;
+}
+
+.product-scrub__card:nth-child(2) .product-scrub__rule {
+  transform-origin: calc(50% - 50% * var(--ps-dir)) center;
+}
+
+/* the reference narrows the second card's copy to 70% so the two corners do
+   not read as one block; the divider keeps the full width */
+.product-scrub__card:nth-child(2) .product-scrub__card-title,
+.product-scrub__card:nth-child(2) .product-scrub__card-body {
+  width: 70%;
+}
+
+/* ── the product ─────────────────────────────────────────────────────────── */
+
+.product-scrub__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* ── narrow screens ──────────────────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  /* the headline keeps its 15vw: the reference only shrinks the intro/outro
+     h1 on a phone, and `.header-1 h1` out-specifies it there for the same
+     reason — a line that fits the screen is no longer the component */
+
+  .product-scrub__cards {
+    inset-block: 10%;
+    inset-inline: 6%;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2rem;
+  }
+
+  .product-scrub__card {
+    flex: 0 0 auto;
+    align-self: stretch;
+    /* centred, and the model moves BEHIND the cards: on a phone there is no
+       corner left for it to stand in, and a bottle sitting on the copy is
+       worse than a bottle behind it */
+    align-items: center;
+    text-align: center;
+  }
+
+  .product-scrub__card:nth-child(2) {
+    align-self: stretch;
+    align-items: center;
+    text-align: center;
+  }
+
+  .product-scrub__card-body {
+    max-width: none;
+  }
+
+  /* the 70% corner rule is a desktop composition; stacked, both cards are
+     full width */
+  .product-scrub__card:nth-child(2) .product-scrub__card-title,
+  .product-scrub__card:nth-child(2) .product-scrub__card-body {
+    width: 100%;
+  }
+
+  /* Behind the type, above the disc: on a phone the frame is too narrow for
+     the product to stand beside the copy, so it becomes the ground the type
+     sits on instead of a card covering it. */
+  .product-scrub__canvas {
+    z-index: 2;
+  }
+
+  /* the mobile centring must survive the physical sides set for the desktop
+     corners — same specificity, so it has to come last AND inside the query */
+  [dir='rtl'] .product-scrub__card,
+  .product-scrub:dir(rtl) .product-scrub__card,
+  [dir='rtl'] .product-scrub__card:nth-child(2),
+  .product-scrub:dir(rtl) .product-scrub__card:nth-child(2) {
+    text-align: center;
+  }
+}
+
+/* ── reduced motion ──────────────────────────────────────────────────────────
+   The sequence settles on its final composition — dark frame, both cards
+   written, the product still — and the scroll budget collapses with it. A
+   seven-viewport block that never changes would be worse than no animation:
+   the visitor would scroll through an empty stage looking for something to
+   happen. `min-height` is what the engine writes inline, so the override has
+   to be `!important`; `:has()` keeps it scoped to a placement that really is
+   in the flat state. */
+
+.product-scrub.is-flat {
+  --ps-p: 1;
+  height: 100svh;
+}
+
+.s-block--product-scrub:has(.product-scrub.is-flat) {
+  min-height: 0 !important;
+}
+
+.product-scrub.is-flat .product-scrub__unit,
+.product-scrub.is-flat .product-scrub__rise {
+  transform: none;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-scrub__unit,
+  .product-scrub__rise {
+    transform: none;
+    transition: none;
+  }
+}
