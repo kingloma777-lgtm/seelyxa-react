@@ -70,18 +70,9 @@
 }
 
 .s-product-card {
-  &-content-footer {
-    > div {
-      @apply w-full;
-    }
-    salla-button.s-button-wrap {
-      @apply w-full;
-    }
-  }
-  &-content-sub {
-    @apply justify-start gap-3;
-  }
-
+  /* The card's own layout lives in `04-components/product-card.scss` — one
+     stylesheet per component. What stays here is the shared image box, which
+     the cart and the wishlist rows also read. */
   &-starting-price {
     @apply w-auto;
   }
@@ -132,101 +123,6 @@
       margin-bottom: 3px;
       color: var(--color-primary);
     }
-  }
-}
-
-/*
-  Product-card enhancements
-  - wishlist button is moved into the footer row (by app/components/product/ProductCard.tsx)
-  - add-to-cart is solid + pill-rounded
-  - content order becomes: subtitle, title, price
-*/
-.s-product-card {
-  /* `ProductCard.tsx` relocates the wishlist button into the footer, but only
-     from a mount effect — every vertical card briefly shows the engine's
-     default image-corner button first (a visible flash on every page with
-     product cards, since every current usage goes through that wrapper).
-     `.s-product-card-vertical` is the engine's own class, present in the
-     first paint, so hiding the image-overlay copy here (rather than behind
-     the JS-added `is-theme-card`) removes the flash instead of just timing
-     it differently. */
-  .s-product-card-vertical .s-product-card-image > .s-product-card-wishlist-btn {
-    display: none;
-  }
-
-  .s-product-card-content-footer {
-    @apply flex items-center gap-1.5;
-
-    /* the add-to-cart fills the row — the deferred loader wraps it in a bare
-       <div>, so target that (and the element itself, once hydrated). */
-    > div,
-    > salla-add-product-button {
-      @apply w-full flex-1 min-w-0;
-    }
-
-    /* wishlist stays a fixed 36px circle, however the engine wraps it
-       (bare button on the grid card, `.s-button-wrap` on the list card) */
-    > .s-product-card-wishlist-btn,
-    > .s-button-wrap {
-      @apply w-9 flex-none;
-    }
-
-    .s-product-card-wishlist-btn {
-      position: static;
-      inset: auto;
-      opacity: 1;
-      @apply w-9 h-9 shrink-0 m-0;
-
-      button,
-      .s-button-btn,
-      .s-button-element {
-        @apply w-9 h-9 min-w-0 m-0 p-0 flex-none inline-flex items-center justify-center rounded-full border border-gray-200 bg-white;
-      }
-
-      svg {
-        @apply w-4 h-4;
-      }
-    }
-
-    /* list-card wishlist arrives wrapped in `.s-button-wrap` (a *direct* footer
-       child — the add-to-cart's own `.s-button-wrap` is nested, so `>` keeps
-       this off it) */
-    > .s-button-wrap .s-button-icon {
-      @apply w-9 h-9 min-w-0 m-0 p-0 inline-flex items-center justify-center rounded-full border border-gray-200 bg-white;
-
-      svg {
-        @apply w-4 h-4;
-      }
-    }
-
-    /* solid, pill-rounded add-to-cart, matched to the wishlist button height
-       (the engine renders it as fill="outline") */
-    .s-button-btn {
-      @apply h-9 bg-primary text-primary-reverse border-primary rounded-full;
-
-      &:hover {
-        @apply bg-primary-d text-primary-reverse border-primary-d opacity-100;
-      }
-
-      svg {
-        @apply fill-current;
-      }
-    }
-  }
-
-  /* subtitle → title → price */
-  .s-product-card-content-main {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .s-product-card-content-subtitle {
-    // order: -1;
-    @apply text-xs sm:text-sm mb-1;
-  }
-
-  .s-product-card-content-title {
-    @apply mb-1 text-base;
   }
 }
 
@@ -340,15 +236,22 @@ salla-gifting {
   overflow: visible;
 }
 
-/* Promotion badge — pill on the image corner */
+/* Promotion badge — pill on the image corner. The skin lives here so every
+   layout (vertical / horizontal / minimal) wears the same pill; the vertical
+   card's own offset is in `product-card.scss`. */
 .s-product-card-promotion-title {
   top: 0.75rem;
   inset-inline-start: 0.75rem;
   inset-inline-end: auto;
   padding: 0.375rem 0.75rem;
   border-radius: 9999px;
-  max-width: calc(100% - 1.5rem);
-  @apply bg-red-800 text-white text-[11px] font-semibold leading-none shadow-sm;
+  max-width: calc(100% - 3rem);
+  background: var(--pc-badge-bg, #f1e5cd);
+  color: var(--pc-badge-ink, #6a5a42);
+  @apply text-[11px] font-semibold leading-none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Add to cart sticky bar */
@@ -459,7 +362,7 @@ salla-gifting {
 
 .s-toggle .s-toggle-switcher-has-text:before {
   @apply content-[attr(data-switcher-text)] font-bold text-center text-gray-400 text-xs leading-[22px];
-  font-family: arial, serif;
+  font-family: inherit;
 }
 
 .s-toggle .s-toggle-input:checked + div.s-toggle-switcher-bg-white:before {
@@ -694,6 +597,17 @@ salla-gifting {
 
     i {
       font-size: 1.15rem;
+    }
+
+    /* The back glyph is drawn as the RTL arrow (`ArrowRightIcon`), because the
+       store is Arabic first. In LTR "back" points the other way, and a CSS
+       mirror keeps that true when the shopper switches language mid-session —
+       no re-render, no second icon import. Scoped to `is-back`: the same class
+       dresses the share and wishlist buttons, whose glyphs must not flip. */
+    &.is-back {
+      [dir='ltr'] & svg {
+        transform: scaleX(-1);
+      }
     }
 
     /* `<salla-social-share>` renders `.s-social-share-wrapper` (its own

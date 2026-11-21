@@ -1,0 +1,635 @@
+/* ==========================================================================
+   Product card — the store-wide design.
+
+   The card is the engine's `product:card` slot, so this file styles the
+   engine's own markup (`.s-product-card-vertical`) and adds nothing to it
+   except what `ProductCard.tsx` feeds: the short line as the engine's own
+   subtitle, and the review count as `data-count` on the rating row.
+
+   Two sources of truth, on purpose:
+
+   - **Colour, radius, type and the cart shape** come from the merchant's
+     settings as custom properties on `.app-inner` (`ThemeLayout` writes them
+     inline, so they are in the server-rendered HTML). Every default lives
+     here, on `.app-inner` — never on the card, because a variable declared on
+     the card would shadow the one it inherits and the merchant's choice would
+     stop arriving.
+   - **Which elements exist** comes from `data-pc-*` attributes on the same
+     element. They only hide nodes the engine renders, so toggling a switch
+     never re-renders a list.
+
+   Layout: the engine nests title/subtitle in `-content-main`, price/rating in
+   `-content-sub`, and the add button in `-content-footer` — three wrappers that
+   make "price on one side, cart on the other" impossible with normal flow. So
+   the three wrappers become `display: contents` and their children are placed
+   on one grid, which is also what keeps every card's rows aligned across a
+   row of cards regardless of how long the name is.
+   ========================================================================== */
+
+.app-inner {
+  /* reference palette — the panel a cut-out product sits on, and the pill that
+     floats on it. `--pc-*` base values are overwritten by the settings. */
+  --pc-radius: 22px;
+  --pc-bg: #fdfaf3;
+  --pc-image-bg: #f4ebdc;
+  --pc-ink: #2b2519;
+  --pc-desc-lines: 2;
+
+  /* derived — declared here, not on the card, so they resolve against the
+     merchant's values rather than a copy of the defaults */
+  --pc-muted: color-mix(in srgb, var(--pc-ink) 58%, transparent);
+  --pc-line: color-mix(in srgb, var(--pc-ink) 9%, transparent);
+  --pc-badge-bg: color-mix(in srgb, var(--pc-image-bg) 86%, #000 5%);
+  --pc-badge-ink: color-mix(in srgb, var(--pc-ink) 82%, #6a5a42);
+  --pc-star: #c9a227;
+  --pc-circle-bg: color-mix(in srgb, var(--pc-image-bg) 62%, #fff);
+  --pc-circle-ink: var(--pc-ink);
+  --pc-shadow: 0 22px 44px -34px color-mix(in srgb, var(--pc-ink) 70%, transparent);
+
+  /* The CARD level of the background chain (store → section → card, see
+     `01-settings/tokens.scss`). It is declared HERE, not on `:root`, because
+     it resolves `--pc-bg` — and `--pc-bg` is written inline on this very
+     element by `ThemeLayout`. On `:root` the reference would resolve where
+     `--pc-bg` does not exist and silently fall through to the literal, which
+     is the bug this declaration exists to prevent.
+
+     A section that wants its cards to pop sets `--bg-card` on its own
+     selector; everything inside it follows without knowing the store. */
+  --bg-card: var(--pc-bg);
+}
+
+/* ---------- the tile ---------- */
+
+.s-product-card-vertical {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  background: var(--pc-bg);
+  border: 1px solid var(--pc-line);
+  border-radius: var(--pc-radius);
+  color: var(--pc-ink);
+  /* the panel's corners are the tile's, minus its own padding */
+  overflow: hidden;
+  transition:
+    transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.5s;
+}
+
+[data-pc-shadow='soft'] .s-product-card-vertical {
+  box-shadow: var(--pc-shadow);
+}
+
+[data-pc-shadow='lift'] .s-product-card-vertical {
+  box-shadow:
+    0 2px 6px -4px color-mix(in srgb, var(--pc-ink) 40%, transparent),
+    0 26px 50px -30px color-mix(in srgb, var(--pc-ink) 60%, transparent);
+}
+
+[data-pc-shadow='none'] .s-product-card-vertical {
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .s-product-card-vertical:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--pc-ink) 16%, transparent);
+  }
+}
+
+/* ---------- image panel ---------- */
+
+.s-product-card-vertical .s-product-card-image {
+  position: relative;
+  flex: 0 0 auto;
+  /* The merchant's media radius when they chose one; otherwise the card's own
+     inner corner, which is what this panel has always painted. Reading the
+     role here — rather than giving it a shipped default in `tokens.scss` — is
+     what keeps `product_card_radius` and `global_media_radius` from fighting:
+     unset, the card setting still drives the image, exactly as before. */
+  border-radius: var(--radius-media, calc(var(--pc-radius) - 9px));
+  background: var(--pc-image-bg);
+  overflow: hidden;
+}
+
+.s-product-card-vertical .s-product-card-image img {
+  transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (hover: hover) {
+  .s-product-card-vertical:hover .s-product-card-image img {
+    transform: scale(1.045);
+  }
+}
+
+/* badge — the merchant's promotion title / pre-order label. The pill's skin is
+   in `product.scss` (shared with the horizontal card); here it only moves to
+   the panel's corner, inside the tile's padding. */
+[data-pc-badge='0'] .s-product-card-promotion-title {
+  display: none;
+}
+
+.s-product-card-vertical .s-product-card-promotion-title {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-start: 10px;
+  z-index: 2;
+  max-width: calc(100% - 60px);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+
+/* wishlist — the engine already puts it on the image corner for vertical
+   cards; it only needs a surface it can be seen on. */
+[data-pc-wish='0'] .s-product-card-image > .s-button-wrap {
+  display: none;
+}
+
+.s-product-card-vertical .s-product-card-image > .s-button-wrap {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+  z-index: 3;
+  margin: 0;
+}
+
+.s-product-card-vertical .s-product-card-image .s-product-card-wishlist-btn {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--pc-line);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pc-bg) 78%, transparent);
+  color: var(--pc-ink);
+  backdrop-filter: blur(6px);
+  transition: background 0.3s, color 0.3s;
+
+  i {
+    font-size: 15px;
+    line-height: 1;
+  }
+
+  &:hover {
+    background: var(--pc-bg);
+  }
+}
+
+.s-product-card-vertical .s-product-card-wishlist-added {
+  color: var(--color-primary);
+
+  i {
+    color: inherit;
+  }
+}
+
+/* ---------- content ---------- */
+
+.s-product-card-vertical .s-product-card-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'dots   dots'
+    'main   main'
+    'desc   desc'
+    'rating rating'
+    'price  cart';
+  /* the last row takes the slack, so a card with no description does not lift
+     its price above the price of the card beside it — the row of prices has to
+     read as one line across the grid. `minmax(auto, 1fr)`, not `1fr`: a bare
+     `1fr` collapses to zero when there is no slack and the price row then
+     overflows the tile (which `overflow: hidden` clips mid-glyph). */
+  grid-template-rows: auto auto auto auto minmax(auto, 1fr);
+  align-items: center;
+  column-gap: 10px;
+  padding: 14px 6px 4px;
+  flex: 1 1 auto;
+  align-content: start;
+}
+
+/* the three engine wrappers stop boxing their children, so one grid can place
+   the name, the line, the stars, the price and the cart in four rows */
+.s-product-card-vertical .s-product-card-content-main,
+.s-product-card-vertical .s-product-card-content-sub,
+.s-product-card-vertical .s-product-card-content-footer {
+  display: contents;
+}
+
+.s-product-card-vertical .s-product-card-content-title {
+  grid-area: main;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--pc-ink);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+[data-pc-font='serif'] .s-product-card-vertical .s-product-card-content-title {
+  /* Playfair has no Arabic, so an Arabic name falls through to the store's own
+     face — the Latin name gets the reference's serif, the Arabic one stays
+     legible instead of rendering as tofu. */
+  font-family: 'Playfair Display', var(--font-main), Georgia, serif;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+[data-pc-desc='0'] .s-product-card-content-subtitle {
+  display: none;
+}
+
+.s-product-card-vertical .s-product-card-content-subtitle {
+  grid-area: desc;
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--pc-muted);
+  opacity: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: var(--pc-desc-lines, 2);
+  -webkit-box-orient: vertical;
+}
+
+/* stars */
+[data-pc-rating='0'] .s-product-card-rating {
+  display: none;
+}
+
+.s-product-card-vertical .s-product-card-rating {
+  grid-area: rating;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--pc-ink);
+
+  i {
+    font-size: 13px;
+    color: var(--pc-star);
+  }
+}
+
+/* `4.8 (120)` — the count is an attribute `ProductCard.tsx` puts on the row,
+   so the average stays the engine's own text */
+[data-pc-rating-count='1'] .s-product-card-rating[data-count]::after {
+  content: '(' attr(data-count) ')';
+  margin-inline-start: 2px;
+  font-weight: 400;
+  color: var(--pc-muted);
+}
+
+/* ---------- no reviews ---------- */
+
+/* The engine renders no rating row at all for a product without stars, so the
+   card fills it with this. Same box as the real row, so the two line up in a
+   grid that mixes reviewed and unreviewed products. */
+.pc-rating {
+  grid-area: rating;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 400;
+  color: var(--pc-muted);
+
+  i {
+    font-size: 13px;
+    /* the star is there for shape, not for a score — half the weight of a real
+       one so it never reads as "zero out of five" */
+    color: color-mix(in srgb, var(--pc-star) 42%, transparent);
+  }
+}
+
+[data-pc-rating='0'] .pc-rating,
+[data-pc-rating-empty='0'] .pc-rating {
+  display: none;
+}
+
+/* price */
+.s-product-card-vertical .s-product-card-price,
+.s-product-card-vertical .s-product-card-sale-price,
+.s-product-card-vertical .s-product-card-starting-price {
+  grid-area: price;
+  align-self: end;
+  min-width: 0;
+  margin-top: 10px;
+}
+
+.s-product-card-vertical .s-product-card-price,
+.s-product-card-vertical .s-product-card-sale-price h4,
+.s-product-card-vertical .s-product-card-starting-price h4 {
+  /* `product.scss` paints every sale price red with `!important`; the card
+     wants the merchant's ink, so the override has to be as loud as the rule. */
+  color: var(--pc-ink) !important;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.s-product-card-vertical .s-product-card-sale-price {
+  /* the old price goes UNDER the new one: side by side they fight for a
+     ~120px column and the row wraps into two ragged lines anyway */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+
+  span {
+    font-size: 12px;
+    color: var(--pc-muted);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+  }
+}
+
+.s-product-card-vertical .s-product-card-starting-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+
+  p {
+    margin: 0;
+    font-size: 11px;
+    color: var(--pc-muted);
+  }
+}
+
+/* ---------- cart ---------- */
+
+.s-product-card-vertical .s-product-card-content-footer > div {
+  grid-area: cart;
+  justify-self: end;
+  align-self: end;
+  width: auto;
+  margin-bottom: 2px;
+}
+
+.s-product-card-vertical salla-add-product-button {
+  display: block;
+}
+
+.s-product-card-vertical salla-add-product-button .s-button-element {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  transition:
+    background 0.3s,
+    color 0.3s,
+    transform 0.3s;
+}
+
+/* circle — the reference's compact card: the label becomes a cart glyph */
+[data-pc-cart='circle'] .s-product-card-vertical salla-add-product-button .s-button-element {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--pc-line);
+  border-radius: 50%;
+  background: var(--pc-circle-bg);
+  color: var(--pc-circle-ink);
+
+  &::before {
+    content: '';
+    width: 18px;
+    height: 18px;
+    background: currentColor;
+    -webkit-mask: var(--pc-cart-icon) center / contain no-repeat;
+    mask: var(--pc-cart-icon) center / contain no-repeat;
+  }
+
+  &:hover {
+    background: var(--pc-ink);
+    color: var(--pc-bg);
+  }
+}
+
+/* Visually hidden, not `display: none`: the label is the button's accessible
+   name. Removing it leaves an icon-only button that a screen reader announces
+   as "button" — the icon is a CSS mask, so it carries no text at all. */
+[data-pc-cart='circle'] .s-product-card-vertical salla-add-product-button .s-button-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* bar — the reference's "Add to Cart" card, in the store's own brand colour */
+[data-pc-cart='bar'] .s-product-card-vertical salla-add-product-button .s-button-element {
+  height: 40px;
+  padding-inline: 16px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-primary-reverse);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--color-primary-d);
+  }
+}
+
+/* the glyph, as a mask so it inherits `currentColor` in both cart styles */
+.app-inner {
+  --pc-cart-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.55L20.5 8H6'/%3E%3Ccircle cx='10' cy='19.5' r='1.4'/%3E%3Ccircle cx='17.5' cy='19.5' r='1.4'/%3E%3C/svg%3E");
+}
+
+/* the quantity pie (`layout="special"`) must not join the grid — it is a
+   corner badge, and as a grid item it would open a phantom row */
+.s-product-card-vertical .s-product-card-content-pie {
+  position: absolute;
+  z-index: 3;
+}
+
+/* ---------- night ---------- */
+
+/* `02-generic/dark.scss` repaints `.s-product-card` with the theme's own
+   surface tokens, and `html.dark .s-product-card` is one class more specific
+   than the card's own rule — so without this the tile goes dark while the name
+   and the price keep the merchant's dark ink and disappear into it.
+ *
+ * These are the only declarations in this file that shadow an inherited
+ * `--pc-*`, and that is the point: the merchant's palette is a *light* palette,
+ * and a store that has night mode on needs the card to belong to it. The three
+ * colour fields say so in their own descriptions. */
+html.dark .s-product-card-vertical {
+  --pc-bg: var(--surface-1);
+  /* the ROLE, not `--surface-2` — `global-settings.scss` already resolves this
+     per mode, so a merchant's palette night face reaches the photo well here
+     instead of a second copy of the same literal */
+  --pc-image-bg: var(--surface-media);
+  --pc-ink: var(--ink-1);
+  --pc-line: var(--line-1);
+  --pc-muted: color-mix(in srgb, var(--ink-1) 60%, transparent);
+  --pc-badge-bg: color-mix(in srgb, var(--ink-1) 14%, transparent);
+  --pc-badge-ink: var(--ink-1);
+  --pc-circle-bg: color-mix(in srgb, var(--ink-1) 9%, transparent);
+  --pc-circle-ink: var(--ink-1);
+  --pc-shadow: none;
+
+  background: var(--pc-bg);
+  color: var(--pc-ink);
+}
+
+/* ---------- gallery ---------- */
+
+/* The track lives inside the engine's image `<a>` and covers the single photo
+   it renders. `position: absolute` repeats what the ratio block already does —
+   it is here so the gallery still lays out if that block is ever bypassed. */
+.s-product-card-vertical .s-product-card-image > a:has(.pc-gallery) {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.pc-gallery {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  /* native swipe: momentum + snapping, no script */
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.pc-gallery__slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* the drag must not lift the photo into the browser's own image drag */
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+}
+
+/* dots — the reference's row between the picture and the name */
+.pc-dots {
+  grid-area: dots;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0 4px;
+}
+
+.pc-dots__dot {
+  width: 5px;
+  height: 5px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--pc-ink) 22%, transparent);
+  cursor: pointer;
+  transition:
+    background 0.3s,
+    transform 0.3s;
+
+  &[aria-current='true'] {
+    background: var(--pc-ink);
+    transform: scale(1.3);
+  }
+
+  /* a 5px target is not a target — grow the hit area without moving the dot */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -7px;
+  }
+}
+
+.pc-dots__dot {
+  position: relative;
+}
+
+/* ---------- phone ---------- */
+
+@media (max-width: 767px) {
+  .s-product-card-vertical {
+    padding: 8px;
+    border-radius: calc(var(--pc-radius) * 0.82);
+  }
+
+  .s-product-card-vertical .s-product-card-image {
+    /* Same role, same fallback: on a phone the card is drawn at 82% of its
+       radius, and the image sits 7px inside it. Without the `var()` here the
+       merchant's media radius would silently stop applying below 768px —
+       which is exactly where most of the traffic is. */
+    border-radius: var(--radius-media, calc(var(--pc-radius) * 0.82 - 7px));
+  }
+
+  .s-product-card-vertical .s-product-card-content {
+    padding: 11px 3px 2px;
+    column-gap: 8px;
+  }
+
+  .s-product-card-vertical .s-product-card-content-title {
+    font-size: 13.5px;
+  }
+
+  .s-product-card-vertical .s-product-card-content-subtitle {
+    font-size: 11.5px;
+    margin-top: 3px;
+  }
+
+  .s-product-card-vertical .s-product-card-price,
+  .s-product-card-vertical .s-product-card-sale-price h4,
+  .s-product-card-vertical .s-product-card-starting-price h4 {
+    font-size: 15px;
+  }
+
+  [data-pc-cart='circle'] .s-product-card-vertical salla-add-product-button .s-button-element {
+    width: 36px;
+    height: 36px;
+  }
+
+  [data-pc-cart='bar'] .s-product-card-vertical salla-add-product-button .s-button-element {
+    height: 36px;
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+}

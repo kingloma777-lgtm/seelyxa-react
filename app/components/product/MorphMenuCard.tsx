@@ -49,22 +49,43 @@ const picture = (image: MenuCardProduct['image']): string => {
   return typeof image === 'string' ? image : image.url || '';
 };
 
-/** Descriptions come with markup; the card shows two plain-text lines. */
+/** The entities a description can arrive carrying. */
+const ENTITIES: Record<string, string> = {
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&apos;': "'",
+  '&nbsp;': ' ',
+  '&amp;': '&',
+};
+const decode = (value: string): string =>
+  value.replace(/&(lt|gt|quot|#39|apos|nbsp|amp);/g, (m) => ENTITIES[m] ?? m);
+
+/** Descriptions come with markup; the card shows two plain-text lines.
+ *
+ *  Some rows arrive DOUBLE-escaped — `&lt;p class="ql-direction-rtl"&gt;` is a
+ *  paragraph tag the merchant's editor escaped before saving. A stripper that
+ *  runs on the raw string finds no `<` and leaves the whole tag visible as
+ *  text (the card read `lt;p class=&quot;ql-direction-rtl&quot;&gt;`), so the
+ *  value is decoded, stripped, then decoded once more for the leftovers. */
 const plain = (value?: string): string =>
-  (value ?? '')
-    .replace(/<[^>]*>/g, ' ')
+  decode(decode(value ?? '').replace(/<[^>]*>/g, ' '))
     .replace(/\s+/g, ' ')
     .trim();
 
 /**
- * The mega menu's product card — the merchant's reference design: a circular
- * picture breaking out over a white rounded card, the name in bold, two lines
- * of description, the price, then the add-to-cart disc and the wishlist disc.
+ * The mega menu's product card. It wears the STORE's card design
+ * (`04-components/product-card.scss`): cream tile, square photo plate in the
+ * merchant's image colour, the name in bold, two lines of description, the
+ * price, then the add-to-cart disc and the wishlist disc. Every colour is a
+ * `--pc-*` token inherited from `.app-inner`, so the header card retints with
+ * the store's card settings instead of carrying a copy of them.
  *
- * Deliberately NOT the site's `ProductCard`: that one is a grid card (square
- * picture, price row, wide button) and every product list uses it. This is the
- * curtain's own card, so its styling lives in `04-components/morph-header.scss`
- * and nothing else on the site changes.
+ * Deliberately NOT the site's `ProductCard`: that one is the engine's own slot
+ * markup (badges, rating, gallery, the wide cart bar) and every product list
+ * uses it. This is the curtain's card, so its styling lives in
+ * `04-components/morph-header.scss` and nothing else on the site changes.
  */
 export function MorphMenuCard({ product }: { product: MenuCardProduct }) {
   const { format } = useMoney();

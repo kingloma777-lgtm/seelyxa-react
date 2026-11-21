@@ -31,9 +31,14 @@ export function ProductListSkeleton({ hideFilters = false }: { hideFilters?: boo
         </ol>
       </nav>
 
-      <h1 className="font-bold text-xl mb-4">
+      {/* A placeholder bar, not a heading. It used to be an `<h1>` wrapping a
+          `<Pulse>`, which put a second — and empty — `h1` in the streamed
+          markup: nothing for a screen reader to announce and a duplicate
+          heading for anything reading the raw HTML. The real page title is
+          `#page-main-title` in `ProductListPage`. */}
+      <div className="font-bold text-xl mb-4">
         <Pulse className="h-5 w-56" />
-      </h1>
+      </div>
 
       <div className="s-catalog-toolbar" aria-hidden="true" />
 

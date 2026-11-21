@@ -59,6 +59,11 @@ export function ProductGallery({ product }: ProductGalleryProps) {
   const { theme } = useTwilight();
   const sliderId = `details-slider-${product.id}`;
   const objectFit = theme.settings.slider_background_size ?? 'cover';
+  /* `imageZoom` gates the lightbox. Missing means ON: the field shipped
+     `false` while doing nothing at all, so every stored `false` is the
+     manifest default and not a decision — treating it as "off" would silently
+     remove zoom from every store that never touched the panel. */
+  const zoomEnabled = theme.settings.imageZoom !== false;
   const hydrated = useHydrated();
   const isMobile = useMobileViewport();
   // `onAfterInit` fires once Swiper actually finishes laying the slider out —
@@ -67,9 +72,11 @@ export function ProductGallery({ product }: ProductGalleryProps) {
   const [sliderReady, setSliderReady] = useState(false);
 
   // Twig Raed's fsLightbox; it reads `window` on import, so it loads once the slides are laid out.
+  // Skipped entirely when the merchant turned zoom off — the library is ~20KB
+  // and nothing on the page would open it.
   const lightboxReady = useRef(false);
   useEffect(() => {
-    if (!sliderReady) return;
+    if (!sliderReady || !zoomEnabled) return;
     let active = true;
     import('fslightbox')
       .then(() => active && window.refreshFsLightbox?.())
@@ -81,7 +88,7 @@ export function ProductGallery({ product }: ProductGalleryProps) {
     return () => {
       active = false;
     };
-  }, [sliderReady, product.id]);
+  }, [sliderReady, product.id, zoomEnabled]);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => {
@@ -132,7 +139,7 @@ export function ProductGallery({ product }: ProductGalleryProps) {
       <div className={`product-gallery__bar md:hidden${hydrated ? ' is-visible' : ''}`}>
         <button
           type="button"
-          className="product-gallery__bar-btn"
+          className="product-gallery__bar-btn is-back"
           onClick={() => {
             if (window.history.length > 1) window.history.back();
             else window.location.assign('/');
@@ -198,6 +205,7 @@ export function ProductGallery({ product }: ProductGalleryProps) {
               index={index}
               objectFit={objectFit}
               lightboxReady={lightboxReady}
+              zoomEnabled={zoomEnabled}
               onNativeOpen={openNativeGallery}
             />
           ))}
@@ -285,6 +293,7 @@ function ImageSlide({
   index,
   objectFit,
   lightboxReady,
+  zoomEnabled,
   onNativeOpen,
 }: {
   image: ProductImage;
@@ -292,6 +301,7 @@ function ImageSlide({
   index: number;
   objectFit: 'cover' | 'contain';
   lightboxReady: RefObject<boolean>;
+  zoomEnabled: boolean;
   onNativeOpen: (image: ProductImage) => boolean;
 }) {
   const [loaded, setLoaded] = useState(false);
@@ -312,6 +322,43 @@ function ImageSlide({
         alt={image.alt}
         onClick={() => onNativeOpen(image)}
       ></model-viewer>
+    );
+  }
+
+  const slideClass = `swiper-slide homeslider__slide ${image.video_url ? 'video-entry' : ''}`;
+  const media = (
+    <div className={`w-full ${loaded ? '' : 'aspect-square bg-gray-100 animate-pulse'}`}>
+      <Image
+        id={String(image.id)}
+        src={image.url}
+        alt={image.alt || product.name}
+        className={`h-full w-full object-${objectFit}`}
+        aspectRatio="1/1"
+        priority={index === 0}
+        noWrapper
+        onLoad={() => setLoaded(true)}
+      />
+    </div>
+  );
+
+  /* Zoom off: the slide is not a link at all. Keeping the `<a href>` and
+     swallowing the click would leave a focusable control that announces
+     itself as a link and then does nothing — worse than no control. The native
+     app gallery is a different surface and keeps working either way. */
+  if (!zoomEnabled) {
+    return (
+      <div
+        data-img-id={image.id}
+        data-slid-index={index}
+        className={slideClass}
+        onClickCapture={(event) => {
+          if (!onNativeOpen(image)) return;
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+      >
+        {media}
+      </div>
     );
   }
 
@@ -336,20 +383,9 @@ function ImageSlide({
         if (!lightboxReady.current) event.preventDefault();
       }}
       aria-label={product.name}
-      className={`swiper-slide magnify-wrapper homeslider__slide ${image.video_url ? 'video-entry' : ''}`}
+      className={`${slideClass} magnify-wrapper`}
     >
-      <div className={`w-full ${loaded ? '' : 'aspect-square bg-gray-100 animate-pulse'}`}>
-        <Image
-          id={String(image.id)}
-          src={image.url}
-          alt={image.alt || product.name}
-          className={`h-full w-full object-${objectFit}`}
-          aspectRatio="1/1"
-          priority={index === 0}
-          noWrapper
-          onLoad={() => setLoaded(true)}
-        />
-      </div>
+      {media}
     </a>
   );
 }

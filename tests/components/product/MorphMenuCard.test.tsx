@@ -59,7 +59,7 @@ beforeEach(() => {
 });
 
 describe('MorphMenuCard', () => {
-  it('renders the reference anatomy: circular picture, name, blurb, price', () => {
+  it('renders the store card anatomy: square plate, name, blurb, price', () => {
     const { container } = render(<MorphMenuCard product={PRODUCT} />);
     const media = container.querySelector('.morph-menu-card__media');
     expect(media?.querySelector('img')?.getAttribute('src')).toBe('chair.jpg');
@@ -83,6 +83,21 @@ describe('MorphMenuCard', () => {
   it('prefers the merchant subtitle over the long description', () => {
     const { container } = render(
       <MorphMenuCard product={{ ...PRODUCT, subtitle: 'مريح وخفيف' }} />
+    );
+    expect(container.querySelector('.morph-menu-card__desc')?.textContent).toBe('مريح وخفيف');
+  });
+
+  it('strips a DOUBLE-escaped description instead of printing its markup', () => {
+    // the merchant's editor escapes the paragraph before saving, so the row
+    // arrives as `&lt;p class=&quot;ql-direction-rtl&quot;&gt;…` — a stripper
+    // that only looks for `<` finds none and the card printed the whole tag
+    const { container } = render(
+      <MorphMenuCard
+        product={{
+          ...PRODUCT,
+          subtitle: '&lt;p class=&quot;ql-direction-rtl&quot;&gt;مريح وخفيف&lt;/p&gt;',
+        }}
+      />
     );
     expect(container.querySelector('.morph-menu-card__desc')?.textContent).toBe('مريح وخفيف');
   });
