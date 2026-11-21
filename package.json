@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev-local.cjs",
+    "clean:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/clean-dev.ps1",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
