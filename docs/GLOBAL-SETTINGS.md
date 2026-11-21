@@ -117,22 +117,22 @@ app/lib/storeSettings.ts   readGlobalSettings → globalVars
 | الإعداد | القناة | المستهلك | ما يتحرك |
 | --- | --- | --- | --- |
 | `global_accent_color` | `--gs-accent` | `--selia-accent`، CTA، حلقات التركيز | لون الهوية في 34 بلوكًا والأزرار |
-| `global_surface_preset` | `--gs-canvas` + `--gs-surface-1/2/3` + `--gs-ink-3` + `--gs-card-surface` | `--bg-store` (‏`body`)، `--bg-page`، `--surface-*` (79 موضعًا)، `--pc-bg` | لوحة الصفحة، الألواح، الحقول، **وبطاقة المنتج** |
+| `global_surface_preset` | `--gs-canvas` + `--gs-surface-1/2/3` + `--gs-ink-3` + `--gs-card-surface` + `--surface-media` | `--bg-store` (‏`body`)، `--bg-page`، `--surface-*` (79 موضعًا)، `--pc-bg`، **حوض صورة المنتج** | لوحة الصفحة، الألواح، الحقول، **وبطاقة المنتج**، وحوض الصورة نهارًا وليلًا |
 | `global_text_tone` | `--gs-ink-1/2` | `--ink-1/2` (77 + 22 موضعًا) | النصوص الأساسية والثانوية |
 | `global_border_strength` | `--gs-line-1/2` | `--line-1/2` (42 + 23 موضعًا) | الخطوط الرقيقة والفواصل |
 | `global_radius` | `--gs-radius` + `--radius-scale` | `--selia-radius`، `--radius-*`، `rounded-*`، `--radius-card` → `--pc-radius` | **كل** زاوية: الألواح، الأزرار، الحقول، بطاقة المنتج |
 | `global_media_radius` | `--radius-media` + `html[data-gs-media]` | كل `img`/`video`/`__media`/`__thumb`/`__cover` | زوايا الصور في كل المكوّنات |
-| `global_container` | `--gs-container` + `--container-max` | `--selia-max`، `--container-max` | عرض صف المحتوى |
+| `global_container` | `--gs-container` + `--container-max` + `html[data-gs-container]` | `--selia-max`، `--container-max`، **`.container`** | عرض صف المحتوى، بما فيه ماركب المحرّك نفسه (1280 → 1600 → 1200) |
 | `global_gutter` | `--gs-gutter` | `--selia-pad` | المسافة بين المحتوى والحافة |
 | `global_section_gap` | `--gs-section-gap` | `.s-block + .s-block` | الفراغ الرأسي بين الأقسام |
 | `global_density` | `--density` | `--space-*` + `padding`/`gap`/`space` في Tailwind | كل تباعد داخلي في المشروع (~740 موضع `@apply`) |
 | `global_type_scale` | `--type-scale` | `--fs-*`، `text-*`، **`body`** | حجم كل نص، بما فيه نص الصفحة الأساسي |
 | `global_line_height` | `--line-scale` | `--lh-*`، `line-height` في `text-*`، **`body`** | تباعد الأسطر |
 | `global_heading_font` | `--font-heading` | `.selia__title` + `h1..h6` | وجه كل عنوان في المتجر |
-| `global_heading_weight` | `--fw-heading` | `.selia__title` (700) + `h1..h6` (600) | سماكة كل عنوان |
+| `global_heading_weight` | `--fw-heading` + `html[data-gs-heading-weight]` | `.selia__title` (700) + `h1..h6` (600) + **أي عنوان يحمل `font-bold`** | سماكة كل عنوان، **حتى مع أداة Tailwind صريحة**، مع استثناء `eyebrow`/`badge`/`chip` |
 | `global_button_shape` | `--radius-button` + `html[data-gs-btn]` | `.btn`، `.selia-cta`، `<s-button>` | شكل كل زر |
 | `global_button_height/size/weight` | `--btn-h`/`--btn-fs`/`--btn-fw` | `.btn`، `.selia-cta` | ارتفاع الزر وحجم خطه وسماكته |
-| `global_shadow` | `--shadow-xs/sm/md/lg/card/night` + `html[data-gs-shadow]` | كل `shadow*` + بطاقة المنتج | ارتفاع كل سطح |
+| `global_shadow` | `--shadow-xs/sm/md/lg/card/night` + `--elevation-card` + `html[data-gs-shadow]` | كل `shadow*` + **بطاقة المنتج في المستويات الأربعة** | ارتفاع كل سطح، نهارًا وليلًا |
 | `global_card_border` | `html[data-gs-card-border]` | `.s-product-card` وكل `*-card` | حدود البطاقات |
 | `global_icon_size` | `--icon-size` + `html[data-gs-icon]` | `i/span/svg[class*="icon"]` | حجم كل أيقونة |
 | `global_motion_speed` | `--motion-scale` | `--motion-*`، `duration-*` | سرعة كل حركة |
@@ -216,13 +216,41 @@ app/lib/storeSettings.ts   readGlobalSettings → globalVars
    كانتا تحرّكان كل عنصر في الصفحة **إلا** أكبر سطح فيها. صار الافتراضي مرجعًا
    (`var(--radius-card, 22px)` و`var(--gs-card-surface, #fdfaf3)`)، وأي قيمة
    يختارها التاجر في لوحة البطاقة تُكتب حرفية وتفوز كما كانت.
-5. **`global_shadow = none`** كان يترك ظل البطاقة، لأن ظلها `--pc-shadow` لا أحد
-   توكنات `--shadow-*`. صار `html[data-gs-shadow='none']`.
+5. **`global_shadow`** كان يترك ظل البطاقة، لأن ظلها `--pc-shadow` لا أحد
+   توكنات `--shadow-*`. صار قاعدة واحدة `html[data-gs-shadow]` تقرأ
+   `--elevation-card`، وهي الدور الذي يحلّه الجسر لكل وضع: نهارًا `--shadow-card`،
+   ليلًا `--shadow-night`. **المستويات الأربعة كلها** تصل البطاقة الآن
+   (`none` → `rgba(0,0,0,0) 0 0 0 0`، `soft`، `medium`، `strong` — أربع قيم
+   مختلفة مقيسة). ولماذا الدور لا `--shadow-card` مباشرة: سلّم الظلال هو **حبر
+   النص** بشفافية منخفضة، وحبر الليل شبه أبيض — فالبطاقة كانت ستتوهّج بعد المغرب
+   بينما `medium` (قيمة حرفية) يبقى داكنًا. ثلاثة مستويات متوهّجة وواحد لا.
 6. **`body`** كان يرسم من `--bg-store`، والجسر كان يعيد توجيه `--bg-page` فقط —
    فالصفحة نفسها لم تتحرك. صار المستوى يُعاد توجيهه في الوضعين.
 7. **`--gs-card-surface`** أُصدِر أولًا كقيمة حرفية، فأصبحت دوائر التصنيفات
    **بيضاء ساطعة على صفحة ليلية** لأن `--pc-bg` مضمّن ولا يعرف الوضع. صار
    `var(--gs-surface-1)` — إشارة يحلّها الجسر، فيتبع الوضع.
+8. **حوض صورة المنتج (`--pc-image-bg`)** كان قيمة حرفية `#f4ebdc` مضمّنة، فبقي
+   **كريميًا ساطعًا على صفحة ليلية** — أظهر تناقض متبقٍّ في الوضع الليلي. صار
+   `var(--surface-media, #f4ebdc)`، والدور `--surface-media` يحلّه الجسر لكل وضع
+   (`#f4ebdc` نهارًا، `#1b212c` ليلًا). القياس: `L=0.838` نهارًا → `L=0.015` ليلًا،
+   ولون التاجر في لوحة البطاقة ما زال يفوز نهارًا.
+9. **`--bg-block` كان معلنًا على `<html>`** — وخطأ التبديل هنا دقيق: الخاصية
+   المخصّصة تُستبدل **حيث تُعلَن**، فعلى `<html>` لا يوجد `--selia-bg` (لون
+   التاجر مكتوب inline على القسم)، فتُحسب `transparent`. و`transparent` لون صالح،
+   فيفوز على الاحتياطي `var(--bg-block, var(--selia-bg, …))` و**يحذف** لون
+   التاجر ليلًا بدل أن يلوّنه. صار معلنًا على القسم نفسه
+   (`html.dark :where(.selia)`)، حيث يوجد `--selia-bg` في نطاقه. القياس:
+   `rgb(238,238,238)` نهارًا → `color(srgb .93 .93 .93 / .16)` ليلًا.
+10. **`.container`** كان يأخذ عرضه من Tailwind (1280 عند `2xl`)، فإعداد
+    `global_container` كان يصل 34 بلوكًا سيلِيا ويتوقف عند ماركب المحرّك.
+    صار `html[data-gs-container] .container`. القياس: 1280 → 1600 → 1200 → 1280.
+11. **`color-mode-*` مقابل `html.dark`:** مكوّنات سلة المضمّنة تقرأ
+    `body.color-mode-*`، ومبدّل الزائر في الهيدر كان يقلب `html.dark` وحده.
+    صار `applyColorMode` يMirror الاثنين، وسكربت الإقلاع كذلك. القياس: نقرة
+    واحدة على زر الهيدر تقلب `html.dark` و`body.color-mode-dark` معًا، والعكس.
+12. **الخطوط:** `Dirtyline` كان `@font-face` بلا مستهلك، وثلاثة بلوكات كانت
+    تُكرّر طلب Google Fonts بـ`<link>`. حُذف الميت، وتوحّد الطلب: **طلب واحد**
+    (`@import` واحد مقيس في الورقة المبنية)، وست عائلات مُعاد توجيهها كلها تُحلّ.
 
 **ما بقي بلا مستهلك، ويجب ألّا يُدّعى:** لا شيء من الإعدادات الـ27. الباقي
 بلا مستهلك هو `--radius-input` فقط، ولم يُضَف إعداد له: الحقول تأخذ زواياها من
@@ -299,6 +327,13 @@ app/lib/storeSettings.ts   readGlobalSettings → globalVars
    العنصر تلغي الوراثة لأن inline يغلب الورقة. اكتب فقط ما اختاره التاجر،
    واترك الباقي للورقة. `tests/styles/token-contract.test.ts` يفشل على أي
    fallback حرفي (`x || '#fff'`) أو استدارة حرفية غير `0px`.
+10. **الأدوار الثلاثة المركّبة لا تُعاد توجيهها من مكوّن.** `--surface-media`
+    (حوض صورة المنتج)، `--bg-block` (تلوين خلفية بلوك ليلًا)، `--elevation-card`
+    (ارتفاع البطاقة). يحلّها الجسر في `01-settings/global-settings.scss` لكل
+    وضع، لأن القيمة المضمّنة لا تعرف الوضع. مكوّن يقرؤها كما هي، ولا يعرّفها.
+    و`--bg-block` **يجب** أن تبقى معلنة على القسم لا على `<html>`: الخاصية
+    المخصّصة تُستبدل حيث تُعلَن، وعلى `<html>` لا يوجد `--selia-bg` فتُحسب
+    `transparent` — وهي لون صالح يفوز على الاحتياطي ويحذف لون التاجر.
 
 ### 6.1 كيف يستهلك بلوك جديد النظام
 
@@ -375,21 +410,65 @@ style={{ '--selia-radius': localRadius ? `${localRadius}px` : undefined }}
 
 ## 8. الفجوات المعروفة (مرتبة، 2026-11-21)
 
-| # | الفجوة | الأثر | المرحلة |
-| --- | --- | --- | --- |
-| 1 | `.container` (Tailwind, 1280) و`selia-generated.scss:1237` (1440) لا يقرآن `--gs-container` | ثلاث حاويات في صفحة واحدة | 2 |
-| 2 | ~~`SeliaAuto.tsx` يكتب `--selia-bg: #f6f4f0` عند حقل فارغ~~ **أُصلح** | لا باند كريمي في الوضع الليلي | ✅ |
-| 3 | 10 حقول لون خلفية في 9 بلوكات بلا علاقة بالنظام العام | تكرار + وضع ليلي مكسور | 2 |
-| 4 | ~~الظلال بلا مستهلك~~ **أُغلق**: `--shadow-*` مستهلكة في 221 موضع `shadow`، والبطاقة عبر `data-gs-shadow` | — | ✅ |
-| 5 | ~~الحركة: توكنات بصفر مستهلك~~ **أُغلق**: `--motion-scale` في `--motion-*` و`duration-*`، والمنحنيات في `ease-out`/`ease-in-out` | — | ✅ |
-| 6 | ~~خلفية المتجر خارج `.app-inner`~~ **أُغلق**: `--bg-store` و`--bg-page` يُعاد توجيههما في الوضعين على `<html>`، و`body` يرسم منهما | — | ✅ |
-| 7 | `color-mode-*` مقابل `html.dark` في مكوّنات سلة المضمّنة | لم يُقس | 3 |
-| 8 | `Dirtyline` معرّف بلا مستهلك | خط ميت | 3 |
-| 9 | بلوكات تحمّل خطوطًا مكرّرة عبر `<link>` رغم تحميلها في `app.scss` | طلبات زائدة | 3 |
-| 10 | ~~لوحة المتجر لا تصل إلى البورتالات~~ **أُغلق**: المتغيّرات على `<html>`، وهي أب كل بوابة تُركَّب على `body` | — | ✅ |
-| 11 | `--pc-image-bg` (خلفية صورة المنتج) قيمة حرفية مضمّنة دائمًا، فلا تتبع اللوحة — تبقى كريمية على صفحة ليلية | شكل مقصود للبطاقة، لكنه غير متّسق مع الوضع الليلي | 3 |
-| 12 | ظل البطاقة يتبع `data-gs-shadow='none'` فقط؛ مستويات `soft`/`medium`/`strong` لا تعيد ضبط `--pc-shadow` (ظل البطاقة إعداد بطاقة) | «ظلال قوية» لا تُقوّي ظل البطاقة | 3 |
-| 13 | عنوان بلوك يكتب `font-bold` صريحًا يحتفظ بوزنه أمام `global_heading_weight` (تجاوز على مستوى المكوّن — سلوك مقصود، يحتاج مراجعة لكل بلوك) | بعض العناوين لا تتبع سماكة العناوين | 2 |
+| # | الفجوة | الحالة |
+| --- | --- | --- |
+| 1 | `.container` (Tailwind, 1280) و`selia-generated.scss` لا يقرآن `--container-max` | ✅ **أُغلقت**: `html[data-gs-container] .container`؛ مقيس 1280 → 1600 → 1200 → 1280، وعلى `/en/` كذلك |
+| 2 | `SeliaAuto.tsx` يكتب `--selia-bg` عند حقل فارغ | ✅ **أُغلقت** سابقًا: لا باند كريمي في الوضع الليلي |
+| 3 | 10 حقول لون خلفية في 9 بلوكات بلا علاقة بالنظام العام | ✅ **أُغلقت**: `--bg-block` على القسم؛ مقيس `rgb(238,238,238)` نهارًا → `color(srgb .93 .93 .93 / .16)` ليلًا، بلا حذف لون التاجر |
+| 4 | الظلال بلا مستهلك | ✅ **أُغلقت**: `--shadow-*` في 221 موضع، والبطاقة عبر `--elevation-card` |
+| 5 | الحركة: توكنات بصفر مستهلك | ✅ **أُغلقت**: `--motion-scale` في `--motion-*` و`duration-*` |
+| 6 | خلفية المتجر خارج `.app-inner` | ✅ **أُغلقت**: `--bg-store`/`--bg-page` في الوضعين على `<html>` |
+| 7 | `color-mode-*` مقابل `html.dark` في مكوّنات سلة المضمّنة | ✅ **أُغلقت**: `applyColorMode` + سكربت الإقلاع يMirror الاثنين؛ مقيس بنقرة زر الهيدر ذهابًا وإيابًا |
+| 8 | `Dirtyline` معرّف بلا مستهلك | ✅ **أُغلقت**: `@font-face` محذوف، والورقة المبنية تحمل `Dirtyline` **صفر** مرة |
+| 9 | بلوكات تحمّل خطوطًا مكرّرة عبر `<link>` | ✅ **أُغلقت**: طلب `@import` واحد، صفر `<link>`، والست عائلات تُحلّ |
+| 10 | لوحة المتجر لا تصل إلى البورتالات | ✅ **أُغلقت**: المتغيّرات على `<html>`، أب كل بوابة |
+| 11 | `--pc-image-bg` قيمة حرفية مضمّنة، فلا تتبع اللوحة | ✅ **أُغلقت**: `var(--surface-media, …)` بدور لكل وضع؛ `L=0.838` نهارًا → `L=0.015` ليلًا، ولون التاجر ما زال يفوز نهارًا |
+| 12 | ظل البطاقة يتبع `none` فقط؛ `soft`/`medium`/`strong` لا تصلها | ✅ **أُغلقت**: قاعدة واحدة تقرأ `--elevation-card`؛ أربع قيم مختلفة مقيسة، وليلًا خطوة الليل لا توهّج أبيض |
+| 13 | عنوان بلوك يحمل `font-bold` يحتفظ بوزنه أمام `global_heading_weight` | ✅ **أُغلقت**: القاعدة تتجاوز الأداة بـ`!important`؛ مقيس 600/700/800، والاستثناءات (`eyebrow`/`badge`) تبقى 700 |
+
+**مكوّنات سلة المضمّنة — مقيسة، لا مفترضة:** كان الافتراض أن
+`salla-cart-summary`/`salla-product-options` تُصمَّم داخل Shadow DOM، وهذا كان
+سيجعل `html[data-gs-*]` عاجزًا عن الوصول إليها. القياس على صفحة المتجر
+(`lens-harness/_gs-embedded.cjs`) ينفي ذلك:
+
+| العنصر | shadowRoot | `--gs-accent` | `--type-scale` | `--icon-size` |
+| --- | --- | --- | --- | --- |
+| `salla-cart-summary` | لا | `#7c3aed` ✓ | `1.15` ✓ | `24px` ✓ |
+| `salla-button` | لا | `#7c3aed` ✓ | `1.15` ✓ | `24px` ✓ |
+| `salla-modal` | لا | `#7c3aed` ✓ | `1.15` ✓ | `24px` ✓ |
+| `salla-slider` · `salla-user-menu` · `salla-login-modal` · `salla-offer-modal` · `salla-trust-badges` | لا | ✓ | ✓ | ✓ |
+| `salla-hook` | **نعم** (`open`) | ✓ | ✓ | ✓ — لكنه **صفر أبناء**، بلا محتوى مُنسَّق |
+
+أي أن المضيف الوحيد ذا الـshadow root عنصر خامل لا يرسم شيئًا. الباقي light DOM:
+يرث كل توكن **و**تقدر محدِّدات `html[data-gs-*]` أن تصل إليه. لا حدّ منصّة هنا.
 
 **قاعدة التعامل مع هذا الجدول:** الفجوة تُغلق ببناء المستهلك، لا بإضافة إعداد.
 وأي صف يُغلق يُنقل إلى §4 مع القيمة المقيسة التي تثبت أنه يتحرك.
+
+### 8.1 كيف أُثبت الإغلاق
+
+| السكربت | ما يقيسه | النتيجة |
+| --- | --- | --- |
+| `lens-harness/_gs-gaps.cjs` | 36 فحصًا للفجوات 1/3/7/8/9/11/12/13 على `/ar/` | **36/36** |
+| `lens-harness/_gs-gaps-ltr.cjs` | 6 فحوص على `/en/` (اتجاه، حوض، ظل، عنوان، حاوية) | **6/6** |
+| `lens-harness/_gs-portal.cjs` | بوابة حقيقية على `<body>` (`salla-modal`) مقابل `<html>` | **10/10** — سبعة توكنات موروثة بالحرف |
+| `lens-harness/_gs-embedded.cjs` | مكوّنات سلة المضمّنة: shadow root؟ وهل ترث؟ | **PASS** — 16 عنصرًا، مضيف shadow واحد خامل، والكل يرث |
+| `lens-harness/_gs-store-e2e.cjs` | 28 مسبارًا لكل إعداد في المتجر الحقيقي | **28/28 تتحرك** |
+| `lens-harness/_gs-system.cjs` | 31 قيمة على الورقة المركّبة، ولوحة غير ملموسة | **IDENTICAL**، و`RTL === LTR` |
+| `npm run build` | الورقة الإنتاجية | `elevation-card`×3، `surface-media`×3، `bg-block`×4، `Dirtyline`×0، `fonts.googleapis.com`×1 |
+
+الثلاثة الأولى تحرّك الإعدادات عبر **نفس قناة المحرّر** (`BroadcastChannel`
+`twilight:preview` → `TwilightProvider` → `applyGlobalSettings`)، لا عبر كتابة
+متغيّرات يدويًا — فما يُقاس هو ما يراه التاجر.
+
+**البوابات — مُثبتة لا مفترضة:** `_gs-portal.cjs` يفتح قائمة المتجر فعليًا، ثم
+يقيس على `salla-modal` (ابن `<body>`، خارج `.app-inner`) سبعة توكنات: الهوية،
+مقياس الاستدارة، `--surface-1`، `--ink-1`، مقياس الخط، `--elevation-card`،
+`--icon-size`. كلها **مطابقة حرفيًا** لما على `<html>`، وسليلها
+(`s-modal-overlay`) يرسم فعلًا. السبب معماري: الخاصية المخصّصة تُورَّث، و`<html>`
+أب كل بوابة.
+
+**قيد بيئي يُذكر ولا يُخفى:** خادم التطوير على هذه الآلة (workerd على Windows)
+ينهار كل صفحتين تقريبًا بسبب استدعاء المتجر الخارجي (`fetch failed`)، ولذلك
+سكربتات القياس مقسّمة: كل واحد يفتح صفحة واحدة، ويُعاد تشغيله عند الانهيار.
+هذا لا يمسّ الثيم — الانهيار يحدث في الـruntime قبل وصول الطلب إلى كودنا.

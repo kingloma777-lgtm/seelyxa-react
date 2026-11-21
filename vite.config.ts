@@ -1,7 +1,48 @@
 import { defineConfig, type UserConfig } from 'vite';
 import { twilightReact } from '@salla.sa/twilight-theme-engine/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'path';
+
+/**
+ * Refuse to start a dev server on a full disk.
+ *
+ * A full disk surfaces as `Error: ENOSPC: no space left on device, write` from
+ * Vite's own loadConfigFromBundledFile (it writes the bundled config to
+ * node_modules/.vite-temp), wrapped in "error when starting dev server:" —
+ * text that reads exactly like a workerd startup crash. On 2026-11-21 that
+ * misdiagnosis produced four retries and four "workerd crashed" messages for a
+ * single ENOSPC.
+ *
+ * `salla theme preview --with-editor` calls Vite's createServer directly and
+ * never runs scripts/dev-local.cjs, so this config is the only guard that
+ * covers it. Dev only: a build is left to fail on its own terms.
+ */
+function assertFreeSpace() {
+  if (process.env.SEELYXA_SKIP_DISK_CHECK === '1') return;
+  const minFree = Number(process.env.SEELYXA_MIN_FREE_MB ?? 2048) * 1024 * 1024;
+  const volumes = [
+    { label: 'project', target: import.meta.dirname },
+    { label: 'temp', target: os.tmpdir() },
+  ];
+  for (const volume of volumes) {
+    let free: number;
+    try {
+      const stats = fs.statfsSync(volume.target);
+      free = stats.bsize * stats.bavail;
+    } catch {
+      continue; // statfs unsupported here: never block the dev server for it.
+    }
+    if (free < minFree) {
+      throw new Error(
+        `[dev-local] only ${(free / 1024 ** 3).toFixed(2)} GB free on the ${volume.label} drive ` +
+          `(${path.parse(volume.target).root}) — ${(minFree / 1024 ** 3).toFixed(2)} GB required.\n` +
+          '[dev-local] Vite cannot write its bundled config; free space with `pnpm clean:cache`.'
+      );
+    }
+  }
+}
 
 // The shell exports HTTP_PROXY/HTTPS_PROXY/ALL_PROXY pointing at a loopback
 // proxy. Wrangler passes them into workerd, so every SSR fetch() is proxied;
@@ -35,7 +76,11 @@ for (const key of ['NO_PROXY', 'no_proxy'] as const) {
   process.env[key] = [...new Set([...current, ...LOOPBACK_HOSTS])].join(',');
 }
 
-export default defineConfig(async () => ({
+export default defineConfig(async ({ command }) => {
+  // Fail once, with the real cause, before Vite writes to a full disk.
+  if (command === 'serve') assertFreeSpace();
+
+  return {
   server: {
     hmr: {
       // workerd on Windows can still die with a native "access violation" on a
@@ -221,4 +266,5 @@ export default defineConfig(async () => ({
       },
     },
   },
-}));
+  };
+});

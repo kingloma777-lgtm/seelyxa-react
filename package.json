@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node scripts/dev-local.cjs",
     "clean:dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/clean-dev.ps1",
+    "clean:cache": "node scripts/clean-cache.cjs",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
