@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
@@ -13,7 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouterState } from '@tanstack/react-router';
 import { Link, Image, CurrencySymbol } from '@salla.sa/twilight-theme-engine/common';
 import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
-import { useTwilight, useIsHome, useNavigate } from '@salla.sa/twilight-theme-engine/providers';
+import { useTwilight, useNavigate } from '@salla.sa/twilight-theme-engine/providers';
 import { menu } from '@salla.sa/twilight-theme-engine/api/menu';
 import { product } from '@salla.sa/twilight-theme-engine/api/product';
 import { useMoney } from '@salla.sa/twilight-theme-engine/hooks/useMoney';
@@ -29,10 +30,18 @@ import {
 } from '../../lib/menuOverflow';
 import { type MenuItem } from '@salla.sa/twilight-theme-engine/types';
 import { openStoreSwitcher } from '../../lib/storeSwitchers';
-import { useHydrated } from '../../hooks/useHydrated';
+import { applyColorMode, COLOR_MODE_STORAGE_KEY } from '../../lib/colorMode';
+import { isHomePath } from '../../lib/routeIds';
 import { resolveMorphIcon } from '../../lib/morphIcons';
+import { lockBodyOverflow, unlockBodyOverflow } from '../../lib/bodyOverflow';
 import { MorphCurtain, type CurtainLabels, type CurtainMenu } from './MorphCurtain';
 import { readSlots } from '../../lib/curtainSlots';
+import {
+  closeHeaderMenu,
+  getHeaderMenuState,
+  openHeaderMenu,
+  subscribeHeaderMenu,
+} from '../../lib/headerMenu';
 
 /* ==========================================================================
  * MorphPill — the cinematic store header, ported from the Twig theme
@@ -203,7 +212,6 @@ export function useStoreMenus() {
   return { menus, ready: menus.length > 0 || (data?.length ?? 0) > 0 };
 }
 
-
 /* The fullscreen resource (Mobile menu) index */
 interface OverlayRow {
   menu: MenuItem;
@@ -215,12 +223,14 @@ function MorphOverlay({
   rows,
   onClose,
   labels,
+  label,
   themeToggle,
 }: {
   open: boolean;
   rows: OverlayRow[];
   onClose: () => void;
   labels: { close: string; shop: string };
+  label: string;
   /* The phone's copy of the light/dark toggle. The pill keeps its own chip at
      ≥768px; below that the action row has no 44px to spare (measured: the row
      needed 554px inside a 317px box), so the control lives here — the screen a
@@ -228,6 +238,7 @@ function MorphOverlay({
   themeToggle?: { dark: boolean; label: string; onToggle: () => void } | null;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<Element | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -245,6 +256,36 @@ function MorphOverlay({
     closeRef.current?.focus();
     chase.current.x = chase.current.tx = -300;
     chase.current.y = chase.current.ty = -300;
+    // A fullscreen modal must not let Tab walk into the header behind it.
+    // `useDialogFocus` owns the drawer's equivalent trap; this overlay lives
+    // inside the header and keeps its own rAF, so the trap is here.
+    const focusable = () =>
+      Array.from(
+        overlayRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) ?? []
+      ).filter(
+        (el) =>
+          el.tabIndex >= 0 &&
+          // jsdom has no layout; in a browser skip controls that CSS hid.
+          (typeof el.checkVisibility !== 'function' || el.checkVisibility())
+      );
+    const onTab = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onTab);
+
     // gentle CSS-only interval: rows stagger via inline delay, the card runs on rAF below
     const step = () => {
       const c = chase.current;
@@ -255,8 +296,12 @@ function MorphOverlay({
       }
       raf.current = requestAnimationFrame(step);
     };
-    raf.current = requestAnimationFrame(step);
+    /* The chase has no target when motion is reduced (`onMouseMove` returns
+       early), so the loop would only rewrite the same transform 60×/s for as
+       long as the overlay is open. */
+    if (!reduced) raf.current = requestAnimationFrame(step);
     return () => {
+      document.removeEventListener('keydown', onTab);
       cancelAnimationFrame(raf.current);
       (openerRef.current as HTMLElement | null | undefined)?.focus?.();
       previewRef.current?.classList.remove('is-live');
@@ -283,7 +328,11 @@ function MorphOverlay({
   return (
     <div
       id="morph-overlay"
+      ref={overlayRef}
       className={`morph-overlay${open ? '' : ' is-hidden'}`}
+      role="dialog"
+      aria-modal={open}
+      aria-label={label}
       onMouseMove={onMouseMove}
       onMouseLeave={() => previewRef.current?.classList.remove('is-live')}
       aria-hidden={!open}
@@ -351,6 +400,7 @@ function MorphOverlay({
 
 /* Settings we consume (typed only where the engine's `settings` is unknown) */
 interface MorphSettings {
+  header_shape?: unknown;
   header_glass_color?: unknown;
   header_glass_opacity?: unknown;
   header_blur?: unknown;
@@ -368,19 +418,21 @@ interface MorphSettings {
 }
 
 /**
- * The MorphPill header. Selected by the merchant through
- * `theme.settings.header_layout = 'morph'`; the default <Header/> keeps the
- * engine layouts untouched.
+ * The MorphPill header — the theme's only header layout. It used to be one of
+ * three (`lite`, `default`, `morph`); the other two were removed from the
+ * customization settings, so {@link Header} renders this unconditionally. A
+ * store that still has `header_layout: "lite"` or `"default"` saved lands
+ * here too, which is why nothing reads that setting any more.
  */
 export function MorphHeader() {
   const { store, theme, currency } = useTwilight();
   const { t, locale } = useTranslation();
-  const isHomePage = useIsHome();
-  const hydrated = useHydrated();
-  const isProductPage = useRouterState({
-    select: (state) => state.matches.some((match) => match.routeId === 'product'),
-  });
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  /* Decided from the pathname, not from `useIsHome()`: the engine's route id
+     settles after mount, so it is `false` during SSR and the home page shipped
+     without an `h1`. `isHomePath` is identical on the server and on the first
+     client render, so the level is decided once in the markup. */
+  const isHomePage = isHomePath(pathname);
   const s = (theme?.settings ?? {}) as MorphSettings;
 
   /* True translations live in locales/ar.json + en.json (`blocks.header.*`).
@@ -411,6 +463,13 @@ export function MorphHeader() {
   /* `header_topbar_hide` cleared with the topbar itself (2026-10-20): the bar is
      gone, so its setting has nothing to own. `themeToggleOn` survives. */
   const themeToggleOn = s.header_theme_toggle !== false && scalarSetting(s.header_theme_toggle) !== 'false';
+
+  /* Two shapes, one behaviour: `wide` spreads the bar across the page with the
+     logo centred and the menu under it, `pill` keeps the floating capsule that
+     collapses on scroll. Anything unrecognised (including a store saved before
+     the setting existed) gets the wide shape — it is the one the merchant asked
+     for, and it needs no extra space at any breakpoint. */
+  const shape: 'wide' | 'pill' = scalarSetting(s.header_shape) === 'pill' ? 'pill' : 'wide';
 
   /* ── store menu (shared lists) ── */
   const { menus, ready } = useStoreMenus();
@@ -579,7 +638,7 @@ export function MorphHeader() {
         setCurtainIndex(at);
         setCurtainFocusId(null);
         setSearchOpen(false);
-        setOverlayOpen(false);
+        closeHeaderMenu();
       }
       linksRef.current.forEach((item) => item.classList.toggle('is-open', item === link));
       if (link.dataset.morphHas === '1') link.setAttribute('aria-expanded', 'true');
@@ -708,13 +767,19 @@ export function MorphHeader() {
   }, []);
 
   /* ── fullscreen index (burger) ── */
-  const [overlayOpen, setOverlayOpen] = useState(false);
+  /* The open flag lives in a module store (`lib/headerMenu`) so the mobile
+     bottom bar's Categories tab can raise the same index — the two have no
+     common parent to lift state through. */
+  const overlayOpen = useSyncExternalStore(
+    subscribeHeaderMenu,
+    getHeaderMenuState,
+    getHeaderMenuState
+  ).open;
   useEffect(() => {
-    document.body.style.overflow = overlayOpen ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-   }, [overlayOpen]);
+    if (!overlayOpen) return;
+    lockBodyOverflow();
+    return () => unlockBodyOverflow();
+  }, [overlayOpen]);
 
   /* ── light / dark with the View Transition reveal (old §0) ── */
   const themeBtnRef = useRef<HTMLButtonElement>(null);
@@ -728,9 +793,12 @@ export function MorphHeader() {
     // aria state (label/pressed) — the glyph itself is pure CSS off `html.dark`
     setDark(next);
     const apply = () => {
-      rootEl.classList.toggle('dark', next);
+      /* The one writer (`lib/colorMode.ts`) — the class and the saved key are
+         changed together here and nowhere else, so the boot script, this
+         toggle and the tests cannot drift apart. */
+      applyColorMode(next ? 'dark' : 'light');
       try {
-        window.localStorage.setItem('seelyxa-theme', next ? 'dark' : 'light');
+        window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, next ? 'dark' : 'light');
       } catch {
         /* storage can be unavailable; the border-case is theme-only */
       }
@@ -768,7 +836,7 @@ export function MorphHeader() {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      if (overlayOpen) setOverlayOpen(false);
+      if (overlayOpen) closeHeaderMenu();
       else if (searchOpen) setSearchOpen(false);
       else if (curtainIndexRef.current != null) closeCurtain();
       else closeAccount();
@@ -788,6 +856,7 @@ export function MorphHeader() {
     searchRecent: loc('blocks.header.search_recent', 'بحث مؤخراً'),
     searchHint: loc('blocks.header.search_hint', 'اكتب حرفين على الأقل لعرض المنتجات'),
     account: loc('common.titles.account', 'حسابي'),
+    wishlist: loc('blocks.header.wishlist', 'المفضلة'),
     language: loc('blocks.header.language', 'اللغة'),
     close: loc('blocks.header.close', 'إغلاق'),
     shop: loc('blocks.header.shop', 'تسوّق'),
@@ -818,6 +887,8 @@ export function MorphHeader() {
       'blocks.header.curtain_empty_featured',
       'لا توجد منتجات مميزة في هذا القسم بعد.'
     ),
+    reelPrev: loc('blocks.header.curtain_reel_prev', 'المنتجات السابقة'),
+    reelNext: loc('blocks.header.curtain_reel_next', 'المنتجات التالية'),
   };
   const piecesLabel = (n: number) => `${n} ${loc('blocks.header.curtain_piece', 'منتج')}`;
 
@@ -904,10 +975,18 @@ export function MorphHeader() {
     // observed on the HOST with subtree — survives Preact replacing nodes, and
     // covers the platform's own outside-click close (`opened = false`)
     let observer: MutationObserver | undefined;
+    /* The observer fires for every child mutation too, so the lock must only
+       change on an actual open/close edge — and must be shared with the burger
+       index's lock, which can be open at the same time. */
+    let wasOpen = false;
     if (typeof MutationObserver === 'function') {
       observer = new MutationObserver(() => {
         const open = isOpen();
-        document.body.style.overflow = open ? 'hidden' : '';
+        if (open !== wasOpen) {
+          if (open) lockBodyOverflow();
+          else unlockBodyOverflow();
+          wasOpen = open;
+        }
         syncClose();
         if (!open) {
           preview.classList.remove('is-live');
@@ -929,11 +1008,34 @@ export function MorphHeader() {
       host.removeEventListener('mousemove', track);
       observer?.disconnect();
       cancelAnimationFrame(accountRaf.current);
-      if (!host.querySelector('.s-user-menu-toggler.opened')) {
-        document.body.style.overflow = '';
-      }
+      if (wasOpen) unlockBodyOverflow();
     };
   }, [reducedMotion]);
+
+  /* The 44px disc's hit-band is a pseudo on the HOST, but the clickable control
+     is a child (the platform's login button or its signed-in trigger). A tap on
+     the band or the 1px rim therefore targets the host, which owns no handler —
+     without this forwarder the icon looks alive but does nothing. Clicks that
+     already landed on the real control bubble through untouched, so there is
+     no double toggle. */
+  useEffect(() => {
+    const host = accountRef.current;
+    if (!host) return;
+    const visible = (el: HTMLElement | null) =>
+      Boolean(
+        el && !el.hidden &&
+          getComputedStyle(el).display !== 'none' &&
+          getComputedStyle(el).visibility !== 'hidden'
+      );
+    const forward = (event: MouseEvent) => {
+      if (event.target !== host) return;
+      const trigger = host.querySelector<HTMLElement>('.s-user-menu-trigger-slot');
+      const login = host.querySelector<HTMLElement>('.s-user-menu-login-btn');
+      (visible(trigger) ? trigger : visible(login) ? login : null)?.click();
+    };
+    host.addEventListener('click', forward);
+    return () => host.removeEventListener('click', forward);
+  }, []);
 
   /** Escape's last resort: the account takeover closes through its own API. */
   const closeAccount = () => {
@@ -1070,6 +1172,7 @@ export function MorphHeader() {
     <header
       ref={rootRef}
       data-testid="morph-header"
+      data-morph-shape={shape}
       className={`morph-header${scrolled ? ' is-scrolled' : ''}${ready ? ' is-ready' : ''}`}
       style={headerStyle}
       onMouseLeave={onHeaderLeave}
@@ -1089,7 +1192,7 @@ export function MorphHeader() {
               aria-expanded={overlayOpen}
               aria-label={labels.menu}
               onClick={() => {
-                setOverlayOpen(true);
+                openHeaderMenu();
                 // opening one screen closes the others (the old opening set)
                 closeCurtain();
               }}
@@ -1099,10 +1202,12 @@ export function MorphHeader() {
             <Link to={store?.url || '/'} className="morph-brand" data-testid="morph-header-logo">
               <Image src={store?.logo} alt={`${store?.name || 'Store'} logo`} priority width={175} height={48} />
               <span className="morph-sr-only">{store?.name}</span>
-              {/* post-hydration h1 for home SEO — during hydration the level
-                  is stable (h2) because `useIsHome` settles after mount, and
-                  an h1/h2 flip there breaks React hydration (seen live) */}
-              {isHomePage && hydrated ? (
+              {/* The site title is the page's `h1` on the home page and an `h2`
+                  everywhere else, where the page owns the `h1`. The level comes
+                  from the pathname (SSR-stable), so the server sends the same
+                  heading the browser renders — previously the home page's only
+                  `h1` existed after hydration, which left crawlers with none. */}
+              {isHomePage ? (
                 <h1 className="morph-sr-only">{store?.name}</h1>
               ) : (
                 <h2 className="morph-sr-only">{store?.name}</h2>
@@ -1177,229 +1282,258 @@ export function MorphHeader() {
             )}
           </nav>
 
-          {/* actions */}
+          {/* actions — two clusters, so the wide shape can put the utilities on
+              the inline-start edge and the account/cart group on the inline-end
+              one. The pill flattens both back into a single row (`display:
+              contents` + `order` in morph-header.scss), which is why the markup
+              order here is NOT the visual order of the capsule. */}
           <div className="morph-pill__actions" data-testid="morph-header-actions">
-            {/* Language/currency trigger, modelled on the platform's own
-                `<a class="s-localization-modal-trigger-btn">` markup the
-                merchant pointed at, in the order he fixed later: the GLOBE
-                first, then the language NAME, then the currency glyph. The
-                name comes from the live locale, the glyph from the store
-                currency (the Salla font has a drawn riyal for SAR; every
-                other code shows as text — honest and never a blank slot). */}
-            <button
-              type="button"
-              className="morph-loco-btn morph-localization-btn"
-              onClick={() => openStoreSwitcher('language')}
-              aria-label={labels.language}
-              data-testid="morph-localization-btn"
-            >
-              <MorphIco setting={undefined} legacy="globe" className="morph-loco-btn__globe" />
-              <span className="morph-loco-btn__lang">{locale === 'en' ? 'English' : 'العربية'}</span>
-              <span className="morph-loco-btn__separator" aria-hidden="true" />
-              <span className="morph-loco-btn__currency">
-                <CurrencySymbol currency={currency?.code || 'SAR'} />
-              </span>
-            </button>
-
-            {/* the bullet-delivery tag rides the actions row on ultra-wide
-                screens; `flex items-center` keeps it on the SAME line and
-                centred with the icons — as a plain block child it used to sit
-                on its own line above them. */}
-            <div className="hidden 2xl:flex items-center">
-              <salla-bullet-delivery-tag />
-            </div>
-
-            {/* the expanding chip IS the primary search: a real input owned by
-                us + live results from the platform's product API. The engine's
-                `salla-search` was removed — its `inline` mode is a read-only
-                input that only opens the engine's blur modal, so typing could
-                never happen in the expanding field. */}
-            <div ref={searchRef} className={`morph-search${searchOpen ? ' is-open' : ''}`} data-testid="morph-search">
-              <div className="morph-search__field" ref={searchFieldRef}>
-                <input
-                  type="search"
-                  className="morph-search__input"
-                  value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' && searchTerm.trim()) {
-                      event.preventDefault();
-                      rememberSearchTerm(searchTerm);
-                      navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
-                      setSearchOpen(false);
-                    }
-                  }}
-                  placeholder={labels.searchPlaceholder}
-                  aria-label={labels.search}
-                  data-testid="morph-search-input"
-                />
-              </div>
-              <button
-                type="button"
-                className={`morph-search__toggle${searchOpen ? ' is-active' : ''}`}
-                aria-expanded={searchOpen}
-                aria-label={labels.search}
-                onClick={searchToggle}
-              >
-                <MorphIco
-                  setting={icons.search}
-                  legacy="search"
-                  className={`morph-search__glyph morph-search__glyph--open${searchOpen ? ' morph-search__glyph--hidden' : ''}`}
-                />
-                <MorphIco
-                  setting={icons.close}
-                  legacy="x"
-                  className={`morph-search__glyph morph-search__glyph--close${searchOpen ? '' : ' morph-search__glyph--hidden'}`}
-                />
-              </button>
-              {/* live results — a sibling panel so the field's clip can't cut
-                  it off. Idle (empty field) shows the stock search's recent
-                  searches as one-tap chips, plus a hint while the term is
-                  shorter than the platform's own two-character minimum. */}
-              {searchOpen && (
-                <div className="morph-search__panel" data-testid="morph-search-panel">
-                  {searchTyped.length === 0 && recentSearches.length > 0 && (
-                    <div className="morph-search__recent">
-                      <span className="morph-search__recent-label">{labels.searchRecent}</span>
-                      <div className="morph-search__recent-list">
-                        {recentSearches.map((recent) => (
-                          <button
-                            key={recent}
-                            type="button"
-                            className="morph-search__recent-item"
-                            onClick={() => setSearchTerm(recent)}
-                          >
-                            {recent}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {searchTyped.length < 2 && (
-                    <p className="morph-search__note">{labels.searchHint}</p>
-                  )}
-                  {searchTyped.length >= 2 && searchResults.isFetching && searchFound.length === 0 && (
-                    <p className="morph-search__note">{labels.searchLoading}</p>
-                  )}
-                  {searchTyped.length >= 2 && !searchResults.isFetching && searchFound.length === 0 && (
-                    <p className="morph-search__note">{labels.searchNoResults}</p>
-                  )}
-                  {searchTyped.length >= 2 && searchFound.length > 0 && (
-                    <ul className="morph-search__list">
-                      {searchFound.map((item) => (
-                        <li key={String(item.id)}>
-                          <Link
-                            to={item.url || '#'}
-                            className="morph-search__result"
-                            onClick={() => {
-                              rememberSearchTerm(searchTyped);
-                              setSearchOpen(false);
-                            }}
-                          >
-                            {item.image?.url ? (
-                              <Image
-                                src={item.image.url}
-                                alt={item.name}
-                                width={40}
-                                height={40}
-                                noWrapper
-                                className="morph-search__thumb"
-                              />
-                            ) : (
-                              <span className="morph-search__thumb" aria-hidden="true" />
-                            )}
-                            <span className="morph-search__result-name">{item.name}</span>
-                            <span className="morph-search__result-price">
-                              {item.is_on_sale && item.sale_price != null
-                                ? formatMoney(item.sale_price)
-                                : formatMoney(item.price ?? '')}
-                            </span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  {searchTyped.length >= 2 && searchFound.length > 0 && (
-                    <Link
-                      to={`/search?q=${encodeURIComponent(searchTyped)}`}
-                      className="morph-search__all"
-                      onClick={() => {
-                        rememberSearchTerm(searchTyped);
+            <div className="morph-actions morph-actions--start" data-testid="morph-header-actions-start">
+              {/* the expanding chip IS the primary search: a real input owned by
+                  us + live results from the platform's product API. The engine's
+                  `salla-search` was removed — its `inline` mode is a read-only
+                  input that only opens the engine's blur modal, so typing could
+                  never happen in the expanding field. */}
+              <div ref={searchRef} className={`morph-search${searchOpen ? ' is-open' : ''}`} data-testid="morph-search">
+                <div className="morph-search__field" ref={searchFieldRef}>
+                  <input
+                    type="search"
+                    className="morph-search__input"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' && searchTerm.trim()) {
+                        event.preventDefault();
+                        rememberSearchTerm(searchTerm);
+                        navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
                         setSearchOpen(false);
-                      }}
-                    >
-                      {labels.searchAll}
-                    </Link>
-                  )}
+                      }
+                    }}
+                    placeholder={labels.searchPlaceholder}
+                    aria-label={labels.search}
+                    data-testid="morph-search-input"
+                  />
                 </div>
-              )}
+                <button
+                  type="button"
+                  className={`morph-search__toggle${searchOpen ? ' is-active' : ''}`}
+                  aria-expanded={searchOpen}
+                  aria-label={labels.search}
+                  onClick={searchToggle}
+                >
+                  <MorphIco
+                    setting={icons.search}
+                    legacy="search"
+                    className={`morph-search__glyph morph-search__glyph--open${searchOpen ? ' morph-search__glyph--hidden' : ''}`}
+                  />
+                  <MorphIco
+                    setting={icons.close}
+                    legacy="x"
+                    className={`morph-search__glyph morph-search__glyph--close${searchOpen ? '' : ' morph-search__glyph--hidden'}`}
+                  />
+                </button>
+                {/* live results — a sibling panel so the field's clip can't cut
+                    it off. Idle (empty field) shows the stock search's recent
+                    searches as one-tap chips, plus a hint while the term is
+                    shorter than the platform's own two-character minimum. */}
+                {searchOpen && (
+                  <div className="morph-search__panel" data-testid="morph-search-panel">
+                    {searchTyped.length === 0 && recentSearches.length > 0 && (
+                      <div className="morph-search__recent">
+                        <span className="morph-search__recent-label">{labels.searchRecent}</span>
+                        <div className="morph-search__recent-list">
+                          {recentSearches.map((recent) => (
+                            <button
+                              key={recent}
+                              type="button"
+                              className="morph-search__recent-item"
+                              onClick={() => setSearchTerm(recent)}
+                            >
+                              {recent}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {searchTyped.length < 2 && (
+                      <p className="morph-search__note">{labels.searchHint}</p>
+                    )}
+                    {searchTyped.length >= 2 && searchResults.isFetching && searchFound.length === 0 && (
+                      <p className="morph-search__note">{labels.searchLoading}</p>
+                    )}
+                    {searchTyped.length >= 2 && !searchResults.isFetching && searchFound.length === 0 && (
+                      <p className="morph-search__note">{labels.searchNoResults}</p>
+                    )}
+                    {searchTyped.length >= 2 && searchFound.length > 0 && (
+                      <ul className="morph-search__list">
+                        {searchFound.map((item) => (
+                          <li key={String(item.id)}>
+                            <Link
+                              to={item.url || '#'}
+                              className="morph-search__result"
+                              onClick={() => {
+                                rememberSearchTerm(searchTyped);
+                                setSearchOpen(false);
+                              }}
+                            >
+                              {item.image?.url ? (
+                                <Image
+                                  src={item.image.url}
+                                  alt={item.name}
+                                  width={40}
+                                  height={40}
+                                  noWrapper
+                                  className="morph-search__thumb"
+                                />
+                              ) : (
+                                <span className="morph-search__thumb" aria-hidden="true" />
+                              )}
+                              <span className="morph-search__result-name">{item.name}</span>
+                              <span className="morph-search__result-price">
+                                {item.is_on_sale && item.sale_price != null
+                                  ? formatMoney(item.sale_price)
+                                  : formatMoney(item.price ?? '')}
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {searchTyped.length >= 2 && searchFound.length > 0 && (
+                      <Link
+                        to={`/search?q=${encodeURIComponent(searchTyped)}`}
+                        className="morph-search__all"
+                        onClick={() => {
+                          rememberSearchTerm(searchTyped);
+                          setSearchOpen(false);
+                        }}
+                      >
+                        {labels.searchAll}
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
+              {/* wishlist — the heart the wide shape carries next to search;
+                  the capsule hides it (no room beside four chips on a phone) */}
+              <Link
+                to="/account/wishlist"
+                className="morph-icon-btn morph-wishlist"
+                data-testid="morph-wishlist"
+                aria-label={labels.wishlist}
+              >
+                <MorphIco setting={undefined} legacy="heart" />
+              </Link>
             </div>
 
-            {themeToggleOn && (
+            <div className="morph-actions morph-actions--end" data-testid="morph-header-actions-end">
+              {/* Language/currency trigger, modelled on the platform's own
+                  `<a class="s-localization-modal-trigger-btn">` markup the
+                  merchant pointed at, in the order he fixed later: the GLOBE
+                  first, then the language NAME, then the currency glyph. The
+                  name comes from the live locale, the glyph from the store
+                  currency (the Salla font has a drawn riyal for SAR; every
+                  other code shows as text — honest and never a blank slot). */}
               <button
                 type="button"
-                ref={themeBtnRef}
-                className="morph-icon-btn morph-theme-btn"
-                onClick={(event) => toggleDark(event.currentTarget)}
-                aria-label={dark ? labels.lightMode : labels.darkMode}
-                aria-pressed={dark}
-                data-testid="morph-theme-btn"
+                className="morph-loco-btn morph-localization-btn"
+                onClick={() => openStoreSwitcher('language')}
+                aria-label={labels.language}
+                data-testid="morph-localization-btn"
               >
-                <ThemeGlyphs />
+                <MorphIco setting={undefined} legacy="globe" className="morph-loco-btn__globe" />
+                <span className="morph-loco-btn__lang">{locale === 'en' ? 'English' : 'العربية'}</span>
+                <span className="morph-loco-btn__separator" aria-hidden="true" />
+                <span className="morph-loco-btn__currency">
+                  <CurrencySymbol currency={currency?.code || 'SAR'} />
+                </span>
               </button>
-            )}
 
-            {/* account: the takeover's trigger is the slot copy — the class lives
-                on the CONTENT the component copies, not the wrapper (old rule 4) */}
-            <SallaUserMenu
-              ref={accountRef as never}
-              avatarOnly
-              showHeader
-              showTrigger
-              data-testid="morph-user-menu"
-              suppressHydrationWarning
-            >
-              <span slot="trigger" className="morph-account-slot">
-                {accountSlot}
-              </span>
-              <span slot="login-btn" className="morph-account-slot">
-                {accountSlot}
-              </span>
-            </SallaUserMenu>
+              {/* the bullet-delivery tag rides the actions row on ultra-wide
+                  screens; `flex items-center` keeps it on the SAME line and
+                  centred with the icons — as a plain block child it used to sit
+                  on its own line above them. */}
+              <div className="morph-bullet hidden 2xl:flex items-center">
+                <salla-bullet-delivery-tag />
+              </div>
 
-            {/* hover preview for the account takeover — the overlay's own
-                cursor-chasing card, reused so both screens share one object.
-                Sits OUTSIDE `salla-user-menu` because the component owns (and
-                re-renders) everything inside its own panel. */}
-            <div
-              ref={accountPreviewRef}
-              className="morph-overlay__preview morph-account-preview"
-              data-testid="morph-account-preview"
-              aria-hidden="true"
-            >
-              <div className="morph-overlay__preview-card" ref={accountCardRef} />
-              <p className="morph-overlay__preview-label" ref={accountLabelRef} />
+              {themeToggleOn && (
+                <button
+                  type="button"
+                  ref={themeBtnRef}
+                  className="morph-icon-btn morph-theme-btn"
+                  onClick={(event) => toggleDark(event.currentTarget)}
+                  aria-label={dark ? labels.lightMode : labels.darkMode}
+                  aria-pressed={dark}
+                  data-testid="morph-theme-btn"
+                >
+                  <ThemeGlyphs />
+                </button>
+              )}
+
+              {/* account: the takeover's trigger is the slot copy — the class lives
+                  on the CONTENT the component copies, not the wrapper (old rule 4) */}
+              {/* The platform wrappers render their own unclassed `<div>`, so the
+                  row's `order` cannot reach them — this one carries the class the
+                  capsule and the wide bar both key off. */}
+              <div className="morph-slot morph-slot--account">
+                <SallaUserMenu
+                  ref={accountRef as never}
+                  avatarOnly
+                  showHeader
+                  showTrigger
+                  data-testid="morph-user-menu"
+                  suppressHydrationWarning
+                >
+                  <span slot="trigger" className="morph-account-slot">
+                    {accountSlot}
+                  </span>
+                  <span slot="login-btn" className="morph-account-slot">
+                    {accountSlot}
+                  </span>
+                </SallaUserMenu>
+              </div>
+
+              {/* hover preview for the account takeover — the overlay's own
+                  cursor-chasing card, reused so both screens share one object.
+                  Sits OUTSIDE `salla-user-menu` because the component owns (and
+                  re-renders) everything inside its own panel. */}
+              <div
+                ref={accountPreviewRef}
+                className="morph-overlay__preview morph-account-preview"
+                data-testid="morph-account-preview"
+                aria-hidden="true"
+              >
+                <div className="morph-overlay__preview-card" ref={accountCardRef} />
+                <p className="morph-overlay__preview-label" ref={accountLabelRef} />
+              </div>
+
+              {/* the takeover's other half: `.morph-overlay` is one self-contained
+                  box, but here the head and the nav are the platform's own
+                  children which we only restyle — so the foot is mounted here and
+                  pinned to the same insets, which is what makes the two screens
+                  read as one design. */}
+              <div className="morph-overlay__foot morph-account-foot" aria-hidden="true">
+                <span className="morph-overlay__note">{labels.accountNote}</span>
+                <span className="morph-overlay__social">
+                  <SallaSocial data-testid="morph-header-account-social" />
+                </span>
+              </div>
+
+              <div className="morph-slot morph-slot--cart">
+                <SallaCartSummary data-testid="morph-cart-summary" suppressHydrationWarning>
+                {/* the chip's own glyph, from the pill's icon set (`bag`, 19px,
+                    same 1.7 stroke as menu/search/account) instead of the
+                    platform's IcoMoon cart plate — a slotted `icon` node hides
+                    the `<slot-fb>` fallback, and the count badge + running total
+                    are the component's own children either way. */}
+                  <span slot="icon" className="morph-cart-glyph">
+                    <MorphIco setting={s.header_icon_cart} legacy="bag" />
+                  </span>
+                </SallaCartSummary>
+              </div>
+
             </div>
-
-            {/* the takeover's other half: `.morph-overlay` is one self-contained
-                box, but here the head and the nav are the platform's own
-                children which we only restyle — so the foot is mounted here and
-                pinned to the same insets, which is what makes the two screens
-                read as one design. */}
-            <div className="morph-overlay__foot morph-account-foot" aria-hidden="true">
-              <span className="morph-overlay__note">{labels.accountNote}</span>
-              <span className="morph-overlay__social">
-                <SallaSocial data-testid="morph-header-account-social" />
-              </span>
-            </div>
-
-            <SallaCartSummary data-testid="morph-cart-summary" suppressHydrationWarning>
-              {/* no `slot="icon"` children: the engine's own drawn cart plate
-                  (the slot-fb `<i class="s-cart-summary-icon">` svg, 30×32)
-                  is the icon the merchant picked — with slotted content the
-                  runtime hides the fallback, so the slot stays empty and the
-                  platform glyph shows. */}
-            </SallaCartSummary>
           </div>
         </div>
       </div>
@@ -1423,8 +1557,9 @@ export function MorphHeader() {
       <MorphOverlay
         open={overlayOpen}
         rows={overlayRows}
-        onClose={() => setOverlayOpen(false)}
+        onClose={closeHeaderMenu}
         labels={{ close: labels.close, shop: labels.shop }}
+        label={labels.menu}
         themeToggle={
           themeToggleOn
             ? {
@@ -1437,10 +1572,4 @@ export function MorphHeader() {
       />
     </header>
   );
-}
-
-/** Whether the merchant picked the MorphPill layout for this theme. */
-export function useMorphHeaderEnabled(): boolean {
-  const { theme } = useTwilight();
-  return (theme?.settings as { header_layout?: string } | undefined)?.header_layout === 'morph';
 }

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent, act, waitFor, screen } from '@testing-library/react';
 import { Header } from '../../../app/components/layout/Header';
 import { MorphHeader } from '../../../app/components/layout/MorphHeader';
+import { closeHeaderMenu } from '../../../app/lib/headerMenu';
 
 /* The store menu payload (twilight API): two top categories, one with kids. */
 const MENUS = [
@@ -96,11 +97,19 @@ vi.mock('@salla.sa/twilight-components-react/contacts', () => ({
 vi.mock('@salla.sa/twilight-components-react/social', () => ({
   SallaSocial: () => <salla-social />,
 }));
-vi.mock('@salla.sa/twilight-components-react/user-menu', () => ({
-  SallaUserMenu: ({ children }: { children?: React.ReactNode }) => (
-    <salla-user-menu>{children}</salla-user-menu>
-  ),
-}));
+vi.mock('@salla.sa/twilight-components-react/user-menu', async () => {
+  const ReactLib = await import('react');
+  return {
+    /* forward the ref: MorphHeader attaches its host-only click forwarder to
+       the custom element through it */
+    SallaUserMenu: ReactLib.forwardRef(
+      (
+        { children }: { children?: React.ReactNode },
+        ref: React.ForwardedRef<HTMLElement>
+      ) => <salla-user-menu ref={ref as never}>{children}</salla-user-menu>
+    ),
+  };
+});
 vi.mock('@salla.sa/twilight-components-react/cart-summary', () => ({
   SallaCartSummary: ({ children }: { children?: React.ReactNode }) => (
     <salla-cart-summary>{children}</salla-cart-summary>
@@ -139,6 +148,10 @@ beforeEach(() => {
   document.documentElement.className = '';
   document.documentElement.removeAttribute('data-morph-lift');
   window.localStorage.clear();
+  // The index's open flag is a module store (`lib/headerMenu`) — it survives a
+  // test that clicks the burger, so reset it here or the next test starts with
+  // the overlay already up.
+  closeHeaderMenu();
 });
 
 afterEach(() => {
@@ -146,22 +159,24 @@ afterEach(() => {
   document.documentElement.removeAttribute('data-morph-lift');
   document.body.style.overflow = '';
   window.localStorage.clear();
+  /* No `closeHeaderMenu()` here: RTL's own cleanup is registered first, so our
+     hook runs BEFORE the tree unmounts — the store would notify a still-mounted
+     header, and that setState lands outside `act`. `beforeEach` resets it
+     instead, before anything renders. */
 });
 
 describe('Header → MorphPill selection', () => {
-  it('keeps the engine shell for the lite/default layouts', () => {
-    // the default branch mounts its sticky sentinel via IntersectionObserver
-    vi.stubGlobal(
-      'IntersectionObserver',
-      class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      }
-    );
-    const { container } = render(<Header />);
-    expect(container.querySelector('.morph-header')).toBeNull();
-    expect(container.querySelector('header.site-header')).toBeTruthy();
+  /* The lite/default layouts were removed from the customization settings, so
+     `Header` no longer branches: a store still holding the old value gets the
+     morph header rather than a blank bar. */
+  it('renders the morph header for a saved lite/default value', () => {
+    for (const saved of ['lite', 'default', undefined]) {
+      state.theme = { settings: saved ? { header_layout: saved } : {} };
+      const { container, unmount } = render(<Header />);
+      expect(container.querySelector('.morph-header')).toBeTruthy();
+      expect(container.querySelector('header.site-header')).toBeNull();
+      unmount();
+    }
   });
 });
 
@@ -173,6 +188,62 @@ describe('MorphHeader', () => {
   it('is selected by header_layout = morph (through Header)', () => {
     const { container } = render(<Header />);
     expect(container.querySelector('[data-testid="morph-header"]')).toBeTruthy();
+  });
+
+  /* `header_shape` is the second axis: the same header, two arrangements. The
+     attribute is the whole contract — every shape rule in morph-header.scss
+     hangs off it, and the fallback matters because a missing key must not
+     leave the bar with no layout at all. */
+  it('publishes header_shape as data-morph-shape, defaulting to wide', () => {
+    const cases: [unknown, string][] = [
+      [undefined, 'wide'],
+      ['wide', 'wide'],
+      ['pill', 'pill'],
+      /* the store's real shape for an `items` setting is the picker array, not
+         a bare string — this is the case production actually hits */
+      [[{ label: 'حبة (Pill)', value: 'pill', key: 'header-shape-pill' }], 'pill'],
+      [[{ label: 'عريض (Wide)', value: 'wide', key: 'header-shape-wide' }], 'wide'],
+      // a value we do not know yet must not blank the bar
+      ['whatever', 'wide'],
+      [{ label: 'Pill' }, 'wide'],
+    ];
+    for (const [value, expected] of cases) {
+      state.theme = { settings: { header_layout: 'morph', header_shape: value } };
+      const { container, unmount } = render(<MorphHeader />);
+      expect(container.querySelector('[data-testid="morph-header"]')?.getAttribute('data-morph-shape')).toBe(
+        expected
+      );
+      unmount();
+    }
+  });
+
+  /* the heart is the wide shape's extra chip; the capsule has no room for a
+     fifth disc, so it is hidden there by CSS — but it must be in the DOM (and
+     in the utilities cluster, not the account one) for either shape to use it */
+  it('keeps the wishlist chip in the utilities cluster', () => {
+    const { container } = render(<MorphHeader />);
+    const heart = container.querySelector('[data-testid="morph-wishlist"]');
+    expect(heart).toBeTruthy();
+    expect(heart?.getAttribute('href')).toBe('/account/wishlist');
+    expect(heart?.getAttribute('aria-label')).toBe('المفضلة');
+    // inside the inline-start cluster, which is what puts it on the page edge
+    expect(container.querySelector('[data-testid="morph-header-actions-start"] [data-testid="morph-wishlist"]')).toBeTruthy();
+    expect(container.querySelector('[data-testid="morph-header-actions-end"] [data-testid="morph-wishlist"]')).toBeNull();
+  });
+
+  /* the platform components inject their own unclassed wrapper, so a parent's
+     `order`/grid selectors cannot reach them — they are wrapped in classed
+     slots precisely so the two shapes can order the chips */
+  it('wraps the platform account/cart in orderable slots', () => {
+    const { container } = render(<MorphHeader />);
+    const account = container.querySelector('.morph-slot--account');
+    const cart = container.querySelector('.morph-slot--cart');
+    expect(account?.querySelector('salla-user-menu')).toBeTruthy();
+    expect(cart?.querySelector('salla-cart-summary')).toBeTruthy();
+    // and both live in the inline-end cluster, next to the theme toggle
+    const end = container.querySelector('[data-testid="morph-header-actions-end"]');
+    expect(end?.contains(account!)).toBe(true);
+    expect(end?.contains(cart!)).toBe(true);
   });
 
   it('renders the pill: brand, burger, nav categories, actions', () => {
@@ -374,6 +445,32 @@ describe('MorphHeader', () => {
     expect(getByTestId('morph-overlay-theme-btn').getAttribute('aria-pressed')).toBe('false');
   });
 
+  /* The hit-band lives on the host, but the platform's handler lives on its
+     child button. A tap on the band/rim used to target the host and die there,
+     which is exactly the "profile icon does nothing" report. */
+  it('forwards a tap on the enlarged profile disc to the real control', () => {
+    const { container } = render(<MorphHeader />);
+    // the test mock intentionally drops props, so query the custom element
+    const host = container.querySelector('salla-user-menu') as HTMLElement;
+    expect(host).toBeTruthy();
+    const login = document.createElement('button');
+    login.className = 's-user-menu-login-btn';
+    const onClick = vi.fn();
+    login.addEventListener('click', onClick);
+    host.appendChild(login);
+
+    act(() => {
+      host.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    expect(onClick).toHaveBeenCalledTimes(1);
+
+    // a tap that already hit the button must not be forwarded a second time
+    act(() => {
+      login.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    expect(onClick).toHaveBeenCalledTimes(2);
+  });
+
   it('lifts the first home block when it opted into the under-header layer', async () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1300 });
     document.body.innerHTML =
@@ -384,6 +481,62 @@ describe('MorphHeader', () => {
     });
     // a page without the opt-in keeps the natural stacking
     document.body.innerHTML = '<div id="main-content"><div class="s-block"></div></div>';
+  });
+
+  it('traps Tab inside the fullscreen index instead of leaking focus to the header', () => {
+    const { getByTestId } = render(<MorphHeader />);
+    act(() => {
+      fireEvent.click(getByTestId('morph-header-burger'));
+    });
+    const overlay = getByTestId('morph-overlay-nav').closest('.morph-overlay') as HTMLElement;
+    expect(overlay.getAttribute('role')).toBe('dialog');
+    expect(overlay.getAttribute('aria-modal')).toBe('true');
+    const items = Array.from(
+      overlay.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')
+    ).filter((el) => el.tabIndex >= 0);
+    expect(items.length).toBeGreaterThan(1);
+    const first = items[0];
+    const last = items[items.length - 1];
+    last.focus();
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Tab' });
+    });
+    expect(document.activeElement).toBe(first);
+    first.focus();
+    act(() => {
+      fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
+    });
+    expect(document.activeElement).toBe(last);
+  });
+
+  it('does not run a cursor-chase rAF loop for reduced-motion visitors', () => {
+    const matchMedia = vi.spyOn(window, 'matchMedia').mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes('prefers-reduced-motion'),
+          media: query,
+          addEventListener() {},
+          removeEventListener() {},
+          addListener() {},
+          removeListener() {},
+          dispatchEvent: () => false,
+          onchange: null,
+        }) as unknown as MediaQueryList
+    );
+    const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 1);
+    try {
+      const { getByTestId } = render(<MorphHeader />);
+      act(() => {
+        fireEvent.click(getByTestId('morph-header-burger'));
+      });
+      expect(getByTestId('morph-overlay-nav').closest('.morph-overlay')?.classList.contains('is-hidden')).toBe(false);
+      // The overlay's chase has no target under reduce; starting it would
+      // rewrite the same transform 60×/s for as long as the menu is open.
+      expect(raf).not.toHaveBeenCalled();
+    } finally {
+      raf.mockRestore();
+      matchMedia.mockRestore();
+    }
   });
 
   it('no topbar renders above the header, whatever the settings say', () => {

@@ -236,11 +236,26 @@ export const slotRenderable = (slot: CurtainSlot): boolean =>
  * "never a stray slot" (rule 26). Renderable rows only; `null` when no row can
  * render, and the honest empty state stands. Kept separate from `activeSlot`
  * so the precise resolver keeps returning `null` for unmatched categories. */
-export const fallbackSlot = (map: Map<string, CurtainSlot>): CurtainSlot | null => {
+export const fallbackSlot = (
+  map: Map<string, CurtainSlot>,
+  /** Stable key for the draw (the hovered category + focus). React renders the
+   *  curtain repeatedly on hover and hydration renders it once on the server:
+   *  a bare `Math.random()` picks a DIFFERENT slot on every render, so the
+   *  panel's featured image changes under the pointer and the server HTML
+   *  disagrees with the client. Hash the key instead — same spread across
+   *  categories, but one slot per category for the lifetime of the page. */
+  seed?: string
+): CurtainSlot | null => {
   if (!map?.size) return null;
   const renderable = [...new Set(map.values())].filter(slotRenderable);
   if (!renderable.length) return null;
-  return renderable[Math.floor(Math.random() * renderable.length)];
+  if (seed === undefined) return renderable[Math.floor(Math.random() * renderable.length)];
+  let hash = 2166136261;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash ^= seed.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return renderable[(hash >>> 0) % renderable.length];
 };
 
 /** The product picker returns a url whose id is the `/p<digits>` run — the

@@ -84,6 +84,8 @@ const LABELS: CurtainLabels = {
   featured: 'مميزة',
   categoryProducts: 'منتجات',
   emptyFeatured: 'لا توجد منتجات',
+  reelPrev: 'المنتجات السابقة',
+  reelNext: 'المنتجات التالية',
 };
 const pieces = (n: number) => `${n} منتج`;
 
@@ -265,7 +267,22 @@ describe('MorphCurtain', () => {
       const head = container.querySelector('.morph-featured__head');
       expect(head?.querySelector('p')?.textContent).toContain('مميزة');
       expect(head?.querySelector('span')?.textContent).toBe('3 منتج');
-      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
+      // three picks, three cards — the row is not padded up to four
+      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(3);
+    });
+
+    /* The row used to slice the merchant's picks to four: the fifth product
+       was fetched, then dropped, with no way to reach it. The count in the
+       heading said five and the shelf showed four. */
+    it('renders EVERY featured pick, not the first four', () => {
+      const nine = [7, 8, 9, 10, 11, 12, 13, 14, 15];
+      const { container } = mountCurtain(
+        <MorphCurtain {...base({ menu: { ...MENU, products: nine } as never })} />
+      );
+      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(5);
+      expect(container.querySelector('.morph-featured__head span')?.textContent).toBe('9 منتج');
+      mockLoader?.();
+      expect(product.list).toHaveBeenCalledWith(expect.objectContaining({ perPage: 9 }));
     });
 
     it('an EMPTY-STRING products field is no picks, not a crash (demo-store shape)', () => {
@@ -277,7 +294,7 @@ describe('MorphCurtain', () => {
       expect(container.querySelector('.morph-featured__head p')?.textContent).toContain(
         LABELS.categoryProducts
       );
-      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
+      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(5);
     });
 
     it('a focused sub swaps the rectangle to the focus node', () => {
@@ -292,14 +309,14 @@ describe('MorphCurtain', () => {
     it('falls back to the category products source (rule 19)', () => {
       const { container } = mountCurtain(<MorphCurtain {...base()} />);
       expect(container.querySelector('.morph-featured__head p')?.textContent).toContain('منتجات');
-      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
+      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(5);
     });
 
     it('sends the REAL category id — read from the url, never the menu-row id', () => {
       mountCurtain(<MorphCurtain {...base()} />);
       mockLoader?.();
       expect(product.list).toHaveBeenCalledWith(
-        expect.objectContaining({ source: 'categories', sourceValue: [1], perPage: 4 })
+        expect.objectContaining({ source: 'categories', sourceValue: [1], perPage: 12 })
       );
     });
 
@@ -313,11 +330,76 @@ describe('MorphCurtain', () => {
 
     it('the built-in offers page uses the offers source, which needs no value', () => {
       const { container } = mountCurtain(<MorphCurtain {...base({ menu: OFFERS as never })} />);
-      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(4);
+      expect(container.querySelectorAll('[data-testid="curtain-card"]')).toHaveLength(5);
       mockLoader?.();
       expect(product.list).toHaveBeenCalledWith(
         expect.objectContaining({ source: 'offers', sourceValue: [] })
       );
+    });
+
+    /* jsdom lays nothing out, so the overflow probe answers 0/0 — which is
+       exactly the "four cards fit" case. The arrows are therefore stubbed
+       into overflow by faking the two numbers the component reads. */
+    const stubOverflow = (track: HTMLElement, rest: number, x = 0) => {
+      Object.defineProperty(track, 'scrollWidth', { value: 1200, configurable: true });
+      Object.defineProperty(track, 'clientWidth', { value: 1200 - rest, configurable: true });
+      Object.defineProperty(track, 'scrollLeft', { value: x, configurable: true, writable: true });
+    };
+
+    it('a row that fits carries no arrows at all — not greyed, absent', () => {
+      const { container } = mountCurtain(<MorphCurtain {...base()} />);
+      const reel = container.querySelector('.morph-featured__reel') as HTMLElement;
+      expect(reel.getAttribute('data-reel')).toBe('fit');
+      expect(container.querySelectorAll('.morph-featured__nav')).toHaveLength(0);
+    });
+
+    it('an overflowing row shows two arrows and disables only the spent one', () => {
+      const { container } = mountCurtain(<MorphCurtain {...base()} />);
+      const track = container.querySelector('[data-testid="curtain-items"]') as HTMLElement;
+      stubOverflow(track, 300);
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      const reel = container.querySelector('.morph-featured__reel') as HTMLElement;
+      expect(reel.getAttribute('data-reel')).toBe('scroll');
+      const prev = container.querySelector('.morph-featured__nav.is-prev') as HTMLButtonElement;
+      const next = container.querySelector('.morph-featured__nav.is-next') as HTMLButtonElement;
+      expect(prev.getAttribute('aria-label')).toBe(LABELS.reelPrev);
+      expect(next.getAttribute('aria-label')).toBe(LABELS.reelNext);
+      // at the inline start: prev is spent, next is live
+      expect(prev.disabled).toBe(true);
+      expect(next.disabled).toBe(false);
+    });
+
+    it('at the far end the NEXT arrow is the spent one (RTL scrollLeft is negative)', () => {
+      const { container } = mountCurtain(<MorphCurtain {...base()} />);
+      const track = container.querySelector('[data-testid="curtain-items"]') as HTMLElement;
+      stubOverflow(track, 300, -300); // RTL: the end of the reel
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      const prev = container.querySelector('.morph-featured__nav.is-prev') as HTMLButtonElement;
+      const next = container.querySelector('.morph-featured__nav.is-next') as HTMLButtonElement;
+      expect(prev.disabled).toBe(false);
+      expect(next.disabled).toBe(true);
+    });
+
+    it('the arrows scroll one page, negated in RTL (scrollBy takes a physical offset)', () => {
+      const { container } = mountCurtain(<MorphCurtain {...base()} />);
+      const track = container.querySelector('[data-testid="curtain-items"]') as HTMLElement;
+      stubOverflow(track, 300);
+      const scrollBy = vi.fn();
+      (track as unknown as { scrollBy: unknown }).scrollBy = scrollBy;
+      act(() => {
+        window.dispatchEvent(new Event('resize'));
+      });
+      const next = container.querySelector('.morph-featured__nav.is-next') as HTMLButtonElement;
+      act(() => {
+        fireEvent.click(next);
+      });
+      /* the store's default locale is Arabic, so "next" is leftward — 80% of
+         the 900px scrollport, with the sign flipped */
+      expect(scrollBy).toHaveBeenCalledWith(expect.objectContaining({ left: -720 }));
     });
 
     it('a node that is not a category page → the honest empty text, no doomed request', () => {

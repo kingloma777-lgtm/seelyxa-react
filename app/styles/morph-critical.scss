@@ -1,0 +1,13 @@
+/* Critical CSS for the MorphPill header — the theme's only header.
+ *
+ * `critical.scss` and `critical-product.scss` carry the page-level first paint,
+ * not the header. ThemeStylesheet inlines critical CSS and adds the full app
+ * sheet AFTER the first paint, so without this the first screen would show a
+ * completely unstyled header (no pill, no nav, no search chip). `__root.tsx`
+ * appends it to every server-rendered inline sheet; it used to be conditional
+ * on `header_layout: "morph"`, which is now the only value that setting has.
+ *
+ * Keep the @import in sync with app.scss; order matters (morph rules must come
+ * after any page rules, as they do in the full sheet).
+ */
+@import './04-components/morph-header';

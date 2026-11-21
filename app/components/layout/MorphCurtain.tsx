@@ -1,5 +1,8 @@
-import { Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MouseEvent as ReactMouseEvent } from 'react';
+import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
+import { prefersReducedMotion } from '../../lib/homeBlock';
+import { ArrowLeftIcon, ArrowRightIcon } from '../icons';
 import { useQuery } from '@tanstack/react-query';
 import type { MenuItem } from '@salla.sa/twilight-theme-engine/types';
 import { Link } from '@salla.sa/twilight-theme-engine/common';
@@ -10,6 +13,7 @@ import { MorphMenuCard, type MenuCardProduct } from '../product/MorphMenuCard';
 import { SallaProductsList, ProductsListSkeleton } from '@salla.sa/twilight-components-react';
 import type { CurtainSlot } from '../../lib/curtainSlots';
 import { menuProductIds } from '../../lib/menuProducts';
+import { menuNodeImage } from '../../lib/menuNodeImage';
 import { builtInMenuKind } from '../../lib/menuItemKind';
 import {
   activeSlot,
@@ -40,8 +44,11 @@ import {
      (`node.products` → selected) and falls back to the category's own
      products (source "categories") rather than an empty state; the heading
      swaps with it and only a featured list carries the count.
-   · FOUR products: one row of Salla's 4-column grid — five wrapped to a
-     second row and pushed the panel past the fold (rule 23).
+   · FOUR products PER VIEW, in ONE row that never wraps — a second row pushed
+     the panel past the fold (rule 23). Everything past the fourth is one
+     swipe (or one arrow) away: the row is a reel, not a slice. Five 210px
+     cards still fit a wide panel, so the arrows are driven by a MEASURED
+     overflow, not by the count.
    ========================================================================== */
 
 export interface CurtainLabels {
@@ -54,6 +61,8 @@ export interface CurtainLabels {
   featured: string;
   categoryProducts: string;
   emptyFeatured: string;
+  reelPrev: string;
+  reelNext: string;
 }
 
 /** The store menu node the curtain reads, plus the featured products the
@@ -85,109 +94,11 @@ function CurtainNode({
 }) {
   // anything with a url is a LINK, including a category with children (rule 16)
   const navigable = Boolean(node.url);
-  const getImg = (v: any): string => {
-    if (!v) return '';
-    if (typeof v === 'string') {
-      if (v.startsWith('http') || v.startsWith('/') || v.startsWith('data:')) return v;
-      if (v.length > 10 && (v.includes('.jpg') || v.includes('.png') || v.includes('.webp') || v.includes('.jpeg') || v.includes('.gif'))) return v;
-      return v;
-    }
-    if (Array.isArray(v)) return getImg(v[0]);
-    if (typeof v === 'object') {
-      return (
-        getImg(v.url) ||
-        getImg(v.image) ||
-        getImg(v.src) ||
-        getImg(v.small_url) ||
-        getImg(v.thumbnail) ||
-        getImg(v.value) ||
-        getImg(v.link) ||
-        getImg(v.original) ||
-        getImg(v.file) ||
-        getImg(v.path) ||
-        getImg(v.logo) ||
-        getImg(v.icon) ||
-        getImg(v.img) ||
-        ''
-      );
-    }
-    return '';
-  };
-  let img = '';
-  // Try to get image from various sources
-  img = imgSrc(node.image);
-  if (!img && typeof (node as any).image === 'string' && (node as any).image) {
-    const s = (node as any).image;
-    if (s.startsWith('http') || s.startsWith('/') || s.includes('.')) img = s;
-  }
-  if (!img && typeof (node as any).image === 'object' && (node as any).image?.url) {
-    img = (node as any).image.url;
-  }
-  img = img || imgSrc((node as any).thumbnail);
-  img = img || imgSrc((node as any).icon);
-  img = img || imgSrc((node as any).image_url);
-  img = img || imgSrc((node as any).imageUrl);
-  img = img || imgSrc((node as any).cover);
-  img = img || imgSrc((node as any).media);
-  img = img || imgSrc((node as any).media?.image);
-  img = img || imgSrc((node as any).media?.url);
-  img = img || imgSrc((node as any).banner);
-  img = img || imgSrc((node as any).picture);
-  img = img || imgSrc((node as any).photo);
-  img = img || imgSrc((node as any).featured_image);
-  img = img || imgSrc((node as any).category_image);
-  img = img || imgSrc((node as any).thumb);
-  img = img || imgSrc((node as any).logo);
-  img = img || getImg((node as any).images);
-  img = img || getImg(node);
-  if (!img) {
-    for (const key of Object.keys(node as any)) {
-      const lower = key.toLowerCase();
-      if (lower.includes('image') || lower.includes('img') || lower.includes('photo') || lower.includes('icon') || lower.includes('thumb') || lower.includes('pic') || lower.includes('avatar') || lower.includes('cover') || lower.includes('banner')) {
-        const found = getImg((node as any)[key]);
-        if (found) {
-          img = found;
-          break;
-        }
-      }
-    }
-  }
-  // Deep search as last resort
-  if (!img) {
-    const search = (obj: any, depth = 0): string => {
-      if (!obj || depth > 4) return '';
-      if (typeof obj === 'string') {
-        if (obj.startsWith('http') && (obj.includes('.jpg') || obj.includes('.png') || obj.includes('.jpeg') || obj.includes('.webp') || obj.includes('.gif') || obj.includes('cdn') || obj.includes('images'))) return obj;
-        if ((obj.startsWith('/') && obj.includes('.')) || obj.includes('uploads') || obj.includes('media')) return obj;
-        return '';
-      }
-      if (Array.isArray(obj)) {
-        for (const item of obj) {
-          const found = search(item, depth + 1);
-          if (found) return found;
-        }
-        return '';
-      }
-      if (typeof obj === 'object') {
-        // Check common image keys first
-        for (const k of ['image', 'url', 'src', 'thumbnail', 'icon', 'photo', 'picture']) {
-          if (obj[k]) {
-            const found = search(obj[k], depth + 1);
-            if (found) return found;
-          }
-        }
-        for (const k of Object.keys(obj)) {
-          const lower = k.toLowerCase();
-          if (lower.includes('image') || lower.includes('img') || lower.includes('photo') || lower.includes('thumb')) {
-            const found = search(obj[k], depth + 1);
-            if (found) return found;
-          }
-        }
-      }
-      return '';
-    };
-    img = search(node);
-  }
+  /* The API's image field is not stable; the resolver lives in lib so the
+     render stays about layout. The node objects are stable between focus
+     changes (enrichMenuNode is memoised), so the bounded deep search runs once
+     per node instead of once per hover. */
+  const img = useMemo(() => menuNodeImage(node), [node]);
   const className = `morph-node morph-node--2${active ? ' is-active' : ''}`;
 
   const media = (
@@ -225,7 +136,9 @@ function CurtainNode({
         className={className}
         data-node-id={String(node.id)}
         data-level="2"
-        aria-pressed={active}
+        /* `aria-pressed` is a button-only state and is invalid on a link. The
+           active disc is a hover/focus highlight, not a selected navigation
+           destination, so it stays a visual cue only. */
       >
         {media}
         {name}
@@ -291,7 +204,9 @@ function SlotColumn({
 }) {
   // precise resolver stays precise (null for unmatched categories), and the
   // fallback draw is a separate call (old rule 26)
-  const slot = activeSlot(slots, menu, focus) ?? fallbackSlot(slots);
+  const slot =
+    activeSlot(slots, menu, focus) ??
+    fallbackSlot(slots, `menu:${String(menu.id)}|${menu.url ?? ''}|focus:${String(focus?.id ?? '')}`);
 
   if (!slot) {
     const configured = new Set(slots.values()).size;
@@ -366,8 +281,18 @@ function FeaturedRow({
   labels: CurtainLabels;
   pieces: (n: number) => string;
 }) {
+  const { isRTL } = useTranslation();
   const ids = menuProductIds(node.products);
   const hasFeatured = ids.length > 0;
+  /* The merchant may attach ten products to a category, and the row used to
+     slice them to four — the rest were silently dropped, with no way to reach
+     them. It is a REEL now: four cards per view, the rest one swipe (or one
+     arrow) away, and the panel keeps its height because the row never wraps.
+     24 is Salla's own page ceiling; a featured list longer than that is a
+     catalogue, not a menu. */
+  const limit = hasFeatured ? Math.min(ids.length, 24) : 12;
+  const reelRef = useRef<HTMLDivElement>(null);
+  const [reel, setReel] = useState({ overflow: false, atStart: true, atEnd: true });
   /* The fallback needs a REAL category id, and a node's own `id` is a menu-ROW
      id: sent as `source_value` it answers 422 and the rectangle stays empty for
      every category without featured picks (the majority of them). The real id
@@ -394,9 +319,63 @@ function FeaturedRow({
 
   const loader = useCallback(
     // only ever called by the list below, i.e. when `canFill`
-    () => product.list({ source, sourceValue: value, perPage: 4 }),
-    [source, value.join(',')] // eslint-disable-line react-hooks/exhaustive-deps
+    () => product.list({ source, sourceValue: value, perPage: limit }),
+    [source, value.join(','), limit] // eslint-disable-line react-hooks/exhaustive-deps
   );
+
+  /* Overflow is MEASURED, not counted: five 210px cards still fit a wide
+     panel, so "more than four" and "needs a scroll" are different questions —
+     and the answer changes with the viewport. RTL inverts `scrollLeft` (0 at
+     the inline start, negative towards the end), hence the absolute value. */
+  const measure = useCallback(() => {
+    const track = reelRef.current?.querySelector<HTMLElement>('.morph-featured__list');
+    if (!track) return;
+    const rest = track.scrollWidth - track.clientWidth;
+    const x = Math.abs(track.scrollLeft);
+    const next = { overflow: rest > 2, atStart: x <= 2, atEnd: x >= rest - 2 };
+    setReel((prev) =>
+      prev.overflow === next.overflow && prev.atStart === next.atStart && prev.atEnd === next.atEnd
+        ? prev
+        : next
+    );
+  }, []);
+
+  useEffect(() => {
+    const host = reelRef.current;
+    if (!host) return;
+    measure();
+    /* The track only exists once the list resolves, so the HOST is what gets
+       observed; `scroll` does not bubble, but a capture listener on the host
+       still sees it (and a resize of the host covers the async first paint).
+       The mutation observer is what catches a DATA swap: the next category's
+       cards are the same height, so nothing resizes and the resize observer
+       stays quiet — a stale "overflow" would leave arrows on a row of four. */
+    host.addEventListener('scroll', measure, true);
+    window.addEventListener('resize', measure);
+    const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    ro?.observe(host);
+    const mo = typeof MutationObserver === 'undefined' ? null : new MutationObserver(measure);
+    mo?.observe(host, { childList: true, subtree: true });
+    return () => {
+      host.removeEventListener('scroll', measure, true);
+      window.removeEventListener('resize', measure);
+      ro?.disconnect();
+      mo?.disconnect();
+    };
+  }, [measure]);
+
+  /* One page at a time, in the writing direction: `scrollBy` takes a physical
+     offset, so RTL negates it. `scroll-snap-type` then lands the reel on a
+     card edge instead of wherever the arithmetic stopped. */
+  const nudge = (dir: 1 | -1) => {
+    const track = reelRef.current?.querySelector<HTMLElement>('.morph-featured__list');
+    if (!track) return;
+    const step = Math.max(160, track.clientWidth * 0.8);
+    track.scrollBy({
+      left: (isRTL ? -dir : dir) * step,
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+    });
+  };
 
   return (
     <div className="morph-featured">
@@ -409,20 +388,64 @@ function FeaturedRow({
       {!canFill ? (
         <p className="morph-featured__empty">{labels.emptyFeatured}</p>
       ) : (
-        <Suspense fallback={<ProductsListSkeleton />}>
-          <SallaProductsList loader={loader} itemsClassName="morph-featured__list">
-            {(items: unknown[]) =>
-              items
-                .slice(0, 4)
-                .map((item) => (
-                  <MorphMenuCard
-                    key={String((item as { id: unknown }).id)}
-                    product={item as MenuCardProduct}
-                  />
-                ))
-            }
-          </SallaProductsList>
-        </Suspense>
+        <div
+          className="morph-featured__reel"
+          ref={reelRef}
+          data-reel={reel.overflow ? 'scroll' : 'fit'}
+        >
+          {/* the arrows bracket the track instead of floating over it: an
+              overlay lands on the card the merchant just swiped into view */}
+          {reel.overflow && (
+            <button
+              type="button"
+              className="morph-featured__nav is-prev"
+              aria-label={labels.reelPrev}
+              disabled={reel.atStart}
+              onClick={() => nudge(-1)}
+            >
+              {isRTL ? (
+                <ArrowRightIcon width={16} height={16} strokeWidth={2.25} />
+              ) : (
+                <ArrowLeftIcon width={16} height={16} strokeWidth={2.25} />
+              )}
+            </button>
+          )}
+          <Suspense fallback={<ProductsListSkeleton />}>
+            <SallaProductsList
+              loader={loader}
+              /* one page, no sentinel: a curtain row has no scroll to reach
+                 one, and the old default paginated behind the panel */
+              mode="once"
+              itemsClassName="morph-featured__list"
+            >
+              {(items: unknown[]) =>
+                items
+                  .slice(0, limit)
+                  .map((item) => (
+                    <MorphMenuCard
+                      key={String((item as { id: unknown }).id)}
+                      product={item as MenuCardProduct}
+                    />
+                  ))
+              }
+            </SallaProductsList>
+          </Suspense>
+          {reel.overflow && (
+            <button
+              type="button"
+              className="morph-featured__nav is-next"
+              aria-label={labels.reelNext}
+              disabled={reel.atEnd}
+              onClick={() => nudge(1)}
+            >
+              {isRTL ? (
+                <ArrowLeftIcon width={16} height={16} strokeWidth={2.25} />
+              ) : (
+                <ArrowRightIcon width={16} height={16} strokeWidth={2.25} />
+              )}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
