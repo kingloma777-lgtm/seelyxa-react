@@ -1,0 +1,246 @@
+/* ==========================================================================
+   selia-base — the shared shell for every ported Selia block.
+
+   Loaded once and used by all of them, so the family shares ONE container,
+   ONE heading rhythm and ONE set of tokens. Two ported blocks side by side
+   must not disagree about where the left edge is or how big a section title
+   is — that is the difference between a designed page and a page assembled
+   out of copied sections.
+
+   Nothing here hardcodes a colour. `--ink-*`, `--surface-*` and `--line-*`
+   are the theme's semantic palette, and `html.dark` already flips them
+   (01-settings/global.scss), so every ported block is legible at night with
+   no `if dark` override of its own. The merchant's own colour picker value
+   arrives as `--selia-accent` and is used as an ACCENT — a chip, a ring, a
+   number — never as the only colour in the block, because Selia's `#004956`
+   default on a dark page is unreadable.
+
+   Logical properties throughout (`margin-inline`, `inset-inline-start`,
+   `text-align: start`): these blocks are Arabic-first, and the same stylesheet
+   has to survive a switch to an LTR store without a mirrored duplicate.
+   ========================================================================== */
+
+.selia {
+  /* the merchant's accent: a custom one from «إعدادات المتجر العامة» first,
+     then the colour Salla writes from the dashboard, then Selia's own default.
+     Three layers, one declaration — a block that wants its own accent still
+     overrides this variable locally and nothing above it is copied down. */
+  --selia-accent: var(--gs-accent, var(--color-primary, #004956));
+  /* the shared shell reads the store's layout settings before its own design */
+  --selia-pad: var(--gs-gutter, clamp(16px, 4vw, 40px));
+  --selia-max: var(--gs-container, 1320px);
+  --selia-radius: var(--gs-radius, 20px);
+  /* Density multiplies the clamp instead of replacing it: a compact store
+     keeps its fluid ramp (12px on a phone, 22px on a desktop) and only the
+     amplitude changes, so the block never stops being responsive. */
+  --selia-gap: calc(clamp(12px, 1.6vw, 22px) * var(--density));
+  --selia-head-gap: calc(clamp(20px, 2.8vw, 36px) * var(--density));
+
+  color: var(--ink-1);
+  /* No background of its own: a block that wants one paints it, so a ported
+     block dropped on a themed page does not punch a white hole in it. */
+}
+
+.selia__inner {
+  width: 100%;
+  max-width: var(--selia-max);
+  margin-inline: auto;
+  padding-inline: var(--selia-pad);
+}
+
+/* Full-bleed artwork, contained heading. The heading stays inside the
+   container so a wide banner still starts on the same grid as the block
+   above it. */
+.selia--bleed > .selia__inner {
+  max-width: none;
+  padding-inline: 0;
+}
+
+.selia--bleed > .selia__inner > .selia__head {
+  max-width: var(--selia-max);
+  margin-inline: auto;
+  padding-inline: var(--selia-pad);
+}
+
+.selia__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55em;
+  text-align: center;
+  margin-block-end: var(--selia-head-gap);
+}
+
+.selia--start .selia__head {
+  align-items: flex-start;
+  text-align: start;
+}
+
+.selia__title {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.6vw, 2.35rem);
+  /* the two heading roles: the merchant's face and weight reach all 34 ported
+     blocks through these two tokens, and their defaults are the values this
+     rule shipped with — 700, carried here rather than on `:root`, because the
+     engine's `<h1>`…`<h6>` ship 600 and one `:root` default would have
+     re-weighted whichever family did not own it */
+  font-family: var(--font-heading);
+  font-weight: var(--fw-heading, 700);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: var(--ink-1);
+  text-wrap: balance;
+}
+
+.selia__subtitle {
+  margin: 0;
+  max-width: 62ch;
+  font-size: clamp(0.85rem, 1.05vw, 1.02rem);
+  line-height: 1.75;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+/* ── the shared call to action ─────────────────────────────────────────── */
+
+.selia-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  /* Selia's own shipped numbers, each with the store's button role as the
+     override: a merchant who sets a height or a shape reaches the 34 ported
+     blocks' calls to action, and a merchant who sets nothing keeps Selia's
+     44px thumb target and pill corner exactly as drawn. */
+  min-height: var(--btn-h, 44px);
+  padding: 0.7em 1.6em;
+  border-radius: var(--radius-button, 999px);
+  font-size: var(--btn-fs, 0.95rem);
+  font-weight: var(--btn-fw, 600);
+  text-decoration: none;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+/* A block that offers its own button colours (`featured-animated-products`)
+   publishes them per CTA; every other block leaves both unset and keeps the
+   accent it always had. */
+.selia-cta--solid {
+  background: var(--selia-cta-bg, var(--selia-accent));
+  color: var(--selia-cta-ink, #fff);
+  border: 1px solid transparent;
+}
+
+/* `#fff` on a dark accent is right in both themes, but a merchant can pick a
+   pale accent — mixing the accent with the page ink keeps the label readable
+   whichever end of the scale they chose. A merchant who set the label colour
+   explicitly is not second-guessed: the fallback is never evaluated. */
+@supports (color: color-contrast(white vs black)) {
+  .selia-cta--solid {
+    color: var(--selia-cta-ink, color-contrast(var(--selia-cta-bg, var(--selia-accent)) vs #fff, var(--ink-1)));
+  }
+}
+
+.selia-cta--ghost {
+  background: transparent;
+  color: var(--ink-1);
+  border: 1px solid var(--line-2);
+}
+
+.selia-cta:hover {
+  transform: translateY(-1px);
+}
+
+.selia-cta--ghost:hover {
+  border-color: var(--selia-accent);
+  color: var(--selia-accent);
+}
+
+.selia-cta:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 3px;
+}
+
+/* ── the empty state ───────────────────────────────────────────────────────
+   A block with nothing to show renders nothing (the engine would otherwise
+   leave a heading over a blank gap). This is only for a repeater the merchant
+   has emptied on a block that still has a heading worth keeping. */
+.selia-empty {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: 24px;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--selia-radius);
+  color: var(--ink-3);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ── shared media behaviour ────────────────────────────────────────────────
+   Every ported card image sits in a frame with a fixed ratio, so a grid of
+   merchant photos does not reflow as they load (CLS), and `object-fit: cover`
+   makes the visible part of the photo a function of the ratio alone. */
+.selia-media {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--selia-radius);
+  background: var(--surface-2);
+}
+
+.selia-media picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.selia-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.selia-media__placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  background: linear-gradient(135deg, var(--surface-2), var(--surface-1, var(--surface-2)));
+}
+
+/* «إضافة مسافة أعلى العنصر» — the second batch's spelling of the same toggle
+   the first batch ships as a block-suffix (--picks--spaced). It is on the
+   SECTION, not the block body, so the extra air sits above the heading too
+   (which is what the merchant means). One name for nine blocks; new ports
+   should reuse it instead of minting a third spelling. */
+.selia--top-space {
+  margin-block-start: clamp(20px, 3vw, 40px);
+}
+
+/* The device-visibility control every Selia panel exposes. CSS-only, so a
+   hidden block never renders on the wrong device even before hydration. */
+@media (max-width: 767.98px) {
+  .selia--desktop-only {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .selia--mobile-only {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selia-cta {
+    transition: none;
+  }
+
+  .selia-cta:hover {
+    transform: none;
+  }
+}

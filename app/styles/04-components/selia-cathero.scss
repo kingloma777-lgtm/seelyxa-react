@@ -1,0 +1,846 @@
+/* ==========================================================================
+   selia-cathero — «تصنيفات مميزة مع خلفية» — the atelier folio
+
+   Geometry, fixed before the markup:
+
+     desktop banner = 2 columns, `minmax(320px, 45%) | 1fr`.
+     The COLOPHON is the first column, so it lands on the READING edge in both
+     RTL and LTR without mirroring any content. The photographic plate is the
+     second column and overlaps the colophon by `--cathero-overlap` via a
+     NEGATIVE `margin-inline-start` — a logical property, so the overlap always
+     points back at the text, whichever direction the store is read in.
+     The colophon pays that overlap back as `padding-inline-end`.
+
+     The category cards are a separate INDEX STRIP on ONE baseline. The old
+     `:nth-child(even) { translateY(-14px) }` stagger made four identical
+     cards read as a broken grid; it is gone, deliberately.
+
+   Design rules that keep this on a real store:
+
+   1. **Type never sits on the photograph.** The ink colophon is a SOLID plane
+      from `--ink-1` / `--bg-page`, which invert together in night mode.
+   2. **One accent, derived once.** `--cathero-hi` mixes the merchant's
+      `--selia-accent` with the page colour: light on the dark panel by day,
+      dark on the light panel at night. A raw dark teal accent would be
+      invisible on the ink plane.
+   3. **The hero photo is desaturated on purpose.** The four category photos
+      are details of that same room; muting the big one and leaving the small
+      ones in colour turns a photocopy into a designed detail series.
+   4. **Hover is a real interaction, not a shadow.** `:has()` cross-fades the
+      hovered category's photo into the plate. No state, no rAF, no hydration
+      mismatch, and no-op where `:has()` is unsupported.
+   5. **The phone rail owns its own overflow** and advertises itself with a
+      hint; a card peeking off the edge without a hint reads as a cut-off bug.
+
+   Everything is scoped to `.selia--cathero`; logical properties throughout.
+   ========================================================================== */
+
+.selia--cathero {
+  --cathero-radius: clamp(18px, 1.8vw, 26px);
+  --cathero-frame: clamp(9px, 0.9vw, 13px);
+  --cathero-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --cathero-overlap: clamp(20px, 2.8vw, 40px);
+  --selia-head-gap: clamp(20px, 2.6vw, 34px);
+
+  /* The one accent that is guaranteed to survive both themes. */
+  --cathero-hi: color-mix(in srgb, var(--selia-accent) 58%, var(--bg-page));
+  --cathero-paper: color-mix(in srgb, var(--surface-2) 90%, var(--selia-accent));
+
+  /* A block that paints its own plane owns its stacking context. Without
+     this, a neighbouring sticky layer can paint over the colophon. */
+  position: relative;
+  isolation: isolate;
+}
+
+/* ── the ruled masthead ─────────────────────────────────────────────────
+   A short accent rule under the reading edge is the signature; the old
+   oversized "04" at the opposite edge is deliberately kept SMALL. */
+.selia--cathero .selia__head {
+  position: relative;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  text-align: start;
+  padding-block-end: clamp(16px, 1.6vw, 24px);
+  border-block-end: 1px solid var(--line-1);
+}
+
+.selia--cathero .selia__head::after {
+  content: '';
+  position: absolute;
+  inset-block-end: -1px;
+  inset-inline-start: 0;
+  width: clamp(64px, 8vw, 118px);
+  height: 3px;
+  background: var(--selia-accent);
+}
+
+.selia-cathero__head-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+  min-width: 0;
+}
+
+.selia-cathero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+
+.selia-cathero__eyebrow::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex: none;
+  background: var(--selia-accent);
+  transform: rotate(45deg);
+}
+
+.selia--cathero .selia__title {
+  font-size: clamp(1.7rem, 3.4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  text-align: start;
+}
+
+.selia-cathero__count {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin: 0;
+  flex: none;
+  white-space: nowrap;
+  border-inline-start: 1px solid var(--line-1);
+  padding-inline-start: clamp(14px, 1.6vw, 22px);
+}
+
+.selia-cathero__count-num {
+  font-family: var(--font-display);
+  font-size: clamp(1.7rem, 2.7vw, 2.4rem);
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--ink-1);
+  opacity: 0.34;
+}
+
+.selia-cathero__count-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+}
+
+/* ── the banner: ink colophon + overlapping photographic plate ─────────── */
+.selia-cathero {
+  position: relative;
+}
+
+.selia-cathero__banner {
+  display: grid;
+  grid-template-columns: minmax(320px, 45%) minmax(0, 1fr);
+  min-height: clamp(430px, 36vw, 520px);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--line-1);
+  border-radius: var(--cathero-radius);
+  background: var(--ink-1);
+}
+
+/* A 4px spine on the reading edge. One logo-like mark, not another card. */
+.selia-cathero__banner::before {
+  content: '';
+  position: absolute;
+  z-index: 4;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 4px;
+  background: var(--selia-accent);
+}
+
+.selia-cathero--no-bg .selia-cathero__banner {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.selia-cathero--no-bg .selia-cathero__scene {
+  display: none;
+}
+
+/* With no photograph the colophon is the whole banner. Centring the copy
+   keeps the empty half from reading as a missing image. */
+.selia-cathero--no-bg .selia-cathero__colophon {
+  align-items: center;
+  padding-inline: clamp(28px, 5vw, 80px);
+  padding-inline-end: clamp(28px, 5vw, 80px);
+}
+
+.selia-cathero--no-bg .selia-cathero__copy {
+  align-items: center;
+  max-width: 46ch;
+  text-align: center;
+}
+
+/* Ink plane + a barely-there ledger ruling and a soft accent bloom. Both
+   layers are derived from tokens, so `html.dark` flips them for free. */
+.selia-cathero__colophon {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(30px, 3.4vw, 52px);
+  padding-inline-start: calc(clamp(30px, 3.4vw, 52px) + 10px);
+  padding-inline-end: calc(clamp(30px, 3.4vw, 52px) + var(--cathero-overlap));
+  padding-block-end: clamp(66px, 7vw, 92px);
+  background-color: var(--ink-1);
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 47px,
+      color-mix(in srgb, var(--bg-page) 4%, transparent) 47px 48px
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      color-mix(in srgb, var(--cathero-hi) 16%, transparent),
+      transparent 62%
+    );
+  color: var(--bg-page);
+}
+
+.selia-cathero__copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(15px, 1.7vw, 24px);
+  width: 100%;
+}
+
+.selia-cathero__folio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: var(--cathero-hi);
+}
+
+.selia-cathero__folio i {
+  width: 26px;
+  height: 1px;
+  background: currentColor;
+}
+
+.selia-cathero__headline {
+  margin: 0;
+  /* A display scale, not a card title. Deliberately allowed to break into
+     three lines inside the 45% panel — that is the composition. */
+  font-size: clamp(2rem, 3.5vw, 3.35rem);
+  font-weight: 600;
+  line-height: 1.28;
+  letter-spacing: -0.015em;
+}
+
+.selia-cathero__accent-word {
+  position: relative;
+  white-space: nowrap;
+  color: var(--cathero-hi);
+}
+
+.selia-cathero__accent-word::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -0.06em;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.65;
+}
+
+.selia-cathero__lede {
+  margin: 0;
+  max-width: 34ch;
+  font-size: clamp(0.95rem, 1.15vw, 1.08rem);
+  line-height: 1.85;
+  opacity: 0.9;
+  text-wrap: pretty;
+}
+
+/* The masthead already carries the eyebrow; this registration mark at the
+   bottom of the panel is what makes the composition feel printed. */
+.selia-cathero__spine {
+  position: absolute;
+  inset-block-end: clamp(18px, 2vw, 28px);
+  inset-inline-start: calc(clamp(30px, 3.4vw, 52px) + 10px);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.62rem;
+  letter-spacing: 0.26em;
+  color: color-mix(in srgb, var(--bg-page) 52%, transparent);
+  pointer-events: none;
+}
+
+.selia-cathero__spine::before {
+  content: '';
+  width: 22px;
+  height: 1px;
+  background: var(--selia-accent);
+}
+
+.selia-cathero__cta {
+  margin-block-start: clamp(4px, 0.6vw, 10px);
+}
+
+/* An editorial link, not a generic pill: a rule under the label and a
+   circular arrow badge. Both invert with the panel. */
+.selia--cathero .selia-cta {
+  min-height: 0;
+  padding: 0 0 10px;
+  border: 0;
+  border-block-end: 1px solid color-mix(in srgb, var(--bg-page) 38%, transparent);
+  border-radius: 0;
+  background: transparent;
+  color: var(--bg-page);
+  font-size: 1rem;
+  font-weight: 600;
+  gap: 0.9em;
+  box-shadow: none;
+}
+
+.selia--cathero .selia-cta::after {
+  content: '→';
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border: 1px solid color-mix(in srgb, var(--bg-page) 55%, transparent);
+  border-radius: 999px;
+  font-size: 1rem;
+  line-height: 1;
+  transition:
+    background-color 0.35s var(--cathero-ease),
+    color 0.35s var(--cathero-ease),
+    border-color 0.35s var(--cathero-ease);
+}
+
+html[dir='rtl'] .selia--cathero .selia-cta::after {
+  content: '←';
+}
+
+.selia--cathero .selia-cta:hover {
+  transform: none;
+  border-block-end-color: var(--cathero-hi);
+}
+
+.selia--cathero .selia-cta:hover::after {
+  background: var(--bg-page);
+  border-color: var(--bg-page);
+  color: var(--ink-1);
+}
+
+.selia--cathero .selia-cta:focus-visible {
+  outline: 2px solid var(--cathero-hi);
+  outline-offset: 5px;
+}
+
+/* Outlined index — a decorative echo of the numbered tabs below. It bleeds
+   off the TOP inline-end corner, never the bottom (that is where the type
+   and the overlapping plate live). */
+.selia-cathero__ghost {
+  position: absolute;
+  inset-block-start: -0.14em;
+  inset-inline-end: -0.05em;
+  font-family: var(--font-display);
+  font-size: clamp(150px, 16vw, 235px);
+  font-weight: 700;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--bg-page);
+  opacity: 0.07;
+  pointer-events: none;
+  user-select: none;
+}
+
+html.dark .selia--cathero .selia-cathero__ghost {
+  opacity: 0.13;
+}
+
+/* ── the framed photographic plate ───────────────────────────────────────
+   A paper mat (`--surface-1`) and a real shadow turn an uploaded file into
+   a print hanging on the wall. The plate is a grid child, so the overlap is
+   one logical margin and can never drift from the colophon's compensation. */
+.selia-cathero__scene {
+  position: relative;
+  z-index: 2;
+  margin-block: clamp(16px, 1.8vw, 26px);
+  margin-inline-end: clamp(16px, 1.8vw, 26px);
+  margin-inline-start: calc(-1 * var(--cathero-overlap));
+  padding: clamp(9px, 1vw, 14px);
+  border-radius: calc(var(--cathero-radius) - 8px);
+  background: var(--surface-1);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.24);
+}
+
+.selia-cathero__plate {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: clamp(360px, 30vw, 450px);
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--surface-2);
+}
+
+.selia-cathero__bg,
+.selia-cathero__preview {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.selia-cathero__bg {
+  /* Nearly monochrome AT REST. The merchant's hero and the category photos
+     are often crops of the same shoot; muting the large one and leaving the
+     small ones in colour is what turns five copies of one picture into a
+     deliberate detail series. Colour comes back on hover as a reward. */
+  filter: saturate(0.2) contrast(1.07);
+  transition:
+    filter 0.9s var(--cathero-ease),
+    transform 1.2s var(--cathero-ease);
+}
+
+.selia-cathero__banner:hover .selia-cathero__bg {
+  filter: saturate(1) contrast(1.02);
+  transform: scale(1.035);
+}
+
+.selia-cathero__preview {
+  z-index: 1;
+  opacity: 0;
+  filter: saturate(1.04);
+  transition:
+    opacity 0.55s var(--cathero-ease),
+    transform 1.2s var(--cathero-ease);
+}
+
+/* Hovering / keyboard-focusing a card below cross-fades ITS OWN picture
+   into the plate. One selector per row, generated for the manifest's
+   ceiling of 8. No JS state, no scroll listener, no hydration mismatch. */
+@supports selector(:has(*)) {
+  @for $i from 1 through 8 {
+    .selia-cathero:has(
+        .selia-cathero__tile:nth-child(#{$i}) .selia-cathero__tile-link:is(:hover, :focus-visible)
+      )
+      .selia-cathero__preview[data-index='#{$i}'] {
+      opacity: 1;
+      transform: scale(1.02);
+    }
+  }
+}
+
+/* A registration bracket on the print — replaces the old full-size white
+   "viewfinder" rectangle that looked like an accidental border. */
+.selia-cathero__viewfinder {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: clamp(12px, 1.3vw, 18px);
+  inset-inline-start: clamp(12px, 1.3vw, 18px);
+  width: clamp(24px, 2.8vw, 38px);
+  height: clamp(24px, 2.8vw, 38px);
+  border-block-start: 2px solid var(--selia-accent);
+  border-inline-start: 2px solid var(--selia-accent);
+  filter: drop-shadow(0 0 2px rgb(255 255 255 / 0.85));
+  pointer-events: none;
+}
+
+/* ── the index strip: aligned cards on one baseline ────────────────────── */
+.selia-cathero__shelf {
+  margin-block-start: clamp(26px, 3vw, 42px);
+  padding-block-start: clamp(18px, 2vw, 26px);
+  border-block-start: 1px solid var(--line-1);
+}
+
+.selia-cathero__shelf-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-block-end: clamp(22px, 2.6vw, 34px);
+}
+
+.selia-cathero__shelf-title {
+  flex: none;
+  font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+  font-weight: 700;
+  color: var(--ink-1);
+}
+
+.selia-cathero__shelf-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--line-1);
+}
+
+.selia-cathero__shelf-folio {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  color: var(--ink-3);
+}
+
+.selia-cathero__tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(16px, 2vw, 30px);
+  max-width: 1160px;
+  margin-inline: auto;
+  padding: 0;
+  position: relative;
+  z-index: 2;
+  list-style: none;
+}
+
+.selia-cathero__tile {
+  flex: 0 1 clamp(170px, 19vw, 252px);
+  min-width: 0;
+}
+
+.selia-cathero__tile-link {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 1.1vw, 16px);
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.45s var(--cathero-ease);
+}
+
+.selia-cathero__tile-link:hover {
+  transform: translateY(-6px);
+}
+
+.selia-cathero__tile-link:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 5px;
+  border-radius: var(--cathero-frame);
+}
+
+.selia-cathero__frame {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1px solid var(--line-1);
+  border-radius: var(--cathero-frame);
+  background: var(--surface-2);
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.09);
+  transition:
+    box-shadow 0.45s var(--cathero-ease),
+    border-color 0.45s var(--cathero-ease);
+}
+
+.selia-cathero__tile-link:hover .selia-cathero__frame {
+  border-color: transparent;
+  box-shadow:
+    0 18px 44px rgb(0 0 0 / 0.16),
+    0 0 0 2px var(--selia-accent);
+}
+
+.selia-cathero__frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-user-drag: none;
+  transition: transform 0.9s var(--cathero-ease);
+}
+
+.selia-cathero__tile-link:hover .selia-cathero__frame img {
+  transform: scale(1.06);
+}
+
+.selia-cathero__fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+}
+
+/* The numeral is FUSED into the frame's lower reading-edge corner — not a
+   floating white pill. `--cathero-hi` + `--ink-1` are inverse in both themes. */
+.selia-cathero__num {
+  position: absolute;
+  z-index: 1;
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  display: grid;
+  place-items: center;
+  min-width: 42px;
+  height: 34px;
+  border-start-end-radius: 10px;
+  border-end-start-radius: var(--cathero-frame);
+  background: var(--cathero-hi);
+  color: var(--ink-1);
+  font-family: var(--font-display);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.selia-cathero__meta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-block-start: 12px;
+  padding-inline: 2px;
+  border-block-start: 1px solid var(--line-1);
+}
+
+/* The accent rule grows from the reading edge on hover. */
+.selia-cathero__meta::after {
+  content: '';
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline-start: 0;
+  width: 0;
+  height: 2px;
+  background: var(--selia-accent);
+  transition: width 0.5s var(--cathero-ease);
+}
+
+.selia-cathero__tile-link:hover .selia-cathero__meta::after {
+  width: 100%;
+}
+
+.selia-cathero__name {
+  font-size: clamp(1rem, 1.15vw, 1.12rem);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ink-1);
+  text-align: start;
+}
+
+.selia-cathero__arrow {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  color: var(--ink-2);
+  transition:
+    background-color 0.35s var(--cathero-ease),
+    border-color 0.35s var(--cathero-ease),
+    color 0.35s var(--cathero-ease);
+}
+
+.selia-cathero__arrow::before {
+  content: '→';
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+html[dir='rtl'] .selia--cathero .selia-cathero__arrow::before {
+  content: '←';
+}
+
+.selia-cathero__tile-link:hover .selia-cathero__arrow {
+  background: var(--cathero-hi);
+  border-color: var(--cathero-hi);
+  color: var(--ink-1);
+}
+
+.selia-cathero__swipe {
+  display: none;
+}
+
+/* ── phone ───────────────────────────────────────────────────────────────
+   Print above, colophon below (order, not a mirrored transform), then a
+   snap rail whose first card starts exactly at the page gutter. The rail
+   owns its own overflow so the page never scrolls sideways. */
+@media (max-width: 767px) {
+  /* The theme's fixed bottom bar (76px + safe area) would sit on top of the
+     last row of cards. A section that ENDS in cards needs the room itself. */
+  .selia--cathero {
+    padding-block-end: calc(92px + var(--safe-bottom));
+  }
+
+  .selia--cathero .selia__head {
+    align-items: flex-start;
+  }
+
+  .selia--cathero .selia__title {
+    font-size: clamp(1.4rem, 6.6vw, 1.9rem);
+  }
+
+  .selia-cathero__count-num {
+    font-size: 1.6rem;
+  }
+
+  .selia-cathero__count-label {
+    font-size: 0.62rem;
+  }
+
+  .selia-cathero__banner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    min-height: 0;
+  }
+
+  .selia-cathero__scene {
+    order: -1;
+    margin: clamp(12px, 3vw, 16px);
+    margin-block-end: 0;
+  }
+
+  .selia-cathero__plate {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 10;
+  }
+
+  .selia-cathero__colophon {
+    padding: clamp(24px, 6vw, 32px);
+    padding-inline-start: calc(clamp(24px, 6vw, 32px) + 10px);
+    padding-inline-end: clamp(24px, 6vw, 32px);
+    padding-block-end: clamp(58px, 13vw, 76px);
+  }
+
+  .selia-cathero__headline {
+    /* `balance` here, unlike on desktop: in a 295px panel the unwrapped
+       break leaves «واحد» alone on line two. */
+    font-size: clamp(1.7rem, 7.4vw, 2.3rem);
+    text-wrap: balance;
+  }
+
+  .selia-cathero__lede {
+    font-size: 0.92rem;
+    line-height: 1.75;
+  }
+
+  .selia-cathero__folio {
+    font-size: 0.63rem;
+  }
+
+  .selia-cathero__ghost {
+    font-size: 108px;
+    opacity: 0.06;
+  }
+
+  .selia-cathero__spine {
+    inset-inline-start: calc(clamp(24px, 6vw, 32px) + 10px);
+    font-size: 0.55rem;
+  }
+
+  .selia-cathero__shelf {
+    margin-block-start: clamp(22px, 6vw, 30px);
+  }
+
+  .selia-cathero__tiles {
+    gap: 12px;
+    max-width: none;
+    margin-inline: calc(-1 * var(--selia-pad));
+    padding-inline: var(--selia-pad);
+  }
+
+  .selia-cathero__tile {
+    flex: 1 1 42%;
+  }
+
+  /* The compact switch: a snap rail with a deliberate ~35px peek of the
+     next card, and a hint that says it is scrollable. */
+  .selia-cathero--compact .selia-cathero__tiles {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline-start: var(--selia-pad);
+    scrollbar-width: none;
+    padding-block-end: 10px;
+  }
+
+  .selia-cathero--compact .selia-cathero__tiles::-webkit-scrollbar {
+    display: none;
+  }
+
+  .selia-cathero--compact .selia-cathero__tile {
+    flex: 0 0 clamp(140px, 38vw, 170px);
+    scroll-snap-align: start;
+  }
+
+  .selia-cathero--compact .selia-cathero__swipe {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-block-start: 12px;
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    color: var(--ink-3);
+  }
+
+  .selia-cathero--compact .selia-cathero__swipe::before {
+    content: '';
+    width: 34px;
+    height: 2px;
+    background: var(--selia-accent);
+  }
+
+  .selia-cathero--compact .selia-cathero__swipe::after {
+    content: '→';
+    font-size: 0.95rem;
+    color: var(--selia-accent);
+  }
+
+  html[dir='rtl'] .selia-cathero--compact .selia-cathero__swipe::after {
+    content: '←';
+  }
+}
+
+/* Reduced motion gets the finished composition, not a frozen hover state. */
+@media (prefers-reduced-motion: reduce) {
+  .selia--cathero .selia-cta,
+  .selia--cathero .selia-cta::after,
+  .selia-cathero__bg,
+  .selia-cathero__preview,
+  .selia-cathero__tile-link,
+  .selia-cathero__frame,
+  .selia-cathero__frame img,
+  .selia-cathero__arrow,
+  .selia-cathero__meta::after {
+    transition: none;
+  }
+
+  .selia-cathero__tile-link:hover,
+  .selia-cathero__banner:hover .selia-cathero__bg,
+  .selia-cathero__tile-link:hover .selia-cathero__frame img,
+  .selia-cathero:has(.selia-cathero__tile-link:hover) .selia-cathero__preview {
+    transform: none;
+  }
+
+  .selia-cathero__banner:hover .selia-cathero__bg {
+    filter: saturate(0.2) contrast(1.07);
+  }
+}

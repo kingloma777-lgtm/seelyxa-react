@@ -1,0 +1,695 @@
+/* ==========================================================================
+   selia-contact — «نموذج التواصل» as a correspondence card.
+
+   Two panels on one sheet: the merchant's address book on the inline-start
+   side, the writing surface on the other. The split is not decoration — it
+   answers the two questions a visitor arrives with at once ("who am I writing
+   to?" and "what do I say?"), and it keeps the form from floating in a page
+   of empty space, which is what the plain stacked version looked like.
+
+   Colour: the aside is a tinted `--surface-2`, not a solid brand block. The
+   merchant's accent is #ed1c24 on this store; painted as a panel fill that is
+   a wall of red, and the labels on it stop being readable. It arrives instead
+   as a glow behind the card, a 10% wash inside the aside, the icon chips and
+   the focus rings — accent as emphasis, never as ground.
+
+   Everything is logical (`inset-inline-*`, `border-inline-start`), so the card
+   mirrors for an LTR store without a second stylesheet.
+   ========================================================================== */
+
+.selia-contact {
+  --ct-radius: clamp(18px, 2.2vw, 28px);
+  --ct-pad: clamp(20px, 2.8vw, 38px);
+  --ct-field-radius: 15px;
+  /* accent at readable strength: mixed toward ink so it survives both themes
+     and stays above 4.5:1 as text (raw #ed1c24 on white is 4.0:1) */
+  --ct-accent-ink: color-mix(in srgb, var(--selia-accent) 78%, var(--ink-1));
+  --ct-accent-soft: color-mix(in srgb, var(--selia-accent) 10%, transparent);
+  --ct-accent-line: color-mix(in srgb, var(--selia-accent) 22%, transparent);
+  --ct-danger: #d9534f;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  border: 1px solid var(--line-1);
+  border-radius: var(--ct-radius);
+  background: var(--surface-1);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 4%),
+    0 24px 60px -38px rgb(0 0 0 / 45%);
+  isolation: isolate;
+}
+
+/* The accent bloom sits *behind* the card and is clipped by the section, not
+   by the card — a card with `overflow: hidden` would eat the seal. */
+.selia-contact__glow {
+  position: absolute;
+  inset: 8% -3% -8%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(
+    60% 60% at 78% 8%,
+    color-mix(in srgb, var(--selia-accent) 26%, transparent),
+    transparent 70%
+  );
+  filter: blur(46px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.selia-contact[data-bare='1'] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ── the address panel ───────────────────────────────────────────────────── */
+
+.selia-contact__aside {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55em;
+  padding: var(--ct-pad);
+  border-start-start-radius: var(--ct-radius);
+  border-end-start-radius: var(--ct-radius);
+  background:
+    radial-gradient(
+      120% 90% at 100% 0%,
+      color-mix(in srgb, var(--selia-accent) 14%, transparent),
+      transparent 62%
+    ),
+    var(--surface-2);
+}
+
+.selia-contact__title {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-size: clamp(1.5rem, 2.6vw, 2.15rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  color: var(--ink-1);
+  text-wrap: balance;
+}
+
+.selia-contact__lede {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  max-width: 34ch;
+  font-size: clamp(0.86rem, 1vw, 0.98rem);
+  line-height: 1.75;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+/* The family's ornament rule — the same two-segment line with a centre gap
+   that `selia--circle-links` puts under its heading, so the two blocks read as
+   one design and not two ports. */
+.selia-contact__rule {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 76px;
+  height: 2px;
+  margin-block: clamp(14px, 2vw, 22px) clamp(6px, 1vw, 10px);
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--ct-accent-ink) 0 38%,
+    transparent 38% 62%,
+    var(--ct-accent-ink) 62% 100%
+  );
+  opacity: 0.72;
+}
+
+.selia-contact__rows {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.selia-contact__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding-block: 11px;
+}
+
+.selia-contact__row + .selia-contact__row {
+  border-block-start: 1px solid var(--line-1);
+}
+
+.selia-contact__ico {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid var(--ct-accent-line);
+  background: var(--ct-accent-soft);
+  color: var(--ct-accent-ink);
+}
+
+.selia-contact__rowtext {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.selia-contact__rowlabel {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.selia-contact__rowvalue {
+  font-size: 0.94rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ink-1);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  /* a `mailto:`/`tel:` row is an action, so it has to look like one on hover
+     without being underlined at rest — an underlined address in a column of
+     three reads as a link list, not as contact details */
+  transition: color 140ms ease;
+}
+
+a.selia-contact__rowvalue:hover {
+  color: var(--ct-accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+a.selia-contact__rowvalue:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* A postmark: two dashed rings bleeding off the corner of the card. Only the
+   rings rotate — a spinning envelope would be a spinning envelope. */
+.selia-contact__seal {
+  position: absolute;
+  inset-block-end: -34px;
+  /* inline-START, i.e. the card's outer edge in either direction. On the
+     inline-end it lands on the seam between the two panels and reads as a
+     smudge rather than a postmark in the corner. */
+  inset-inline-start: -34px;
+  display: grid;
+  place-items: center;
+  width: 152px;
+  height: 152px;
+  border-radius: 50%;
+  color: color-mix(in srgb, var(--selia-accent) 46%, transparent);
+  pointer-events: none;
+}
+
+.selia-contact__seal::before,
+.selia-contact__seal::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 1px dashed currentColor;
+}
+
+.selia-contact__seal::before {
+  inset: 0;
+  animation: selia-contact-spin 46s linear infinite;
+}
+
+.selia-contact__seal::after {
+  inset: 20px;
+  opacity: 0.7;
+  animation: selia-contact-spin 32s linear infinite reverse;
+}
+
+@keyframes selia-contact-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* ── the writing panel ───────────────────────────────────────────────────── */
+
+.selia-contact__panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--ct-pad);
+  border-inline-start: 1px solid var(--line-1);
+}
+
+.selia-contact[data-bare='1'] .selia-contact__panel {
+  border-inline-start: 0;
+}
+
+.selia-contact__form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(10px, 1.3vw, 16px);
+}
+
+.selia-contact[data-layout='stacked'] .selia-contact__form {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ── a field: a box, not a floating line ─────────────────────────────────── */
+
+.selia-field {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.selia-field--wide {
+  grid-column: 1 / -1;
+}
+
+.selia-field__box {
+  position: relative;
+  display: grid;
+  gap: 1px;
+  padding: 7px 14px 9px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--ct-field-radius);
+  background: var(--surface-2);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.selia-field__box:focus-within {
+  border-color: color-mix(in srgb, var(--selia-accent) 62%, var(--line-2));
+  background: var(--surface-1);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--selia-accent) 12%, transparent);
+}
+
+.selia-field__box--area {
+  padding-block-end: 26px;
+}
+
+.selia-field__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--ink-3);
+  transition: color 160ms ease;
+  cursor: pointer;
+}
+
+.selia-field__box:focus-within .selia-field__label {
+  color: var(--ct-accent-ink);
+}
+
+.selia-field__label svg {
+  opacity: 0.75;
+  flex: none;
+}
+
+.selia-field__input {
+  width: 100%;
+  min-height: 26px;
+  padding: 1px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-1);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.selia-field__input:focus {
+  outline: none;
+}
+
+.selia-field__input::placeholder {
+  color: var(--ink-3);
+  opacity: 0.62;
+}
+
+.selia-field__input--area {
+  min-height: 96px;
+  padding-block: 2px;
+  /* the native grip is a permanent 8px artifact in the corner of a box whose
+     chrome is otherwise hand-drawn; the field still scrolls at 5 rows */
+  resize: none;
+}
+
+/* the counter is a nudge, not a limit: `maxLength` already stops the input, so
+   it must not compete with the message for attention */
+.selia-field__count {
+  position: absolute;
+  inset-block-end: 7px;
+  inset-inline-end: 14px;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.selia-field__error {
+  margin: 0;
+  padding-inline-start: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ct-danger);
+}
+
+.selia-field:has([aria-invalid='true']) .selia-field__box {
+  border-color: color-mix(in srgb, var(--ct-danger) 62%, var(--line-2));
+  background: color-mix(in srgb, var(--ct-danger) 5%, var(--surface-1));
+}
+
+.selia-field:has([aria-invalid='true']) .selia-field__label {
+  color: var(--ct-danger);
+}
+
+/* ── actions ─────────────────────────────────────────────────────────────── */
+
+.selia-contact__actions {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  margin-block-start: 4px;
+}
+
+.selia-contact__send {
+  width: 100%;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 50px;
+  padding-inline: 1.5em;
+  border-radius: 14px;
+  /* A flat fill of the merchant's accent reads as a sticker; one stop darker
+     at the far end gives the bar a direction without a second colour. */
+  background-image: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--selia-accent) 88%, #fff) 0%,
+    var(--selia-accent) 46%,
+    color-mix(in srgb, var(--selia-accent) 82%, #000) 100%
+  );
+  box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--selia-accent) 90%, transparent);
+}
+
+/* `.selia-cta` is a pill everywhere else; a full-width 50px bar with a 999px
+   radius reads as a lozenge. One block, one override — scoped to this class. */
+.selia-contact__send.selia-cta {
+  border-radius: 14px;
+}
+
+.selia-contact__sendico {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 16%);
+  transition: translate 180ms ease;
+}
+
+.selia-contact__send:hover .selia-contact__sendico {
+  translate: -4px 0;
+}
+
+/* RTL: the arrow travels toward the inline-start edge, which is the right. */
+html[dir='rtl'] .selia-contact__send:hover .selia-contact__sendico {
+  translate: 4px 0;
+}
+
+.selia-contact__send--ghost.selia-cta {
+  border-radius: 14px;
+  box-shadow: none;
+  background: transparent;
+  border-color: var(--line-2);
+  color: var(--ink-1);
+}
+
+.selia-contact__send--ghost .selia-contact__sendico {
+  background: var(--ct-accent-soft);
+  color: var(--ct-accent-ink);
+}
+
+.selia-contact__send--ghost.selia-cta:hover {
+  border-color: var(--ct-accent-line);
+  color: var(--ct-accent-ink);
+}
+
+.selia-contact__send[disabled] {
+  opacity: 0.72;
+  cursor: progress;
+}
+
+.selia-contact__send[disabled] .selia-contact__sendico svg {
+  animation: selia-contact-spin 900ms linear infinite;
+}
+
+.selia-contact__privacy {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.6;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.selia-contact__status {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--ct-danger);
+  text-align: center;
+}
+
+.selia-contact__status:empty {
+  display: none;
+}
+
+/* ── sent ────────────────────────────────────────────────────────────────── */
+
+.selia-contact__done {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 16px;
+  /* Sending replaces a ~370px form with a 200px confirmation, so without a
+     floor the whole page jumps up under the reader's thumb the moment the
+     message leaves. This keeps the card close to its pre-send height. */
+  min-height: clamp(260px, 42vh, 360px);
+  padding-block: clamp(12px, 3vw, 30px);
+  text-align: center;
+}
+
+.selia-contact__check {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--ct-accent-soft);
+  border: 1px solid var(--ct-accent-line);
+  color: var(--ct-accent-ink);
+  animation: selia-contact-pop 420ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+}
+
+.selia-contact__donetitle {
+  margin: 0;
+  max-width: 34ch;
+  font-size: clamp(0.98rem, 1.4vw, 1.12rem);
+  font-weight: 600;
+  line-height: 1.7;
+  color: var(--ink-1);
+  text-wrap: balance;
+}
+
+@keyframes selia-contact-pop {
+  from {
+    opacity: 0;
+    scale: 0.82;
+  }
+}
+
+/* ── the direct panel (no relay key configured) ──────────────────────────── */
+
+.selia-contact__direct {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+}
+
+/* Two actions side by side, weighted: the primary keeps the width of a
+   primary, the `tel:` fallback sits beside it instead of stacking a second
+   full-width bar under the first. A single button at the panel's full width
+   turns the merchant's accent into a slab of colour. */
+.selia-contact__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.selia-contact__directlede {
+  margin: 0;
+  max-width: 46ch;
+  font-size: clamp(0.88rem, 1vw, 0.98rem);
+  line-height: 1.75;
+  color: var(--ink-2);
+}
+
+/* An address plate, not an input: dashed edge, monospace address, copy button.
+   It says "this is where the letter goes" without pretending to be a field
+   the visitor could type into. */
+.selia-contact__plate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px dashed var(--line-2);
+  border-radius: var(--ct-field-radius);
+  background: var(--surface-2);
+}
+
+.selia-contact__platecap {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+.selia-contact__addr {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(0.86rem, 1.1vw, 0.98rem);
+  font-weight: 600;
+  color: var(--ink-1);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.selia-contact__addr:hover {
+  color: var(--ct-accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.selia-contact__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0.35em 0.9em;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: var(--surface-1);
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+.selia-contact__copy:hover {
+  border-color: var(--ct-accent-line);
+  background: var(--ct-accent-soft);
+  color: var(--ct-accent-ink);
+}
+
+.selia-contact__copy:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 2px;
+}
+
+/* Hidden from people, visible to the naive bots that fill every input. */
+.selia-contact__trap {
+  position: absolute;
+  inset-inline-start: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.selia-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .selia-contact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .selia-contact__aside {
+    border-start-start-radius: var(--ct-radius);
+    border-start-end-radius: var(--ct-radius);
+    border-end-start-radius: 0;
+  }
+
+  .selia-contact__panel {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--line-1);
+  }
+
+  .selia-contact__seal {
+    inset-block-end: -46px;
+    inset-inline-start: -46px;
+    opacity: 0.3;
+  }
+}
+
+@media (max-width: 560px) {
+  .selia-contact__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .selia-contact__pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .selia-contact__plate {
+    align-items: flex-start;
+  }
+
+  .selia-contact__copy {
+    margin-inline-start: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selia-contact__seal::before,
+  .selia-contact__seal::after,
+  .selia-contact__check,
+  .selia-contact__send .selia-contact__sendico svg {
+    animation: none;
+  }
+
+  .selia-contact__send:hover .selia-contact__sendico,
+  html[dir='rtl'] .selia-contact__send:hover .selia-contact__sendico {
+    translate: 0 0;
+  }
+}

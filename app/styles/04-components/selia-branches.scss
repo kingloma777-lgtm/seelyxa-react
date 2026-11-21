@@ -1,0 +1,133 @@
+/* ==========================================================================
+   selia-branches — one tab per branch, one map per tab.
+   ========================================================================== */
+
+.selia-branches__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-block-end: clamp(14px, 1.8vw, 22px);
+}
+
+.selia-branches__tab-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.selia-branches__country {
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+.selia-branches__tab {
+  min-height: 40px;
+  padding: 0.45em 1.2em;
+  border: 1px solid var(--line-1);
+  background: var(--surface-1);
+  color: var(--ink-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease;
+}
+
+.selia-branches__tab:hover {
+  border-color: var(--line-2);
+  color: var(--ink-1);
+}
+
+.selia-branches__tab.is-active {
+  background: var(--selia-accent);
+  border-color: var(--selia-accent);
+  color: #fff;
+}
+
+.selia-branches__tab:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 2px;
+}
+
+/* ── the three tab shapes ───────────────────────────────────────────────── */
+
+.selia-branches--pills .selia-branches__tab {
+  border-radius: 999px;
+}
+
+.selia-branches--blocks .selia-branches__tab {
+  border-radius: 12px;
+  min-width: 128px;
+}
+
+.selia-branches--underline .selia-branches__tabs {
+  gap: 4px;
+  border-block-end: 1px solid var(--line-1);
+}
+
+.selia-branches--underline .selia-branches__tab {
+  border: 0;
+  border-block-end: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+}
+
+.selia-branches--underline .selia-branches__tab.is-active {
+  background: transparent;
+  border-block-end-color: var(--selia-accent);
+  color: var(--selia-accent);
+}
+
+/* ── the panel ─────────────────────────────────────────────────────────── */
+
+.selia-branches__panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line-1);
+  border-radius: var(--selia-radius);
+  background: var(--surface-2);
+  aspect-ratio: 16 / 8;
+}
+
+.selia-branches__map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@media (max-width: 640px) {
+  .selia-branches__tabs {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .selia-branches__tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .selia-branches__tab-wrap {
+    flex: 0 0 auto;
+  }
+
+  .selia-branches__panel {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* The tab's 160ms colour fade is the only motion this block owns, and it is
+   the one the siblings all switch off. Selecting a branch still repaints
+   instantly — the state change is the information, the fade is the decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .selia-branches__tab {
+    transition: none;
+  }
+}

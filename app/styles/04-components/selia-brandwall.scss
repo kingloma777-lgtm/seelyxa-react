@@ -1,0 +1,182 @@
+/* ==========================================================================
+   selia-bw — the brand wall (block `selia-animated-brands`).
+
+   The design is the reference's, number for number: a square tile per logo
+   with a 10% inset, ~27px between tiles, grayscale at rest and colour on
+   hover, both edges masked so a logo fades in rather than being cut by the
+   container border, and two rows walking opposite ways at ~38px/s.
+
+   What the reference does not solve, and this file does:
+
+   - **The seam.** `translateX(-50%)` over exactly two copies only loops
+     cleanly while one copy is wider than the container. Ten logos are not.
+     The component repeats the list until a half overflows (`copies`), and the
+     padding-inline-end below is what makes "half a track" include the gap
+     between the two halves — without it the loop loses one gap per cycle and
+     the wall visibly twitches.
+   - **Direction.** A logo has no reading direction, so the track is `ltr` and
+     the translate is physical. That is the only arrangement that behaves the
+     same in an Arabic store and an English one (a `max-content` flex track in
+     an RTL container anchors right and scrolls the wrong way — see the
+     ticker).
+   - **Dark mode.** The tile keeps the merchant's colour instead of flipping
+     with the theme: a black logo on a dark tile is an invisible logo. The one
+     case that must flip is «بدون خلفية», where the page is the background.
+   ========================================================================== */
+
+.selia-bw {
+  --bw-tile: clamp(84px, 7.2vw, 108px);
+  --bw-gap: clamp(14px, 1.9vw, 27px);
+  /* Set by SeliaAuto from the merchant's colour field. */
+  --bw-tile-bg: #eeeeee;
+  /* The rest and hover states of the logo artwork, as filters, because the
+     merchant's logos are whatever colour their designer chose. */
+  --bw-rest: grayscale(1);
+  --bw-hot: none;
+  display: grid;
+  gap: clamp(10px, 1.2vw, 16px);
+  margin-block: clamp(12px, 1.8vw, 18px);
+}
+
+/* «عرض الشعارات بحجم أكبر» */
+.selia[data-larger='1'] .selia-bw {
+  --bw-tile: clamp(104px, 8.8vw, 136px);
+}
+
+/* «جعل الشعارات باللون الأسود» */
+.selia[data-black_logos='1'] .selia-bw {
+  --bw-rest: brightness(0);
+  --bw-hot: brightness(0);
+}
+
+/* ── the belt ───────────────────────────────────────────────────────────── */
+
+.selia-bw__row {
+  position: relative;
+  overflow: hidden;
+  direction: ltr;
+  mask-image: linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%);
+}
+
+.selia-bw__track {
+  display: flex;
+  width: max-content;
+  animation: selia-bw-walk var(--bw-duration, 60s) linear infinite;
+}
+
+.selia-bw__track[data-dir='back'] {
+  animation-direction: reverse;
+}
+
+/* A wall that cannot be stopped cannot be read. Hover covers the mouse,
+   focus-within covers Tab — the only two ways a visitor can address a tile. */
+.selia-bw__row:hover .selia-bw__track,
+.selia-bw__row:focus-within .selia-bw__track {
+  animation-play-state: paused;
+}
+
+.selia-bw__half {
+  display: flex;
+  align-items: center;
+  gap: var(--bw-gap);
+  margin: 0;
+  /* The gap between the two halves, so one half is exactly half a track. */
+  padding: 0 var(--bw-gap) 0 0;
+  list-style: none;
+}
+
+.selia-bw__item {
+  flex: 0 0 auto;
+}
+
+/* ── the tile ───────────────────────────────────────────────────────────── */
+
+.selia-bw__tile {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: var(--bw-tile);
+  height: var(--bw-tile);
+  /* 10% inset: the logo's ink box is 80% of the tile, which is what makes ten
+     different logo shapes look like one row of equal objects. */
+  padding: calc(var(--bw-tile) * 0.1);
+  border-radius: calc(var(--bw-tile) * 0.1);
+  background: var(--bw-tile-bg);
+  transition: background-color 0.25s ease;
+}
+
+.selia-bw__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: var(--bw-rest);
+  transition: filter 0.3s ease;
+  /* The anchor owns the hover; the image must not swallow it or be draggable. */
+  pointer-events: none;
+  user-select: none;
+}
+
+.selia-bw__tile:hover .selia-bw__img,
+.selia-bw__tile:focus-visible .selia-bw__img {
+  filter: var(--bw-hot);
+}
+
+/* «الغاء لون الخلفية للشعارات» — the page is the background, so the inset goes
+   with it and the logos are read at their own size. */
+.selia[data-no_background='1'] .selia-bw {
+  --bw-tile-bg: transparent;
+}
+
+.selia[data-no_background='1'] .selia-bw__tile {
+  padding: 0;
+}
+
+/* Dark theme + no tile: the logos are usually dark ink on transparency. */
+html.dark .selia[data-no_background='1'] .selia-bw {
+  --bw-rest: grayscale(1) invert(1);
+  --bw-hot: invert(1);
+}
+
+@keyframes selia-bw-walk {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+/* ── reduced motion: a finished wall, not a frozen belt ─────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .selia-bw__row {
+    overflow: visible;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  /* The second row is the same wall walking the other way — at rest it is the
+     first row twice. */
+  .selia-bw__row[data-row='2'] {
+    display: none;
+  }
+
+  .selia-bw__track {
+    width: 100%;
+    animation: none;
+  }
+
+  /* …and every repeated copy is the same ten logos again. */
+  .selia-bw__half[aria-hidden='true'],
+  .selia-bw [data-echo='1'] {
+    display: none;
+  }
+
+  .selia-bw__half {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    padding: 0;
+  }
+}

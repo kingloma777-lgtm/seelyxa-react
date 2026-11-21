@@ -1,0 +1,274 @@
+[
+  {
+    "key": "selia-statistics",
+    "name": "Statistics",
+    "kind": "hand-written",
+    "prefix": null,
+    "collection": null,
+    "generated": false
+  },
+  {
+    "key": "selia-map-location",
+    "name": "MapLocation",
+    "kind": "hand-written",
+    "prefix": null,
+    "collection": null,
+    "generated": false
+  },
+  {
+    "key": "selia-blog",
+    "name": "BlogTeaser",
+    "kind": "hand-written",
+    "prefix": null,
+    "collection": null,
+    "generated": false
+  },
+  {
+    "key": "selia-contact-form",
+    "name": "ContactForm",
+    "kind": "hand-written",
+    "prefix": null,
+    "collection": null,
+    "generated": false
+  },
+  {
+    "key": "selia-ticker-bar",
+    "name": "TickerBar",
+    "kind": "hand-written",
+    "prefix": null,
+    "collection": null,
+    "generated": false
+  },
+  {
+    "key": "selia-category-hero",
+    "name": "CategoryHero",
+    "kind": "hand-written",
+    "prefix": null,
+    "collection": null,
+    "generated": false
+  },
+  {
+    "key": "selia-branches",
+    "name": "Branches",
+    "kind": "hand-written",
+    "prefix": null,
+    "collection": null,
+    "generated": false
+  },
+  {
+    "key": "selia-custom-products",
+    "name": "ProductPicks",
+    "kind": "hand-written",
+    "prefix": null,
+    "collection": null,
+    "generated": false
+  },
+  {
+    "key": "selia-advanced-slider",
+    "name": "AdvancedSlider",
+    "kind": "slider",
+    "prefix": "slider",
+    "collection": "slides",
+    "generated": true
+  },
+  {
+    "key": "selia-featured-categories",
+    "name": "FeaturedCategories",
+    "kind": "tiles",
+    "prefix": "fcats",
+    "collection": "fcats_tiles",
+    "generated": true
+  },
+  {
+    "key": "selia-product-videos",
+    "name": "ProductVideos",
+    "kind": "product-videos",
+    "prefix": "pvideos",
+    "collection": "pvideos_items",
+    "generated": true
+  },
+  {
+    "key": "selia-detailed-products",
+    "name": "DetailedProducts",
+    "kind": "detailed-products",
+    "prefix": "detail",
+    "collection": "detail_items",
+    "generated": true
+  },
+  {
+    "key": "selia-product-tabs",
+    "name": "ProductTabs",
+    "kind": "product-tabs",
+    "prefix": "ptabs",
+    "collection": "ptabs_tabs",
+    "generated": true
+  },
+  {
+    "key": "selia-about-store",
+    "name": "AboutStore",
+    "kind": "about",
+    "prefix": "about",
+    "collection": null,
+    "generated": true
+  },
+  {
+    "key": "selia-square-links",
+    "name": "SquareLinks",
+    "kind": "tiles",
+    "prefix": "square",
+    "collection": "square_links",
+    "generated": true
+  },
+  {
+    "key": "selia-image-grid",
+    "name": "ImageGrid",
+    "kind": "tiles",
+    "prefix": "grid",
+    "collection": "grid_tiles",
+    "generated": true
+  },
+  {
+    "key": "selia-custom-links",
+    "name": "CustomLinks",
+    "kind": "tiles",
+    "prefix": "clinks",
+    "collection": "clinks",
+    "generated": true
+  },
+  {
+    "key": "selia-circle-links",
+    "name": "CircleLinks",
+    "kind": "tiles",
+    "prefix": "circles",
+    "collection": "circle_links",
+    "generated": true
+  },
+  {
+    "key": "selia-double-banner",
+    "name": "DoubleBanner",
+    "kind": "banners",
+    "prefix": "dbanner",
+    "collection": "dbanners",
+    "generated": true
+  },
+  {
+    "key": "selia-animated-banners",
+    "name": "AnimatedBanners",
+    "kind": "slider",
+    "prefix": "abanners",
+    "collection": "abanner_slides",
+    "generated": true
+  },
+  {
+    "key": "selia-video-gallery",
+    "name": "VideoGallery",
+    "kind": "videos",
+    "prefix": "vgallery",
+    "collection": "vgallery_videos",
+    "generated": true
+  },
+  {
+    "key": "selia-before-after",
+    "name": "BeforeAfter",
+    "kind": "compare",
+    "prefix": "ba",
+    "collection": null,
+    "generated": true
+  },
+  {
+    "key": "selia-dynamic-banner",
+    "name": "DynamicBanner",
+    "kind": "dynamic-banner",
+    "prefix": "dynbnr",
+    "collection": null,
+    "generated": true
+  },
+  {
+    "key": "selia-triple-banner",
+    "name": "TripleBanner",
+    "kind": "banners",
+    "prefix": "tbanner",
+    "collection": "tbanners",
+    "generated": true
+  },
+  {
+    "key": "selia-featured-animated-products",
+    "name": "FeaturedAnimatedProducts",
+    "kind": "featured-products",
+    "prefix": "fap",
+    "collection": null,
+    "generated": true
+  },
+  {
+    "key": "selia-offers-counter",
+    "name": "OffersCounter",
+    "kind": "counter",
+    "prefix": "offers",
+    "collection": null,
+    "generated": true
+  },
+  {
+    "key": "selia-faq",
+    "name": "Faq",
+    "kind": "faq",
+    "prefix": "faq",
+    "collection": "faqs",
+    "generated": true
+  },
+  {
+    "key": "selia-store-features",
+    "name": "StoreFeatures",
+    "kind": "features",
+    "prefix": "features",
+    "collection": "features",
+    "generated": true
+  },
+  {
+    "key": "selia-dynamic-product-gallery",
+    "name": "DynamicProductGallery",
+    "kind": "gallery-hotspots",
+    "prefix": "dpg",
+    "collection": "dpg_items",
+    "generated": true
+  },
+  {
+    "key": "selia-featured-product",
+    "name": "FeaturedProduct",
+    "kind": "featured-product",
+    "prefix": "fproduct",
+    "collection": null,
+    "generated": true
+  },
+  {
+    "key": "selia-testimonials",
+    "name": "Testimonials",
+    "kind": "testimonials",
+    "prefix": "testimonials",
+    "collection": "reviews",
+    "generated": true
+  },
+  {
+    "key": "selia-animated-brands",
+    "name": "AnimatedBrands",
+    "kind": "marquee",
+    "prefix": "brands",
+    "collection": "brands",
+    "generated": true
+  },
+  {
+    "key": "selia-advanced-content",
+    "name": "AdvancedContent",
+    "kind": "content",
+    "prefix": "acontent",
+    "collection": "acontent_items",
+    "generated": true
+  },
+  {
+    "key": "selia-special-offer",
+    "name": "SpecialOffer",
+    "kind": "promo",
+    "prefix": "soffer",
+    "collection": null,
+    "generated": true
+  }
+]

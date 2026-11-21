@@ -1,0 +1,228 @@
+/* ==========================================================================
+   selia-featured-categories — «التصنيفات المميزة»
+
+   The tile is a MOUNTED PRINT, not a picture in a box.
+
+   What was wrong, and what answers it:
+
+   1. **Four identical white cards.** `fcats_tiles.color` has been in the
+      manifest all along, but `SeliaAuto`'s `tiles` branch never published it,
+      so the field did nothing. It now arrives as `--card-accent` and paints
+      the mount — four categories read as a colour system instead of a grid of
+      default UI.
+
+   2. **A black gradient over the bottom third of every photo, with white text
+      on it.** That is unreadable over a light product shot, and the merchant's
+      photograph decides the contrast, not us. The gradient is gone: the name
+      sits under the mount, on the page, in the theme ink — legible over any
+      photograph, in either theme, forever.
+
+   3. **A rounded rectangle.** The picture is masked into an ARCH inside the
+      colour — a category is a way in. Two shapes (a mount, a window) instead
+      of one box with a radius.
+
+   4. **Four equal squares cost ~1330px of scroll.** The picture is 4:5, so
+      four across lands near 420px.
+
+   Why the name is not set ON the colour: `color-contrast()` is still
+   unshipped, so a merchant's pale colour would take the theme's ink and go
+   white-on-white at night. Typography on the page cannot fail that way, and
+   the colour keeps its full strength in the mount and in the dot above the
+   name.
+
+   Scoped to `.selia--featured-categories`; square-links, circle-links and the
+   banner families keep the shared tiles look. Logical properties only.
+   ========================================================================== */
+
+.selia--featured-categories {
+  --fcats-mount: clamp(9px, 0.95vw, 13px);
+  --fcats-radius: clamp(16px, 1.5vw, 22px);
+  --fcats-window: clamp(11px, 1vw, 15px);
+  --fcats-ratio: 4 / 5;
+  --selia-head-gap: clamp(16px, 2.2vw, 28px);
+}
+
+/* ── the row ───────────────────────────────────────────────────────────────
+   Equal columns, height from the picture. Four across; two or three if the
+   merchant published fewer, so a short catalogue never leaves a hole. */
+.selia--featured-categories .selia-tiles {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  align-items: start;
+  gap: var(--selia-gap);
+}
+
+.selia--featured-categories .selia-tiles:not(:has(> :nth-child(2))) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.selia--featured-categories .selia-tiles:has(> :nth-child(2)):not(:has(> :nth-child(3))) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.selia--featured-categories .selia-tiles:has(> :nth-child(3)):not(:has(> :nth-child(4))) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* ── the item ──────────────────────────────────────────────────────────────
+   Transparent: the colour belongs to the mount, and the name lives on the
+   page underneath it. */
+.selia--featured-categories .selia-tiles__item {
+  --fcats-tint: var(--card-accent, var(--selia-accent));
+
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.selia--featured-categories .selia-tiles__link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.selia--featured-categories .selia-tiles__link:focus-visible {
+  outline: 2px solid var(--fcats-tint);
+  outline-offset: 4px;
+  border-radius: var(--fcats-radius);
+}
+
+/* ── the mount ─────────────────────────────────────────────────────────────
+   The media element becomes the coloured mount; the `picture` inside it is
+   the arched window. Padding is the mount's thickness, so the colour reads as
+   a real border rather than a hairline. */
+.selia--featured-categories .selia-tiles__media,
+.selia--featured-categories .selia-tiles--tiles .selia-tiles__media {
+  flex: none;
+  aspect-ratio: var(--fcats-ratio);
+  padding: var(--fcats-mount);
+  border-radius: var(--fcats-radius);
+  background: var(--fcats-tint);
+}
+
+.selia--featured-categories .selia-tiles__media picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 999px 999px var(--fcats-window) var(--fcats-window);
+}
+
+.selia--featured-categories .selia-tiles__media img {
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── the name, on the page ─────────────────────────────────────────────────
+   `position: static`, theme ink, no gradient and no plate: the one
+   arrangement whose contrast does not depend on the photograph. */
+.selia--featured-categories .selia-tiles__caption {
+  position: static;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: clamp(10px, 1vw, 14px) clamp(2px, 0.3vw, 4px) 0;
+  background: none;
+  color: var(--ink-1);
+  text-align: start;
+}
+
+/* The colour, carried down into the type as a dot. On hover it stretches into
+   a short rule — the smallest possible motion that still feels deliberate. */
+.selia--featured-categories .selia-tiles__caption::before {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin-block-end: clamp(6px, 0.6vw, 9px);
+  border-radius: 999px;
+  background: var(--fcats-tint);
+  transition:
+    width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.45s ease;
+}
+
+.selia--featured-categories .selia-tiles__title {
+  font-size: clamp(1.05rem, 1.25vw, 1.32rem);
+  font-weight: 700;
+  line-height: 1.28;
+  color: var(--ink-1);
+  text-wrap: balance;
+}
+
+.selia--featured-categories .selia-tiles__subtitle {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+  opacity: 1;
+}
+
+/* ── motion ────────────────────────────────────────────────────────────────
+   Pointer devices only, so a tap never leaves a card stuck mid-hover. */
+@media (hover: hover) and (pointer: fine) {
+  .selia--featured-categories .selia-tiles__link:hover .selia-tiles__media img {
+    transform: scale(1.05);
+  }
+
+  .selia--featured-categories .selia-tiles__link:hover .selia-tiles__caption::before {
+    width: 26px;
+  }
+
+  .selia--featured-categories .selia-tiles__item:hover {
+    transform: translateY(-4px);
+  }
+}
+
+/* ── phones ────────────────────────────────────────────────────────────────
+   Two columns, tighter mount. An odd tail stretches across the row: an empty
+   cell reads as a mistake, a full card reads as a finished row. */
+@media (max-width: 767.98px) {
+  .selia--featured-categories {
+    --fcats-mount: 9px;
+    --fcats-radius: 16px;
+    --fcats-window: 12px;
+    --fcats-ratio: 3 / 4;
+  }
+
+  .selia--featured-categories .selia-tiles,
+  .selia--featured-categories .selia-tiles:has(> :nth-child(3)):not(:has(> :nth-child(4))) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .selia--featured-categories .selia-tiles:has(> :nth-child(3)):not(:has(> :nth-child(4))) > :nth-child(3) {
+    grid-column: span 2;
+  }
+
+  .selia--featured-categories .selia-tiles__title {
+    font-size: 1.02rem;
+  }
+}
+
+/* ── reduced motion ────────────────────────────────────────────────────────
+   The still frame is the finished composition. */
+@media (prefers-reduced-motion: reduce) {
+  .selia--featured-categories .selia-tiles__item,
+  .selia--featured-categories .selia-tiles__media img,
+  .selia--featured-categories .selia-tiles__caption::before {
+    transition: none;
+  }
+
+  .selia--featured-categories .selia-tiles__item:hover {
+    transform: none;
+  }
+
+  .selia--featured-categories .selia-tiles__link:hover .selia-tiles__media img {
+    transform: none;
+  }
+
+  .selia--featured-categories .selia-tiles__link:hover .selia-tiles__caption::before {
+    width: 8px;
+  }
+}

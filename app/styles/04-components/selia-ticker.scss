@@ -1,0 +1,352 @@
+/* ==========================================================================
+   selia-ticker — scrolling announcement bars, one or many.
+
+   Two identical halves, translate 50%: the seam is invisible because the
+   second half is already standing where the first one started. Anything other
+   than two equal halves needs the shift expressed as a fraction of the total
+   width, which breaks the moment the merchant changes the text length.
+
+   The stack is a flex column of bars. «متقاطعة» is not a separate layout: it is
+   a per-row alternating rotation plus a NEGATIVE gap, and the negative gap is
+   what makes them overlap. `gap` itself rejects negative values, so the spacing
+   is a `margin-block-start` — which accepts them.
+   ========================================================================== */
+
+.selia-ticker--spaced {
+  margin-block-start: clamp(20px, 3vw, 40px);
+}
+
+.selia-ticker {
+  --ticker-gap: 10px;
+  --ticker-fs: 14px;
+  --ticker-weight: 600;
+  --ticker-radius: 0px;
+
+  position: relative;
+  overflow: hidden;
+  /* No padding at rest: a horizontal bar touches the section's edges. The
+     padding only exists to give a rotated bar room to leave the frame. */
+  padding-block: 0;
+}
+
+/* A rotated bar exits the frame at the SIDES. If the section is not tall
+   enough it exits at the top and bottom instead, and the ribbon is sliced
+   through its text. The extra height needed is only the drop ACROSS THE
+   VIEWPORT — tan(θ) × half the viewport, not half the bar, because the part of
+   the bar that overhangs is already outside the frame. At small angles that is
+   ≈ 1.12 × θ in vw — the bar is 1.28 × the viewport, so its own half-width,
+   not the viewport's, is what the rotation lifts. */
+.selia-ticker[data-tilted='1'] {
+  padding-block: calc(var(--ticker-tilt-n, 6) * 1.12vw + 8px);
+}
+
+.selia-ticker__stage {
+  display: flex;
+  flex-direction: column;
+}
+
+.selia-ticker__bar + .selia-ticker__bar {
+  margin-block-start: var(--ticker-gap);
+}
+
+/* ── a bar ───────────────────────────────────────────────────────────────── */
+
+.selia-ticker__bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  width: 100%;
+  /* The bar is the scroll WINDOW, so its writing direction decides where the
+     over-long track is anchored. In an RTL bar a max-content child is placed
+     from the right edge and overflows to the left, so a -50% translation walks
+     the whole track out of the window and the bar sits blank for most of the
+     loop. Pinning the window to LTR makes `translateX` mean one thing in every
+     locale; the copy inside still reads in its own direction (see __text). */
+  direction: ltr;
+  padding-block: calc(var(--ticker-fs) * 0.95);
+  border-radius: var(--ticker-radius);
+  background: var(--row-bg, #000);
+  color: var(--row-ink, #fff);
+  transform: rotate(var(--row-tilt, 0deg));
+  /* A bar painted the same colour as the page — a black ribbon on a dark store
+     — would otherwise disappear and leave floating text. A hairline of the bar's
+     own ink keeps the silhouette readable on any background, and it is a line,
+     not a shadow: it adds no haze around the strip. The «مفرّغ» style replaces
+     this with its 2px ring. */
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 24%, transparent);
+}
+
+/* On a night-mode page the same 24% line is invisible, and a black ribbon on
+   `#0b0e14` is otherwise just floating text. The line gets stronger here — it
+   is still a line, so the strip gains no halo. */
+html.dark .selia-ticker__bar {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 42%, transparent);
+}
+
+/* A 100%-wide bar rotated by 6° leaves two triangular holes at the edges. It
+   is widened past the viewport and pulled back by half the difference, so the
+   visible band is solid at every angle. */
+.selia-ticker[data-tilted='1'] .selia-ticker__bar {
+  width: 128%;
+  margin-inline: -14%;
+}
+
+/* `inset` shadow instead of a border: a border would change the bar's height
+   and the two styles would no longer line up in a stack. */
+.selia-ticker__bar[data-style='outline'] {
+  /* a 6% wash, not fully transparent: an outline-only bar at this height reads
+     as two stray hairlines crossing the page rather than as a bar */
+  background: color-mix(in srgb, var(--row-bg, #000) 6%, transparent);
+  color: var(--row-bg, #000);
+  box-shadow: inset 0 0 0 2px var(--row-bg, #000);
+}
+
+/* `drop-shadow` and not `box-shadow`: it follows the rotated shape, so a
+   tilted bar casts a tilted shadow instead of an upright rectangle's. */
+.selia-ticker[data-shadow='1'] .selia-ticker__bar {
+  filter: drop-shadow(0 12px 20px rgb(0 0 0 / 42%));
+}
+
+.selia-ticker__link {
+  display: block;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── the track ───────────────────────────────────────────────────────────── */
+
+.selia-ticker__track {
+  display: flex;
+  width: max-content;
+  animation: selia-ticker-fwd var(--row-duration, 24s) linear infinite;
+}
+
+.selia-ticker__bar[data-dir='reverse'] .selia-ticker__track {
+  animation-name: selia-ticker-rev;
+}
+
+.selia-ticker__half {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.selia-ticker__chunk {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85em;
+  padding-inline-end: 0.85em;
+  font-size: calc(var(--ticker-fs) * var(--row-scale, 1));
+  font-weight: var(--ticker-weight);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.selia-ticker__text {
+  display: inline-block;
+  /* The track is LTR (see above) so the copies line up predictably; each phrase
+     still reads in its own script, and an Arabic phrase inside an LTR track
+     would otherwise be reordered against its separator. */
+  unicode-bidi: plaintext;
+}
+
+.selia-ticker__sep {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.selia-ticker[data-divider='dash'] .selia-ticker__sep {
+  width: 16px;
+  height: 2px;
+  border-radius: 2px;
+}
+
+.selia-ticker[data-divider='star'] .selia-ticker__sep {
+  width: 10px;
+  height: 10px;
+  border-radius: 0;
+  opacity: 0.7;
+  clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+}
+
+/* `translateX(-50%)` moves the track by exactly one half. Forward starts at 0
+   and ends at -50%; reverse starts at -50% and ends at 0 — both keep the seam
+   hidden, and the second is what an RTL page needs for its natural direction. */
+@keyframes selia-ticker-fwd {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes selia-ticker-rev {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* The text travels with the eye: right-to-left in Arabic, left-to-right in an
+   LTR store. `[dir]` is on <html>, so this also covers a store that switches
+   language without a reload — and a row marked «عكسي» simply swaps back. */
+[dir='rtl'] .selia-ticker__bar[data-dir='page'] .selia-ticker__track {
+  animation-name: selia-ticker-rev;
+}
+
+[dir='rtl'] .selia-ticker__bar[data-dir='reverse'] .selia-ticker__track {
+  animation-name: selia-ticker-fwd;
+}
+
+/* ── the two extra animations ────────────────────────────────────────────── */
+
+/* Shimmer: a band of light sweeps across the ribbon.
+   A light band and not a gradient inside the text, for two reasons: `background-
+   clip: text` has to dim the whole line so the sweep can be "brighter", and on
+   white text there is nothing brighter than white — the effect either does
+   nothing or costs legibility. A translucent band over the bar works on every
+   ink and leaves the type at full strength. */
+.selia-ticker__bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgb(255 255 255 / 26%) 50%,
+    transparent 62%
+  );
+  transform: translateX(-130%);
+}
+
+.selia-ticker[data-anim='shimmer'] .selia-ticker__bar::before {
+  animation: selia-ticker-shine 4.2s ease-in-out infinite;
+}
+
+@keyframes selia-ticker-shine {
+  0% {
+    transform: translateX(-130%);
+  }
+  55%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+/* Pulse: a white veil breathing over the bar. A veil and not a `filter` on the
+   bar itself, because the bar already uses `filter` for its shadow and an
+   animated `filter` would replace it. */
+.selia-ticker__bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.selia-ticker[data-anim='pulse'] .selia-ticker__bar::after {
+  animation: selia-ticker-pulse 4.6s ease-in-out infinite;
+}
+
+@keyframes selia-ticker-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.13;
+  }
+}
+
+/* ── edges ───────────────────────────────────────────────────────────────── */
+
+.selia-ticker[data-fade='1'] .selia-ticker__stage {
+  mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
+}
+
+/* Finish the sentence: hovering or focusing the strip stops it. */
+.selia-ticker[data-hover='pause']:hover .selia-ticker__track,
+.selia-ticker[data-hover='pause']:focus-within .selia-ticker__track {
+  animation-play-state: paused;
+}
+
+/* ── standing still ──────────────────────────────────────────────────────────
+   Two reasons to be static: the merchant chose «بدون حركة», or the visitor
+   asked for reduced motion. The result is identical on purpose — one copy,
+   centred, in the same bar. `flex` on the track would leave the duplicated
+   halves sitting side by side and overflow the strip, hence `block`. */
+.selia-ticker[data-anim='still'] .selia-ticker__track {
+  display: block;
+  width: 100%;
+  animation: none;
+  text-align: center;
+}
+
+/* `display: contents` drops the half's box so the one surviving copy becomes an
+   inline child of the track and `text-align: center` can actually centre it —
+   inside a flex parent the chunk is blockified and sits at the start edge. */
+.selia-ticker[data-anim='still'] .selia-ticker__half {
+  display: contents;
+}
+
+.selia-ticker[data-anim='still'] .selia-ticker__half:last-child,
+.selia-ticker[data-anim='still'] .selia-ticker__chunk:not(:first-child) {
+  display: none;
+}
+
+.selia-ticker[data-anim='still'] .selia-ticker__chunk:first-child {
+  display: inline-flex;
+  justify-content: center;
+}
+
+.selia-ticker[data-anim='still'] .selia-ticker__sep {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selia-ticker__track {
+    display: block;
+    width: 100%;
+    animation: none;
+    text-align: center;
+  }
+
+  .selia-ticker__half {
+    display: contents;
+  }
+
+  .selia-ticker__half:last-child,
+  .selia-ticker__chunk:not(:first-child) {
+    display: none;
+  }
+
+  .selia-ticker__chunk:first-child {
+    display: inline-flex;
+    justify-content: center;
+  }
+
+  .selia-ticker__sep {
+    display: none;
+  }
+
+  .selia-ticker__bar::before {
+    animation: none;
+    transform: translateX(-130%);
+  }
+
+  .selia-ticker__bar::after {
+    animation: none;
+    opacity: 0;
+  }
+}

@@ -1,0 +1,34 @@
+/* ==========================================================================
+   selia-map — the store location, framed like every other media block.
+   ========================================================================== */
+
+.selia-map {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line-1);
+  border-radius: var(--selia-radius);
+  background: var(--surface-2);
+  /* 16:9 on phones is a letterbox of mostly sea. A squarer frame on a narrow
+     screen shows the actual streets around the pin. */
+  aspect-ratio: 16 / 7;
+}
+
+.selia-map__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Google's embed has no dark parameter; inverting the raster is the same map,
+   legibly. `hue-rotate(180deg)` puts the land back to a neutral grey instead of
+   the sickly blue a bare `invert()` gives. */
+.selia-map--dark .selia-map__frame {
+  filter: invert(0.92) hue-rotate(180deg) contrast(0.92) saturate(0.85);
+}
+
+@media (max-width: 640px) {
+  .selia-map {
+    aspect-ratio: 4 / 3;
+  }
+}

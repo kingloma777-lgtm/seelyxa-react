@@ -1,0 +1,1840 @@
+/* ==========================================================================
+   selia-generated — the shared visual language of the 26 second-batch blocks.
+
+   `SeliaAuto.tsx` owns the markup; this file owns every layout those blocks
+   can produce. Selia shipped 26 near-duplicate Twig sections with 26 slightly
+   different carousels, grids and arrow buttons. One stylesheet instead means
+   ONE RTL scroller fix, ONE mobile breakpoint and ONE reduced-motion rule.
+
+   Merchant controls arrive on the section as `--selia-<key>` and `data-<key>`
+   (see SeliaAuto.tsx). The rules below deliberately branch on those rather
+   than on a class per block, so a switch the merchant flips always has a
+   visible effect and `custom_css` has real tokens to work with.
+
+   RTL: logical properties only. The scroller's arrow *math* lives in kit.tsx
+   (`getComputedStyle(...).direction`), never in the stylesheet.
+   ========================================================================== */
+
+.selia {
+  --selia-cols: 4;
+  /* `--bg-block` is defined by the palette bridge in NIGHT mode only, where
+     it turns the merchant's colour into a low-alpha tint of itself. A literal
+     `#eeeeee` picked in the block panel is right by day and a bright band on a
+     dark page, and an inline custom property cannot know the mode — so the
+     mode decides here and the merchant's hue is preserved as a tint. */
+  background: var(--bg-block, var(--selia-bg, transparent));
+  color: var(--selia-ink, var(--ink-1));
+  isolation: isolate;
+}
+
+.selia--top-space {
+  margin-block-start: clamp(20px, 3vw, 40px);
+}
+
+/* ── the shared grid of cards ──────────────────────────────────────────────
+   One `ul` for tiles, videos, reviews, features and product-video rows. The
+   `kind` suffix only changes the ratio and the column count, so a merchant
+   switching «شبكة / شريط متحرك» does not get a second layout engine. */
+.selia-cards,
+.selia-tiles,
+.selia-products {
+  display: grid;
+  grid-template-columns: repeat(var(--selia-cols, 4), minmax(0, 1fr));
+  gap: var(--selia-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.selia-cards--review,
+.selia-cards--feature,
+.selia-products {
+  --selia-cols: 3;
+}
+
+.selia-cards--video {
+  --selia-cols: 2;
+}
+
+.selia-cards--banners-1,
+.selia-tiles--banners-1 {
+  --selia-cols: 1;
+}
+
+.selia-cards--banners-2,
+.selia-tiles--banners-2,
+.selia-cards--banners-3,
+.selia-tiles--banners-3 {
+  --selia-cols: 2;
+}
+
+/* Triple banner = one tall tile on the reading edge + two stacked beside it.
+   The tall tile must actually fill its two grid rows, otherwise the 16/9 media
+   leaves a hole under it. */
+.selia-tiles--banners-3 .selia-tiles__item:first-child {
+  grid-row: span 2;
+}
+
+.selia-tiles--banners-3 .selia-tiles__item:first-child .selia-tiles__media {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.selia-hotspots {
+  --selia-cols: 2;
+}
+
+.selia-products__item,
+.selia-cards__item,
+.selia-card {
+  min-width: 0;
+}
+
+.selia-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--selia-radius);
+  background: var(--surface-1, var(--surface-2));
+  border: 1px solid var(--line-1, transparent);
+}
+
+.selia-card__link {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.selia-card__media,
+.selia-card__media.selia-media {
+  border-radius: 0;
+  aspect-ratio: 4 / 3;
+  background: var(--surface-2);
+}
+
+.selia-card__media--empty {
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: linear-gradient(135deg, var(--surface-2), var(--surface-1, var(--surface-2)));
+}
+
+.selia-card--review .selia-card__media,
+.selia-card--feature .selia-card__media {
+  aspect-ratio: 16 / 10;
+}
+
+.selia-card--video .selia-card__media {
+  aspect-ratio: 16 / 9;
+}
+
+/* A review avatar is a face, not a tile. */
+.selia-card--review .selia-card__media {
+  width: 64px;
+  height: 64px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  margin-block-start: 20px;
+  margin-inline-start: 20px;
+}
+
+.selia-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35em;
+  padding: clamp(14px, 1.6vw, 22px);
+  text-align: start;
+}
+
+.selia-card__title {
+  margin: 0;
+  font-size: clamp(1rem, 1.35vw, 1.2rem);
+  font-weight: 650;
+  line-height: 1.4;
+  color: var(--ink-1);
+}
+
+.selia-card__desc,
+.selia-card__meta {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.selia-card__meta {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.selia-card__badge {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-start: 12px;
+  z-index: 1;
+  padding: 0.35em 0.85em;
+  border-radius: 999px;
+  background: var(--card-accent, var(--selia-accent));
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.selia-card__icon {
+  position: absolute;
+  inset-block-start: 14px;
+  inset-inline-end: 14px;
+  z-index: 1;
+  font-size: 1.2rem;
+  color: var(--card-accent, var(--selia-accent));
+}
+
+.selia-card__cta {
+  margin-block-start: auto;
+  padding-block-start: 0.5em;
+}
+
+.selia-card__video {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 0;
+  object-fit: cover;
+  background: #000;
+}
+
+/* ── tiles (the linked-picture families) ───────────────────────────────── */
+
+.selia-tiles__item {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--selia-radius);
+}
+
+.selia-tiles__link {
+  position: relative;
+  display: block;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.selia-tiles__media,
+.selia-tiles__media.selia-media {
+  border-radius: var(--selia-radius);
+  aspect-ratio: 1;
+}
+
+.selia-tiles--banners-2 .selia-tiles__media,
+.selia-tiles--banners-3 .selia-tiles__media {
+  aspect-ratio: 16 / 9;
+}
+
+.selia-tiles--tiles .selia-tiles__media {
+  aspect-ratio: var(--selia-ratio, 1);
+}
+
+.selia-tiles__caption {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  padding: clamp(16px, 2.5vw, 32px);
+  background: linear-gradient(transparent, rgb(0 0 0 / 62%));
+  color: #fff;
+  text-align: start;
+}
+
+.selia-tiles__title {
+  font-size: clamp(1rem, 1.6vw, 1.4rem);
+  font-weight: 650;
+}
+
+.selia-tiles__subtitle {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.selia-tiles__badge {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-start: 12px;
+  padding: 0.3em 0.8em;
+  border-radius: 999px;
+  background: var(--selia-accent);
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+/* Circle links: the family whose images are round and whose captions sit
+   BELOW the picture rather than over it. `data-` comes from the block's own
+   `circles_*` switches, so this cannot leak into the square-links family. */
+.selia--circle-links .selia-tiles__media,
+.selia--circle-links .selia-card__media {
+  border-radius: 50%;
+  aspect-ratio: 1;
+}
+
+.selia--circle-links .selia-tiles__caption,
+.selia--circle-links .selia-card__body {
+  position: static;
+  background: none;
+  color: var(--ink-1);
+  text-align: center;
+  align-items: center;
+}
+
+.selia--square-links .selia-tiles__media {
+  aspect-ratio: 1;
+}
+
+/* Featured Categories: a clean 2×2 grid. An earlier version made the first
+   tile span two rows; with four seeded categories that left a permanent empty
+   cell in the last row (and a 1956px-tall section). */
+.selia--featured-categories .selia-tiles {
+  --selia-cols: 2;
+}
+
+/* ── the one scroller ────────────────────────────────────────────────────── */
+
+.selia-scroller {
+  position: relative;
+}
+
+.selia-scroller__track {
+  display: flex;
+  gap: var(--selia-gap);
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: pan-y;
+  padding-block-end: 4px;
+}
+
+.selia-scroller__track::-webkit-scrollbar {
+  display: none;
+}
+
+.selia-scroller__track > * {
+  flex: 0 0 clamp(260px, 32vw, 420px);
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+.selia-scroller--hero .selia-scroller__track > * {
+  flex-basis: 100%;
+}
+
+.selia-scroller__arrows {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-block-start: 16px;
+}
+
+.selia-scroller__arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  background: var(--surface-1, #fff);
+  color: var(--ink-1);
+  cursor: pointer;
+}
+
+.selia-scroller__arrow:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 3px;
+}
+
+.selia-slide {
+  position: relative;
+}
+
+.selia-slide__link {
+  position: relative;
+  display: block;
+  color: #fff;
+  text-decoration: none;
+}
+
+.selia-slide__media,
+.selia-slide__media.selia-media {
+  border-radius: var(--selia-radius);
+  aspect-ratio: 21 / 9;
+  min-height: 300px;
+  background: #1b1b1b;
+}
+
+.selia--advanced-slider .selia-slide__media,
+.selia--animated-banners .selia-slide__media {
+  aspect-ratio: auto;
+  height: clamp(340px, 52vw, 620px);
+}
+
+.selia-slide__copy {
+  position: absolute;
+  inset-inline: clamp(20px, 6vw, 80px);
+  inset-block-end: clamp(24px, 6vw, 72px);
+  max-width: 46ch;
+  text-align: start;
+  text-shadow: 0 2px 18px rgb(0 0 0 / 55%);
+}
+
+.selia-slide__copy h3 {
+  margin: 0 0 0.35em;
+  font-size: clamp(1.5rem, 3.4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.selia-slide__copy p {
+  margin: 0;
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+  line-height: 1.7;
+}
+
+/* ── products ───────────────────────────────────────────────────────────── */
+
+.selia-products__skeleton {
+  aspect-ratio: 3 / 4;
+  border-radius: var(--selia-radius);
+  background: linear-gradient(100deg, var(--surface-2) 30%, var(--surface-1, #fff) 50%, var(--surface-2) 70%);
+  background-size: 200% 100%;
+  animation: selia-shimmer 1.4s linear infinite;
+}
+
+@keyframes selia-shimmer {
+  to { background-position-x: -200%; }
+}
+
+.selia-featured-product .selia-products,
+.selia-featured-product .selia-products__item {
+  --selia-cols: 1;
+  grid-template-columns: minmax(0, 420px);
+  justify-content: center;
+}
+
+/* ── text-led blocks ────────────────────────────────────────────────────── */
+
+.selia-about,
+.selia-content {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(24px, 4vw, 64px);
+  align-items: center;
+}
+
+.selia-about__media .selia-media,
+.selia-content__media .selia-media {
+  aspect-ratio: 4 / 3;
+}
+
+.selia-about__eyebrow,
+.selia-featured-products__eyebrow,
+.selia-content__body,
+.selia-about__body,
+.selia-promo__sub,
+.selia-promo__body {
+  margin: 0 0 1em;
+  font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+  line-height: 1.85;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.selia-about__eyebrow,
+.selia-featured-products__eyebrow {
+  color: var(--selia-accent);
+  font-weight: 650;
+}
+
+.selia-content--banner {
+  grid-template-columns: 1fr;
+}
+
+.selia-content .selia-cards {
+  --selia-cols: 3;
+  margin-block-start: 24px;
+}
+
+.selia-featured-products,
+.selia-promo {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--selia-radius);
+  padding: clamp(24px, 5vw, 72px);
+  background: var(--bg-block, var(--selia-bg, var(--surface-2)));
+  color: var(--selia-ink, var(--ink-1));
+}
+
+.selia-featured-products__bg,
+.selia-promo__bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 0;
+}
+
+.selia-featured-products__bg::after,
+.selia-promo__bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(0 0 0 / 55%), transparent 70%);
+}
+
+.selia-featured-products__copy,
+.selia-promo__copy {
+  max-width: 52ch;
+  margin-block-end: clamp(24px, 3vw, 40px);
+}
+
+.selia-promo {
+  text-align: start;
+}
+
+/* ── countdown ──────────────────────────────────────────────────────────── */
+
+.selia-clock {
+  display: flex;
+  gap: 8px;
+  margin-block: 16px 24px;
+  direction: ltr;
+}
+
+.selia-clock__cell {
+  min-width: 56px;
+  padding: 0.5em 0.6em;
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  background: var(--surface-1, #fff);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1rem, 1.6vw, 1.35rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ── tabs / accordion / comparison / marquee / stars ───────────────────── */
+
+.selia-tabs__list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-block-end: var(--selia-head-gap);
+}
+
+.selia-tabs__tab {
+  min-height: 44px;
+  padding: 0.55em 1.4em;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.selia-tabs__tab[aria-selected='true'] {
+  background: var(--selia-accent);
+  border-color: var(--selia-accent);
+  color: #fff;
+}
+
+.selia-tabs--underline .selia-tabs__tab {
+  border: 0;
+  border-block-end: 2px solid transparent;
+  border-radius: 0;
+}
+
+.selia-tabs--underline .selia-tabs__tab[aria-selected='true'] {
+  background: transparent;
+  border-color: var(--selia-accent);
+  color: var(--selia-accent);
+}
+
+.selia-tabs__panel[hidden] {
+  display: none;
+}
+
+.selia-accordion {
+  display: grid;
+  gap: 10px;
+  max-width: 900px;
+  margin-inline: auto;
+}
+
+.selia-accordion__item {
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  background: var(--surface-1, var(--surface-2));
+}
+
+.selia-accordion__question {
+  padding: 16px 20px;
+  font-weight: 650;
+  cursor: pointer;
+  list-style: none;
+}
+
+.selia-accordion__question::-webkit-details-marker {
+  display: none;
+}
+
+.selia-accordion__question::after {
+  content: '+';
+  float: inline-end;
+  color: var(--selia-accent);
+  font-size: 1.2rem;
+}
+
+.selia-accordion__item[open] .selia-accordion__question::after {
+  content: '−';
+}
+
+.selia-accordion__answer {
+  padding: 0 20px 20px;
+  color: var(--ink-3);
+  line-height: 1.8;
+}
+
+.selia-ba {
+  position: relative;
+}
+
+.selia-ba__frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--selia-radius);
+  aspect-ratio: 16 / 9;
+}
+
+.selia-ba__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.selia-ba__clip {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 calc(100% - var(--ba-split, 50%)) 0 0);
+}
+
+.selia-ba[data-vertical='yes'] .selia-ba__clip {
+  clip-path: inset(0 0 calc(100% - var(--ba-split, 50%)) 0);
+}
+
+.selia-ba__line {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: var(--ba-split, 50%);
+  width: 2px;
+  background: var(--ba-line, #fff);
+  pointer-events: none;
+}
+
+.selia-ba[data-vertical='yes'] .selia-ba__line {
+  inset-block-start: var(--ba-split, 50%);
+  inset-inline: 0;
+  width: auto;
+  height: 2px;
+}
+
+.selia-ba__label {
+  position: absolute;
+  inset-block-start: 12px;
+  padding: 0.3em 0.8em;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 60%);
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.selia-ba__label--start { inset-inline-start: 12px; }
+.selia-ba__label--end { inset-inline-end: 12px; }
+
+.selia-ba__range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+/* The brand wall (`selia-brandwall.scss`) owns the marquee layout now — the
+   `.selia-marquee` belt that used to live here could not loop a short
+   collection without opening a gap at the seam. */
+
+.selia-stars {
+  display: inline-flex;
+  gap: 2px;
+  color: var(--line-2);
+  font-size: 0.9rem;
+}
+
+.selia-stars .is-filled {
+  color: var(--pc-star, #c9a227);
+}
+
+/* ── video / hotspots / ticker ──────────────────────────────────────────── */
+
+.selia-video {
+  display: block;
+  width: 100%;
+  border-radius: var(--selia-radius);
+  background: #000;
+}
+
+.selia-hotspots {
+  display: grid;
+  grid-template-columns: repeat(var(--selia-cols, 2), minmax(0, 1fr));
+  gap: var(--selia-gap);
+}
+
+.selia-hotspots__item {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--selia-radius);
+}
+
+.selia-hotspots__media,
+.selia-hotspots__media.selia-media {
+  border-radius: 0;
+  aspect-ratio: 4 / 3;
+}
+
+.selia-hotspots__caption {
+  position: absolute;
+  inset-block-end: 12px;
+  inset-inline-start: 12px;
+  padding: 0.3em 0.8em;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 60%);
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.selia-hotspots__dot {
+  position: absolute;
+  inset-block-start: calc(var(--card-top, 50%) - 18px);
+  inset-inline-start: calc(var(--card-left, 50%) - 18px);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  text-decoration: none;
+  box-shadow: 0 4px 18px rgb(0 0 0 / 30%);
+}
+
+.selia-detailed__ticker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ink-3);
+  font-size: 0.88rem;
+}
+
+.selia-detailed__ticker li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.selia-dynbnr__link {
+  display: block;
+}
+
+.selia-dynbnr__media,
+.selia-dynbnr__media.selia-media {
+  border-radius: var(--selia-radius);
+  aspect-ratio: 21 / 9;
+}
+
+/* ── merchant switches (data-*), applied once for the whole family ──────── */
+
+.selia[data-rounded='0'] .selia-media,
+.selia[data-rounded='0'] .selia-card,
+.selia[data-rounded='0'] .selia-tiles__item,
+.selia[data-rounded='0'] .selia-ba__frame {
+  border-radius: 0;
+}
+
+.selia[data-grayscale='1'] .selia-card__media img,
+.selia[data-grayscale='1'] .selia-tiles__media img {
+  filter: grayscale(1);
+  transition: filter 240ms ease;
+}
+
+.selia[data-grayscale='1'] .selia-card:hover .selia-card__media img,
+.selia[data-grayscale='1'] .selia-tiles__link:hover .selia-tiles__media img {
+  filter: grayscale(0);
+}
+
+.selia[data-no_crop='1'] .selia-media img,
+.selia[data-no_crop='1'] .selia-tiles__media img {
+  object-fit: contain !important;
+}
+
+.selia[data-original_size='1'] .selia-media {
+  aspect-ratio: auto;
+}
+
+.selia[data-as_slider='1'] .selia-cards,
+.selia[data-as_slider='1'] .selia-tiles {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  touch-action: pan-y;
+}
+
+.selia[data-as_slider='1'] .selia-cards > *,
+.selia[data-as_slider='1'] .selia-tiles > * {
+  flex: 0 0 clamp(220px, 26vw, 340px);
+  scroll-snap-align: start;
+}
+
+.selia[data-center='1'] .selia-cards,
+.selia[data-center='1'] .selia-tiles {
+  justify-content: center;
+}
+
+.selia[data-portrait='1'] .selia-media {
+  aspect-ratio: 3 / 4;
+}
+
+.selia[data-enlarge='1'] .selia-circle-links .selia-tiles__media {
+  transform: scale(1.06);
+}
+
+.selia[data-tight_gap='1'],
+.selia[data-compact='1'] {
+  --selia-gap: 8px;
+}
+
+.selia[data-no_background='1'] {
+  background: transparent;
+}
+
+.selia[data-enable_background='1'],
+.selia[data-media_background='1'] {
+  background: var(--bg-block, var(--selia-bg, var(--surface-2)));
+  border-radius: var(--selia-radius);
+  padding-block: clamp(24px, 4vw, 56px);
+}
+
+.selia[data-content_left='1'] .selia-featured-products__copy {
+  order: -1;
+}
+
+.selia[data-overlay='1'] .selia-featured-products__bg::after {
+  background: rgb(0 0 0 / 45%);
+}
+
+.selia[data-button_ghost='1'] .selia-cta--solid {
+  background: transparent;
+  border-color: currentColor;
+  color: inherit;
+}
+
+.selia[data-hide_controls='1'] .selia-video::-webkit-media-controls {
+  display: none;
+}
+
+.selia[data-show_titles='0'] .selia-tiles__caption {
+  display: none;
+}
+
+.selia[data-compact_mobile='1'] {
+  --selia-gap: 8px;
+}
+
+/* `stack_mobile` is a MOBILE switch. Left unscoped, this rule has three
+   classes of specificity and beats every desktop column rule — so the double
+   and triple banners silently became one full-width column at 1902px. The
+   mobile copy lives in the responsive block below. */
+
+.selia[data-full_width='1'] > .selia__inner {
+  max-width: none;
+}
+
+.selia[data-full_width='1'] > .selia__inner > .selia__head {
+  max-width: var(--selia-max);
+  margin-inline: auto;
+  padding-inline: var(--selia-pad);
+}
+
+/* ── responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 1023.98px) {
+  .selia-cards,
+  .selia-tiles,
+  .selia-products {
+    --selia-cols: 2;
+  }
+
+  .selia-cards--review,
+  .selia-cards--feature {
+    --selia-cols: 2;
+  }
+}
+
+/* ── product-videos: the store's card, with the row's video as the media ──
+   The merchant picks a product and pastes its video; the card below is the
+   real product card (name, price, platform add-to-cart) with a 9:16 stage
+   instead of a photo. Everything the merchant switches arrives on the
+   section root as `data-<key>`: `data-ratio`, `data-badge_position`,
+   `data-layout`, `data-show_product`. */
+.selia--product-videos .selia__head::after {
+  /* the reference's gold divider: two dashes with a gap in the middle */
+  content: '';
+  width: 160px;
+  height: 2px;
+  margin-block: 6px 0;
+  background-image: linear-gradient(
+    90deg,
+    var(--selia-accent) 0 40%,
+    transparent 40% 60%,
+    var(--selia-accent) 60% 100%
+  );
+}
+
+.selia-vproducts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  margin-block: 8px 32px;
+}
+
+.selia-vproducts__waiting {
+  aspect-ratio: 9 / 16;
+  border-radius: 10px;
+  border: 1px solid var(--line-1, #f0f0f0);
+  background: var(--surface-2);
+  animation: selia-vwaiting 1.4s ease-in-out infinite;
+}
+
+@keyframes selia-vwaiting {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.selia-vproducts__all {
+  justify-self: center;
+  margin-block-start: 4px;
+  padding: 8px 22px;
+  border: 1px solid var(--line-1, #f0f0f0);
+  border-radius: 999px;
+  color: var(--ink-2);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.selia-vproducts__all:hover {
+  border-color: var(--selia-accent);
+  color: var(--selia-accent);
+}
+
+.selia-vcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface-1, #fff);
+  border: 1px solid var(--line-1, #f0f0f0);
+  border-radius: 10px;
+  text-align: center;
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.selia-vcard:hover {
+  box-shadow: 0 12px 32px -14px rgba(0, 0, 0, 0.18);
+}
+
+.selia-vcard__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  /* the letterbox behind a portrait video, as in the reference */
+  background: color-mix(in srgb, var(--ink-1, #111) 92%, #0c0c10);
+}
+
+.selia[data-ratio='square'] .selia-vcard__media {
+  aspect-ratio: 1 / 1;
+}
+
+.selia[data-ratio='4-3'] .selia-vcard__media {
+  aspect-ratio: 4 / 3;
+}
+
+.selia[data-ratio='16-9'] .selia-vcard__media {
+  aspect-ratio: 16 / 9;
+}
+
+.selia-vcard__video,
+.selia-vcard__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.selia-vcard__stage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--surface-2);
+}
+
+/* «عرض المنتج أسفل الفيديو» off = a wall of video tiles. */
+.selia[data-show_product='0'] .selia-vcard__body {
+  display: none;
+}
+
+.selia-vcard__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 10px;
+}
+
+.selia-vcard__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 40px;
+  color: var(--ink-1);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  transition: color 0.2s;
+}
+
+.selia-vcard__name:hover {
+  color: var(--selia-accent);
+}
+
+.selia-vcard__price {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.selia-vcard__now {
+  color: var(--ink-1);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.selia-vcard__compare {
+  color: var(--ink-3);
+  font-size: 14px;
+  line-height: 28px;
+}
+
+.selia-vcard__add {
+  width: 100%;
+}
+
+.selia-vcard__add .s-button-element {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 10px 24px 8px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--selia-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: normal;
+  transition: filter 0.2s;
+}
+
+.selia-vcard__add:hover .s-button-element {
+  filter: brightness(0.9);
+}
+
+@media (max-width: 639.98px) {
+  .selia-cards,
+  .selia-tiles,
+  .selia-products,
+  .selia-hotspots {
+    --selia-cols: 1;
+  }
+
+  /* The merchant's «تكديس على الجوال» switch only ever applies on a phone. */
+  .selia[data-stack_mobile='1'] .selia-tiles,
+  .selia[data-stack_mobile='1'] .selia-cards {
+    --selia-cols: 1;
+  }
+
+  .selia-cards--video {
+    --selia-cols: 1;
+  }
+
+  /* The video card is portrait and tall; two columns keep the 9:16 stage a
+     comfortable size on a phone, one column would be a cinema screen. */
+  .selia-vproducts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-block: 4px 24px;
+  }
+
+  .selia-vcard__body {
+    padding: 16px 8px;
+    gap: 8px;
+  }
+
+  .selia-vcard__name {
+    min-height: 36px;
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  .selia-vcard__now {
+    font-size: 16px;
+  }
+
+  .selia--product-videos .selia__head::after {
+    width: 120px;
+  }
+
+  .selia-tiles--banners-2,
+  .selia-tiles--banners-3,
+  .selia-tiles--banners-3 .selia-tiles__item:first-child {
+    --selia-cols: 1;
+    grid-row: auto;
+  }
+
+  /* Undo the desktop mosaic stretch, or the first banner collapses on a phone. */
+  .selia-tiles--banners-3 .selia-tiles__item:first-child .selia-tiles__media {
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .selia-about,
+  .selia-content {
+    grid-template-columns: 1fr;
+  }
+
+  .selia-slide__media {
+    min-height: 240px;
+  }
+
+  .selia-slide__copy {
+    inset-inline: 20px;
+    inset-block-end: 20px;
+  }
+
+  .selia-clock__cell {
+    min-width: 44px;
+    font-size: 0.95rem;
+  }
+
+  .selia[data-compact_mobile='1'] .selia__inner {
+    padding-inline: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selia-products__skeleton {
+    animation: none;
+  }
+
+  .selia-vproducts__waiting {
+    animation: none;
+    opacity: 0.85;
+  }
+
+  .selia-scroller__track {
+    scroll-behavior: auto;
+  }
+}
+
+/* ==========================================================================
+   selia-product-videos — the REELS band.
+
+   Rebuilt on the reference: a rule before the heading, the paging arrows on
+   the far side of the SAME row, a four-up reel of 9:16 clips, and a glass
+   product card floating inside every clip with its thumb, name, installment
+   line, price and round add-to-cart. Pagination bars close the band.
+
+   The band is NOT a dark surface any more: it sits on the page canvas, so the
+   heading, arrows and bars take the theme's ink and accent and flip with
+   `html.dark` for free.
+
+   What floats ON a clip is its own material: SMOKED glass — genuinely
+   translucent (a clip must stay visible through it) with the blur doing the
+   legibility work, not the fill. One neutral family (ink + white type) plus
+   ONE accent for the action, and the price as the warm counterpoint the
+   reference had. A white panel was tried and dropped: over the store's white
+   studio clips it needed 84% opacity to show an edge, which killed the glass
+   and left four unrelated hues (white, black, red, blue) fighting.
+   ========================================================================== */
+
+.selia--product-videos {
+  /* band chrome — follows the theme (light page, dark page) */
+  --pv-ink: var(--ink-1, #231f1e);
+  --pv-muted: var(--ink-3, #7c8082);
+  --pv-line: var(--line-2, rgba(20, 20, 30, 0.16));
+  /* the store's own primary drives the button and the active bar */
+  --pv-accent: var(--selia-accent, #004956);
+  /* material that floats on a clip — fixed, never themed */
+  --pv-glass: rgba(10, 14, 18, 0.62);
+  --pv-glass-hover: rgba(10, 14, 18, 0.72);
+  --pv-glass-ink: #ffffff;
+  --pv-glass-ink-soft: rgba(255, 255, 255, 0.72);
+  --pv-glass-ring: rgba(255, 255, 255, 0.16);
+  --pv-glass-shadow: 0 20px 40px -24px rgba(8, 12, 18, 0.65);
+  /* the reference's warm price against the neutral glass */
+  --pv-price: #ff6b81;
+  --pv-radius: 12px;
+  --pv-gap: 20px;
+  position: relative;
+  background: transparent;
+  color: var(--pv-ink);
+}
+
+/* the old glow that sat behind the cinematic reel */
+.selia--product-videos::before {
+  content: none;
+}
+
+/* This block shipped its own hardcoded container (1440px + 10px), which is the
+   one place in the 34 ported blocks that ignored `global_container` and
+   `global_gutter` — so «عرض المحتوى» moved every section except this one, and
+   the page had three different content edges. It now reads the shared shell
+   tokens like every other block; its own values remain the fallbacks. */
+.selia--product-videos > .selia__inner {
+  max-width: var(--selia-max, 1440px);
+  padding-inline: var(--selia-pad, 10px);
+}
+
+.selia-reels {
+  padding-block: 24px;
+}
+
+/* head: accent rule + title on the reading edge, arrows on the far edge */
+.selia-reels__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-block-end: 32px;
+}
+
+.selia-reels__heading {
+  min-width: 0;
+}
+
+.selia-reels__title {
+  position: relative;
+  margin: 0;
+  padding-inline-start: 32px;
+  color: var(--pv-ink);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 21.6px;
+}
+
+.selia-reels__title::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: 0.05em;
+  width: 3px;
+  border-radius: 3px;
+  /* the rule carries the store's colour and fades into the page instead of a
+     flat white bar — the one accent that ties the band to the brand */
+  background: linear-gradient(
+    to bottom,
+    var(--pv-accent),
+    color-mix(in srgb, var(--pv-accent) 22%, transparent)
+  );
+}
+
+.selia-reels__subtitle {
+  margin: 8px 0 0;
+  padding-inline-start: 64px;
+  color: var(--pv-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.selia-reels__nav {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 8px;
+}
+
+.selia-reels__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--pv-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pv-ink);
+  cursor: pointer;
+  transition: opacity 0.3s, border-color 0.3s, color 0.3s, background 0.3s;
+}
+
+.selia-reels__arrow svg {
+  width: 32px;
+  height: 32px;
+  fill: currentColor;
+}
+
+.selia-reels__arrow:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+/* the arrow fills with the accent on hover: the band's one saturated moment */
+.selia-reels__arrow:not(:disabled):hover,
+.selia-reels__arrow:not(:disabled):focus-visible {
+  border-color: var(--pv-accent);
+  background: var(--pv-accent);
+  color: #fff;
+}
+
+/* the reel */
+.selia-vproducts {
+  display: flex;
+  gap: var(--pv-gap);
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.selia-vproducts::-webkit-scrollbar {
+  display: none;
+}
+
+.selia-vcard {
+  --pv-ratio: 9 / 16;
+  position: relative;
+  flex: 0 0 auto;
+  /* the old card centred its copy; this one reads from the edge */
+  text-align: start;
+  width: calc((100% - 3 * var(--pv-gap)) / 4);
+  min-height: 400px;
+  aspect-ratio: var(--pv-ratio);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--pv-radius);
+  background: var(--surface-3, #eceff3);
+  /* the band is no longer a dark slab, so the clip needs its own edge on the
+     page: a hairline plus a wide, low shadow instead of a black bed */
+  box-shadow: inset 0 0 0 1px rgba(23, 24, 28, 0.06), 0 20px 40px -32px rgba(16, 24, 40, 0.55);
+  scroll-snap-align: start;
+  animation: none;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s;
+}
+
+.selia[data-ratio='square'] .selia-vcard { --pv-ratio: 1 / 1; }
+.selia[data-ratio='4-3'] .selia-vcard { --pv-ratio: 4 / 3; }
+.selia[data-ratio='16-9'] .selia-vcard { --pv-ratio: 16 / 9; }
+
+.selia-vcard:hover,
+.selia-vcard:focus-within {
+  transform: translateY(-4px);
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(23, 24, 28, 0.06), 0 30px 52px -34px rgba(16, 24, 40, 0.55);
+}
+
+/* the cinematic hairline frame is gone */
+.selia-vcard::after {
+  content: none;
+}
+
+.selia-vcard__media {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--surface-3, #eceff3);
+  /* the clip's own hairline: on a white page a white studio video needs an
+     edge, or the card dissolves into the canvas */
+  box-shadow: inset 0 0 0 1px rgba(23, 24, 28, 0.1);
+}
+
+.selia-vcard__video,
+.selia-vcard__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: none;
+}
+
+.selia-vcard:hover .selia-vcard__video,
+.selia-vcard:hover .selia-vcard__media img,
+.selia-vcard:focus-within .selia-vcard__video,
+.selia-vcard:focus-within .selia-vcard__media img {
+  transform: none;
+  filter: none;
+}
+
+/* the pulsing centre affordance belonged to the old card */
+.selia-vcard__media:has(video)::before,
+.selia-vcard__media:has(video)::after {
+  content: none;
+  animation: none;
+}
+
+.selia-vcard__stage {
+  position: absolute;
+  inset: 0;
+  background: var(--surface-2, #f5f7f9);
+}
+
+/* the frosted control cluster (play / mute) */
+.selia-vcard__controls {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  inset-block-start: 16px;
+  inset-inline-start: 16px;
+}
+
+.selia-vcard__ctl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pv-glass);
+  /* the same smoked glass as the panel, so the card has ONE material */
+  backdrop-filter: blur(14px) brightness(0.7) saturate(1.15);
+  box-shadow:
+    var(--pv-glass-shadow),
+    inset 0 0 0 1px var(--pv-glass-ring),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  color: var(--pv-glass-ink);
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s, transform 0.25s;
+}
+
+/* hover is the accent's moment: the disc fills with the store colour */
+.selia-vcard__ctl:hover,
+.selia-vcard__ctl:focus-visible {
+  background: var(--pv-accent);
+  color: color-contrast(var(--pv-accent) vs #fff, #17181c);
+  transform: translateY(-1px);
+}
+
+.selia-vcard__glyph {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* the glass product card */
+.selia-vcard__panel {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  inset-inline: 16px;
+  inset-block-end: 40px;
+  padding: 12px;
+  border-radius: 8px;
+  /* the tint is the fill, the gradient is the material: a lit top edge and a
+     shaded bottom read as a pane of glass, where a flat tint read as a bar */
+  background-color: var(--pv-glass);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.14));
+  /* smoked glass: the clip stays visible through it and the BLUR — not a
+     heavier fill — is what buys the contrast for white type. 84% white was
+     tried and made the panel a slab on the store's bright studio clips. */
+  backdrop-filter: blur(14px) brightness(0.7) saturate(1.15);
+  box-shadow:
+    var(--pv-glass-shadow),
+    inset 0 0 0 1px var(--pv-glass-ring),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: background-color 0.2s;
+}
+
+.selia-vcard:hover .selia-vcard__panel,
+.selia-vcard:focus-within .selia-vcard__panel {
+  background-color: var(--pv-glass-hover);
+}
+
+.selia-vcard__thumb {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.selia-vcard__thumb:hover {
+  opacity: 0.85;
+}
+
+.selia-vcard__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.selia-vcard__thumb-empty {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.selia-vcard__info {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.selia-vcard__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 0;
+  color: var(--pv-glass-ink);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  text-decoration: none;
+}
+
+.selia-vcard__name:hover {
+  color: var(--pv-glass-ink);
+  text-decoration: underline;
+}
+
+.selia-vcard__note {
+  margin: 0;
+  color: var(--pv-glass-ink-soft);
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.selia-vcard__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin: 0;
+}
+
+.selia-vcard__now {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--pv-price);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+}
+
+.selia-vcard__now .sicon-sar,
+.selia-vcard__compare .sicon-sar {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.selia-vcard__compare {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+/* the round add-to-cart: the panel's third column, centred on the same line as
+   the thumb (it used to hug the row's top, 12px above the copy) */
+.selia-vcard__add {
+  flex-shrink: 0;
+  align-self: center;
+  width: auto;
+  margin: 0;
+}
+
+.selia-vcard__add .s-button-element {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 1px solid var(--pv-accent);
+  border-radius: 50%;
+  background: var(--pv-accent);
+  /* the store's primary may be a pale lime: the ink follows it instead of
+     assuming white, exactly like the family's own buttons */
+  color: color-contrast(var(--pv-accent) vs #fff, #17181c);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 20px;
+  transition: filter 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+.selia-vcard__add:hover .s-button-element {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px -12px var(--pv-accent);
+}
+
+.selia-vcard__add .s-button-element > i {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* the round control is icon-only; the label stays for screen readers */
+.selia-vcard__add-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* pagination bars */
+.selia-reels__dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-block-start: 24px;
+}
+
+.selia-reels__dot {
+  width: 20px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  /* the ink at 16% instead of a fixed grey: it survives both canvases */
+  background: color-mix(in srgb, var(--pv-ink) 16%, transparent);
+  cursor: pointer;
+  transition: background 0.3s, opacity 0.3s, width 0.3s;
+}
+
+/* the active bar is the store's accent — the one saturated mark that also
+   fills the arrows on hover */
+.selia-reels__dot[data-active='true'] {
+  background: var(--pv-accent);
+  opacity: 1;
+}
+
+/* «عرض الكل» under the reel */
+.selia--product-videos .selia-vproducts__all {
+  display: block;
+  width: max-content;
+  margin: 24px auto 0;
+  border-color: var(--pv-line);
+  background: transparent;
+  color: var(--pv-ink);
+}
+
+.selia--product-videos .selia-vproducts__all:hover {
+  border-color: var(--pv-accent);
+  background: color-mix(in srgb, var(--pv-accent) 10%, transparent);
+  color: var(--pv-accent);
+  box-shadow: none;
+  transform: none;
+}
+
+/* placeholders */
+.selia--product-videos .selia-vproducts__waiting {
+  flex: 0 0 auto;
+  width: calc((100% - 3 * var(--pv-gap)) / 4);
+  min-height: 400px;
+  aspect-ratio: 9 / 16;
+  border: 0;
+  border-radius: var(--pv-radius);
+  background: var(--surface-2, #f5f7f9);
+  animation: none;
+}
+
+/* responsive: 3-up on a tablet, one clip + a peek on a phone */
+@media (max-width: 1023.98px) {
+  .selia-vcard,
+  .selia--product-videos .selia-vproducts__waiting {
+    width: calc((100% - 2 * var(--pv-gap)) / 3);
+  }
+
+  /* Three 9:16 cards on a tablet leave the copy ~96px once the thumb and the
+     round button share the row. The clip already shows the product, so the
+     thumb steps aside instead of squeezing the name. */
+  .selia-vcard__thumb {
+    display: none;
+  }
+
+  .selia-vcard__panel {
+    inset-inline: 12px;
+    inset-block-end: 24px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* Two 9:16 cards on a phone gave the panel 148px and the name 38px — one
+     clip per view with the next one peeking keeps the reference's card
+     legible, and a 9:16 clip is a full-bleed shape on a phone anyway. */
+  .selia-vcard,
+  .selia--product-videos .selia-vproducts__waiting {
+    width: calc(100% - 56px);
+    min-height: 0;
+  }
+
+  .selia-vcard__thumb {
+    display: block;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+  }
+
+  .selia-reels__head {
+    margin-block-end: 24px;
+  }
+
+  .selia-reels__title {
+    padding-inline-start: 16px;
+    font-size: 16px;
+  }
+
+  .selia-reels__subtitle {
+    padding-inline-start: 16px;
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .selia-vcard__controls {
+    inset-block-start: 12px;
+    inset-inline-start: 12px;
+  }
+
+  .selia-vcard__panel {
+    gap: 6px;
+    inset-inline: 10px;
+    inset-block-end: 16px;
+    padding: 10px;
+  }
+
+  .selia-vcard__name {
+    font-size: 12px;
+    line-height: 15px;
+  }
+
+  .selia-vcard__note {
+    font-size: 9px;
+    line-height: 13px;
+  }
+
+  .selia-vcard__now {
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .selia-vcard__compare {
+    font-size: 11px;
+  }
+
+  .selia-vcard__add .s-button-element {
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
+  }
+
+  .selia-vcard__ctl {
+    width: 30px;
+    height: 30px;
+  }
+
+  .selia-vcard__glyph {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selia-vproducts {
+    scroll-behavior: auto;
+  }
+
+  .selia-vcard,
+  .selia-vcard__panel,
+  .selia-vcard__add .s-button-element {
+    transition: none;
+  }
+}

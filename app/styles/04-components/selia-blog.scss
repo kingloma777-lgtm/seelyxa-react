@@ -1,0 +1,649 @@
+/* ==========================================================================
+   selia-blog — the newest articles, led by a feature.
+
+   The block used to be three equal photo cards. Equal cards have no entry
+   point: the reader's eye is given three doors and no reason to pick one, and
+   the newest article — the only thing a blog list actually ranks — looked
+   exactly like the oldest. So the first article is a feature: the photo *is*
+   the card and the headline sits on it. The rest are numbered rows beside it,
+   the way a magazine runs its contents page.
+
+   Three consequences shaped the rest of this file:
+
+   - The feature needs a scrim, not a text panel under the photo. A photo with
+     text below it is a product card; text over the photo is an article.
+   - The feature needs a state for *no photo*. A grey rectangle behind white
+     type is unreadable, and a post without an image is a normal case.
+   - The rows need an anchor that is not the thumbnail. Numbering gives the
+     column a rhythm, and it survives the case the photo does not.
+   ========================================================================== */
+
+/* ── the header ──────────────────────────────────────────────────────────────
+   Three cells, not one row: the title and the «كل المقالات» link share the top
+   line, and the tabs sit under the title on the reading edge. Putting the tabs
+   on the same line as the link pushed them 700px away from the heading they
+   belong to, which read as two unrelated widgets in opposite corners. */
+.selia--blog .selia__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  column-gap: clamp(16px, 3vw, 44px);
+  row-gap: clamp(12px, 1.6vw, 20px);
+}
+
+.selia--blog .selia__head {
+  grid-column: 1;
+  grid-row: 1;
+  margin-block-end: 0;
+}
+
+.selia-blog__all {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+/* ── the tabs ───────────────────────────────────────────────────────────────
+   A tab bar, not a chip row. The hairline running the full width under the
+   labels is what makes it read as a section header: the active tab's underline
+   is the same line, so the control and the rule are one object instead of a
+   row of buttons floating above the content. */
+.selia-blog__filters {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-self: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0 clamp(18px, 2.1vw, 30px);
+  border-block-end: 1px solid var(--line-1);
+}
+
+.selia-blog__chip {
+  position: relative;
+  padding: 0.3em 0 0.72em;
+  border: 0;
+  background: none;
+  color: var(--ink-3);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+
+/* `-1px` so the 2px accent underline covers the container's hairline instead
+   of stacking on top of it into a 3px line. */
+.selia-blog__chip::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--selia-accent);
+  transform: scaleX(0);
+  transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.selia-blog__chip:hover {
+  color: var(--ink-1);
+}
+
+.selia-blog__chip.is-active {
+  color: var(--ink-1);
+}
+
+.selia-blog__chip.is-active::after {
+  transform: scaleX(1);
+}
+
+.selia-blog__chip:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+/* ── the «كل المقالات» link ─────────────────────────────────────────────── */
+.selia-blog__all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding-block-end: 2px;
+  border-block-end: 1px solid transparent;
+  color: var(--ink-2);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    gap 220ms ease;
+}
+
+.selia-blog__all:hover {
+  gap: 10px;
+  color: var(--ink-1);
+  border-block-end-color: var(--ink-2);
+}
+
+.selia-blog__all:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 3px;
+}
+
+/* ── the grid ────────────────────────────────────────────────────────────── */
+.selia-blog {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 1.32fr) minmax(0, 1fr);
+  gap: var(--selia-gap);
+  align-items: stretch;
+  margin-block-start: clamp(4px, 0.8vw, 12px);
+  transition: opacity 200ms ease;
+}
+
+/* Scoped to the blog: `.selia-empty` is shared with the other blocks, and an
+   unscoped `grid-row` here would move their empty state into this grid. */
+.selia--blog .selia-empty {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+/* One article: a feature with an empty second column would be a feature with a
+   hole beside it. `:has` is already relied on elsewhere in these blocks. */
+.selia-blog:not(:has(.selia-blog__list)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* …and a full-width card does not need 460px of height: at 1240px wide that is
+   a 2.7:1 letterbox that crops the article's photo to a strip. */
+.selia-blog:not(:has(.selia-blog__list)) .selia-blog__feature {
+  min-height: clamp(300px, 26vw, 380px);
+}
+
+/* A filter that re-queries dims the old list instead of emptying it — a grid
+   that blinks to nothing on every chip makes the block feel broken. */
+.selia-blog.is-loading {
+  opacity: 0.45;
+}
+
+/* ── the feature ─────────────────────────────────────────────────────────── */
+.selia-blog__feature {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  /* Sized so two rows of copy land close to its height: a 470px card beside
+     two 150px rows forces the rows to stretch into bands with a void inside
+     each one. The card is still the tallest thing in the block. */
+  min-height: clamp(330px, 27vw, 400px);
+  border-radius: var(--selia-radius);
+  /* Dark *under* the photo, not `--surface-2`. The card carries white type in
+     every state, and the two states where no photo is on screen — a post with
+     no image, and the second before a slow one arrives — would otherwise put
+     white type on a light grey box. With the plate underneath, the card is
+     legible before, during and after the image, and the photo simply covers it
+     once it paints. */
+  background:
+    radial-gradient(
+      118% 105% at 82% 2%,
+      color-mix(in srgb, var(--selia-accent) 30%, transparent) 0%,
+      transparent 54%
+    ),
+    linear-gradient(158deg, #24262c 0%, #14151a 48%, #08090c 100%);
+  color: #fff;
+  /* A hairline of the card's own light. Over a photo it is an inner highlight
+     that keeps the corners crisp; on a dark page, where a dark card would
+     otherwise merge with the background, it is what draws the edge. */
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 9%);
+  text-decoration: none;
+  isolation: isolate;
+}
+
+.selia-blog__shot {
+  position: absolute;
+  inset: 0;
+}
+
+.selia-blog__shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 700ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.selia-blog__feature:hover .selia-blog__shot img {
+  transform: scale(1.045);
+}
+
+/* A five-stop scrim rather than one even gradient: the top stays almost clear
+   so the photo is still a photo, and everything the type sits on is dark enough
+   for white text on a white-on-white image — a light illustration is the normal
+   case for a store blog, and a gentle 50% veil leaves the headline at 3:1. */
+.selia-blog__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgb(0 0 0 / 92%) 0%,
+    rgb(0 0 0 / 84%) 24%,
+    rgb(0 0 0 / 62%) 46%,
+    rgb(0 0 0 / 24%) 68%,
+    rgb(0 0 0 / 0%) 88%
+  );
+}
+
+/* ── the plate (no photo) ────────────────────────────────────────────────────
+   The gradient and the ring are already on the base rule, so the card is
+   legible in every state; this only adds the hairline hatch, which would
+   otherwise draw over the photograph. */
+.selia-blog__feature[data-plate='1'] {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 10%);
+}
+
+.selia-blog__feature[data-plate='1']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: repeating-linear-gradient(
+    118deg,
+    rgb(255 255 255 / 8%) 0 1px,
+    transparent 1px 26px
+  );
+  -webkit-mask-image: radial-gradient(145% 130% at 82% 2%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(145% 130% at 82% 2%, #000 0%, transparent 78%);
+  pointer-events: none;
+}
+
+.selia-blog__panel {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 2vw, 26px);
+  width: 100%;
+  padding: clamp(20px, 2.5vw, 34px);
+}
+
+/* The category opens the composition at the top; the headline block is pushed
+   to the foot by `margin-block-start: auto`. A bottom-only panel leaves the
+   upper half of the card as an empty field, which reads as an unfinished
+   layout when there is no photo to fill it. */
+.selia-blog__kicker {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 10px;
+  color: rgb(255 255 255 / 84%);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.selia-blog__kicker::before {
+  content: '';
+  flex: none;
+  width: 26px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+/* Letter-spacing is an LTR-only refinement: it breaks the joins in Arabic. */
+[dir='ltr'] .selia-blog__kicker {
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.selia-blog__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-block-start: auto;
+}
+
+.selia-blog__date {
+  color: inherit;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* The footer carries the date on one edge and the read button on the other, so
+   both land in the darkest band of the scrim. */
+.selia-blog__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  margin-block-start: 8px;
+  color: rgb(255 255 255 / 78%);
+}
+
+.selia-blog__name {
+  color: var(--ink-1);
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.selia-blog__desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  color: var(--ink-3);
+  font-size: 0.88rem;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+
+/* the same elements, inverted for the feature's scrim */
+.selia-blog__feature .selia-blog__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  max-width: 22ch;
+  color: #fff;
+  font-size: clamp(1.35rem, 2.35vw, 2.1rem);
+  font-weight: 700;
+  line-height: 1.32;
+  text-wrap: balance;
+  text-shadow: 0 1px 18px rgb(0 0 0 / 28%);
+}
+
+[dir='ltr'] .selia-blog__feature .selia-blog__name {
+  letter-spacing: -0.02em;
+}
+
+.selia-blog__feature .selia-blog__desc {
+  max-width: 44ch;
+  color: rgb(255 255 255 / 82%);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+/* A real button, not an underlined label: on a photo the underline competes
+   with the scrim's edge, and at 0.86rem a bare label is easy to miss next to a
+   2rem headline. Glass by default so it does not punch a white hole in the
+   photograph; it fills on hover, which is where the affordance belongs. */
+.selia-blog__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.5em 1em;
+  border: 1px solid rgb(255 255 255 / 34%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 8%);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease,
+    gap 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.selia-blog__feature:hover .selia-blog__more {
+  gap: 13px;
+  border-color: #fff;
+  background: #fff;
+  color: #0b0b0b;
+}
+
+.selia-blog__feature:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 3px;
+}
+
+/* ── the rows ────────────────────────────────────────────────────────────── */
+.selia-blog__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* `flex: 1 1 auto`, not `0 0 auto`: with room to spare the rows grow so the
+   list's first and last hairlines land on the feature's top and bottom edges —
+   two columns that share an edge read as one composition. With no room (six
+   articles in a 470px column) `auto` as the basis means they size to their own
+   content instead of crushing the thumbnails. */
+.selia-blog__row {
+  flex: 1 1 auto;
+}
+
+/* No card frame. Two boxed rows beside a 470px feature read as two empty
+   boxes: the border draws attention to the padding the content does not fill.
+   A hairline divider carries the same separation and lets the row be as tall
+   as the column needs without looking hollow. */
+.selia-blog__rowlink {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.15vw, 16px);
+  height: 100%;
+  padding-block: clamp(14px, 1.6vw, 20px);
+  border-block-end: 1px solid var(--line-1);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 200ms ease;
+}
+
+.selia-blog__row:first-child .selia-blog__rowlink {
+  border-block-start: 1px solid var(--line-1);
+}
+
+.selia-blog__rowlink:hover {
+  border-block-end-color: var(--ink-3);
+}
+
+.selia-blog__row:first-child .selia-blog__rowlink:hover {
+  border-block-start-color: var(--ink-3);
+}
+
+.selia-blog__rowlink:focus-visible {
+  outline: 2px solid var(--selia-accent);
+  outline-offset: 3px;
+}
+
+/* The number is the column's rhythm. Tabular figures so 01…12 sit on the same
+   optical grid, and a fixed width so the headlines all start at one edge
+   whether the row has a thumbnail or not. */
+.selia-blog__ord {
+  flex: none;
+  width: clamp(24px, 2.2vw, 32px);
+  align-self: center;
+  color: var(--ink-3);
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.6;
+  transition: color 200ms ease;
+}
+
+.selia-blog__rowlink:hover .selia-blog__ord {
+  color: var(--selia-accent);
+}
+
+/* Square, not `align-self: stretch`. A stretched thumbnail takes the row's
+   height, so two rows whose copy runs to different lengths get thumbnails of
+   different heights — the column then reads as ragged rather than as a list.
+   A fixed square also gives every row the same floor height, which is what
+   makes the numbering line up down the column. */
+.selia-blog__thumb {
+  position: relative;
+  flex: none;
+  align-self: center;
+  width: clamp(84px, 8.2vw, 108px);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: calc(var(--selia-radius) * 0.45);
+  background: var(--surface-2);
+}
+
+.selia-blog__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.selia-blog__rowlink:hover .selia-blog__thumb img {
+  transform: scale(1.06);
+}
+
+.selia-blog__rowbody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.selia-blog__rowbody .selia-blog__date {
+  color: var(--ink-3);
+  font-size: 0.74rem;
+}
+
+/* A row is not a footnote to the feature: it is a choice between articles, so
+   its headline is set large enough to be read at a glance — and clamped to two
+   lines, because an unclamped headline in one row sets that row's height and
+   leaves its neighbour looking short. */
+.selia-blog__rowbody .selia-blog__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-size: clamp(1rem, 1.15vw, 1.14rem);
+  line-height: 1.5;
+}
+
+.selia-blog__chev {
+  flex: none;
+  align-self: center;
+  color: var(--ink-3);
+  font-size: 0.9rem;
+  opacity: 0.75;
+  transition:
+    color 200ms ease,
+    opacity 200ms ease,
+    transform 240ms ease;
+}
+
+.selia-blog__rowlink:hover .selia-blog__chev {
+  color: var(--selia-accent);
+  opacity: 1;
+  transform: translateX(-3px);
+}
+
+/* The arrow points along the reading direction: `sicon-arrow-left` is a
+   left-pointing glyph, which is "forward" in Arabic and "back" in English. */
+[dir='ltr'] .selia-blog__more .sicon-arrow-left,
+[dir='ltr'] .selia-blog__chev.sicon-arrow-left,
+[dir='ltr'] .selia-blog__all .sicon-arrow-left {
+  transform: scaleX(-1);
+}
+
+[dir='ltr'] .selia-blog__rowlink:hover .selia-blog__chev {
+  transform: scaleX(-1) translateX(-3px);
+}
+
+/* ── narrow ──────────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .selia--blog .selia__inner {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+
+  /* One column: the link drops under the tabs and closes the header, so the
+     header keeps reading top-to-bottom instead of pinning the link to a corner
+     that no longer exists. */
+  .selia--blog .selia__head,
+  .selia-blog__all,
+  .selia-blog__filters {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  /* Title, then the «كل المقالات» link, then the tab bar closing the header.
+     Putting the link under the tabs left the hairline between the two, so the
+     header read as title / rule / stray link. */
+  .selia-blog__all {
+    grid-row: 2;
+  }
+
+  .selia-blog__filters {
+    grid-row: 3;
+    justify-self: stretch;
+  }
+
+  .selia-blog {
+    grid-row: 4;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .selia--blog .selia-empty {
+    grid-row: 4;
+  }
+
+  .selia-blog__feature {
+    min-height: clamp(320px, 62vw, 400px);
+  }
+
+  .selia-blog__feature .selia-blog__name {
+    max-width: 18ch;
+  }
+
+  /* Stacked, the rows no longer have a height to share — let them size to
+     their own content instead of stretching to an absent sibling. */
+  .selia-blog__row {
+    flex: 0 0 auto;
+  }
+
+  .selia-blog__thumb {
+    align-self: center;
+    width: 84px;
+  }
+}
+
+@media (max-width: 560px) {
+  .selia-blog__rowbody .selia-blog__desc {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+
+  .selia-blog__thumb {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selia-blog__shot img,
+  .selia-blog__thumb img,
+  .selia-blog__more,
+  .selia-blog__all,
+  .selia-blog__chip::after,
+  .selia-blog__chev {
+    transition: none;
+  }
+
+  .selia-blog__feature:hover .selia-blog__shot img,
+  .selia-blog__rowlink:hover .selia-blog__thumb img,
+  .selia-blog__rowlink:hover .selia-blog__chev {
+    transform: none;
+  }
+}

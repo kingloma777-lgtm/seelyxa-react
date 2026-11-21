@@ -1,0 +1,159 @@
+/* ==========================================================================
+   selia-statistics — big figures with a line under each.
+   ========================================================================== */
+
+.selia-stats {
+  display: grid;
+  /* auto-fit, not a fixed column count: four stats on a desktop and two on a
+     phone is the same rule, and a merchant who adds a fifth row does not get a
+     lone card stranded on a second line. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: var(--selia-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.selia-stats__item {
+  --stat-color: var(--selia-accent);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: clamp(18px, 2.4vw, 28px) clamp(12px, 1.6vw, 20px);
+  border: 1px solid var(--line-1);
+  border-radius: var(--selia-radius);
+  background: var(--surface-1);
+  text-align: center;
+
+  /* The strip arrives as a sequence: each card rises a short distance with a
+     per-index delay, then rests in exactly the layout the grid put it in. The
+     hidden state is only the motion's first frame — `.is-visible` (added once
+     by the shared `useReveal`) is the settled state, and reduced motion never
+     gets the hidden half at all (see the media query below).
+     The entrance rides the individual `translate` property and the stagger
+     lives inside the shorthand, so the pointer lift (`transform`, no delay)
+     answers instantly instead of inheriting the entrance's delay. */
+  @media (prefers-reduced-motion: no-preference) {
+    &[data-reveal] {
+      opacity: 0;
+      translate: 0 14px;
+      transition:
+        opacity 0.5s ease calc(min(var(--reveal-i, 0), 10) * 0.06s),
+        translate 0.55s cubic-bezier(0.22, 1, 0.36, 1) calc(min(var(--reveal-i, 0), 10) * 0.06s),
+        border-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    &.is-visible {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  /* The merchant's colour says "this is mine" only when the pointer asks for
+     it: a lift plus the accent easing into the border, never a repaint of
+     the whole card. (Reduced motion kills the lift below.) */
+  &:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--stat-color) 40%, var(--line-1));
+    box-shadow: 0 16px 34px -24px color-mix(in srgb, var(--stat-color) 60%, transparent);
+  }
+}
+
+.selia-stats__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-block-end: 4px;
+  border-radius: 14px;
+  /* The accent as a TINT with an accent-coloured glyph, not a solid block:
+     a merchant's pale accent still shows an icon, and a near-black one still
+     shows the square. */
+  background: color-mix(in srgb, var(--stat-color) 12%, var(--surface-1));
+  color: var(--stat-color);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.selia-stats__number {
+  /* the figure keeps the page ink — see the component header for why */
+  font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ink-1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* "big figures with a line under each" — the reference's rule, returned as an
+   accent echo: short, centred, and mixed with the card's own colour so the row
+   reads as a family of accents at rest. It carries no information (it is
+   aria-hidden in the markup), it only structures the figure from the label. */
+.selia-stats__rule {
+  width: clamp(22px, 2.4vw, 34px);
+  height: 2px;
+  margin-block: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--stat-color) 55%, transparent);
+}
+
+.selia-stats__label {
+  font-size: clamp(0.92rem, 1.1vw, 1.05rem);
+  font-weight: 600;
+  color: var(--ink-1);
+}
+
+.selia-stats__desc {
+  margin: 0;
+  max-width: 30ch;
+  font-size: 0.86rem;
+  line-height: 1.65;
+  color: var(--ink-3);
+}
+
+@media (max-width: 480px) {
+  .selia-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .selia-stats__item {
+    padding: 16px 10px;
+  }
+
+  .selia-stats__icon {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+}
+
+/* No JavaScript, no observer — so no `.is-visible` ever arrives. The hidden
+   state above is the motion's FIRST frame, and a first frame is only honest
+   when something will play it: without JS the row is shipped settled, exactly
+   like the server html promised (same guarantee `[data-armed]` buys the
+   orbit block). */
+@media (scripting: none) {
+  .selia-stats__item[data-reveal] {
+    opacity: 1;
+    translate: none;
+    transition: none;
+  }
+}
+
+/* A visitor who asked the system to stop moving things gets the settled row
+   at once (useReveal already adds `.is-visible` to everything in that state);
+   the pointer lift is killed too, so nothing on this block animates at all. */
+@media (prefers-reduced-motion: reduce) {
+  .selia-stats__item,
+  .selia-stats__item:hover,
+  .selia-stats__item[data-reveal]:hover {
+    transition: none;
+    translate: none;
+    transform: none;
+  }
+}

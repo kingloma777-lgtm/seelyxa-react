@@ -1,0 +1,286 @@
+/* ==========================================================================
+   Circle Links — «جميع الأقسام»
+
+   A category index, not a picture gallery: small round thumbnails on the
+   page's own background, a name and a one-line promise under each, six to a
+   row. The reference the merchant supplied is deliberately quiet — the
+   catalogue is the content, so the chrome stays out of its way.
+
+   Everything here is scoped to `.selia--circle-links`. The 26 ported Selia
+   blocks share one renderer (`SeliaAuto`, kind "tiles") and one stylesheet;
+   a bare `.selia-tiles__media` rule would re-shape square-links and the
+   banner families too.
+
+   Imported AFTER `selia-generated` on purpose: that file sets
+   `overflow: hidden`, `border-radius: var(--selia-radius)` and an absolutely
+   positioned gradient caption on every tile, and source order is how this
+   block wins without an `!important`.
+   ========================================================================== */
+
+.selia--circle-links {
+  /* Six columns of 96px medallions on a 1440 canvas — the reference's
+     geometry, expressed so it survives a narrower screen. */
+  --clinks-cols: 6;
+  --clinks-gap-x: 20px;
+  --clinks-gap-y: 26px;
+  --clinks-circle: clamp(74px, 6.7vw, 96px);
+  --clinks-rule: color-mix(in srgb, var(--selia-accent) 62%, var(--ink-3));
+  /* (100% − (cols − 1) × gap) / cols, minus a hair so sub-pixel rounding can
+     never push the sixth item onto a second row. */
+  --clinks-cell: calc(
+    (100% - (var(--clinks-cols) - 1) * var(--clinks-gap-x)) / var(--clinks-cols) - 0.02px
+  );
+
+  padding-block: clamp(32px, 4vw, 56px);
+}
+
+/* The merchant's «تكديس الفجوات» switch. Declared here so the tight variant
+   moves the column maths with it — a gap change that leaves `--clinks-cell`
+   alone reflows six columns into five. */
+.selia--circle-links[data-tight_gap='1'] {
+  --clinks-gap-x: 10px;
+  --clinks-gap-y: 14px;
+}
+
+/* ── heading ─────────────────────────────────────────────────────────────── */
+
+.selia--circle-links .selia__head {
+  gap: 0;
+  margin-block-end: clamp(24px, 3vw, 40px);
+}
+
+.selia--circle-links .selia__title {
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: normal;
+  color: var(--ink-1);
+}
+
+.selia--circle-links .selia__subtitle {
+  margin-block-start: 8px;
+  max-width: 46ch;
+  font-size: clamp(0.95rem, 1.25vw, 1.125rem);
+  line-height: 1.8;
+  color: var(--ink-3);
+}
+
+/* The two-segment rule under the subtitle: a 2px hairline split by a gap in
+   the middle, drawn in the store's own accent. `::after` on the header rather
+   than an extra element — no markup change, and it disappears with the header
+   when the merchant clears the title.
+
+   Mixed with the muted ink so the ornament reads as a hairline and not as two
+   bars of the brand colour: `--color-primary` is whatever the merchant picked,
+   and a saturated red (Salla's untouched default) is louder than a 2px
+   ornament should ever be. The mix also survives the dark canvas, where a raw
+   accent can sink into the page. */
+.selia--circle-links .selia__head::after {
+  content: '';
+  width: 160px;
+  height: 2px;
+  margin-block-start: 18px;
+  background: linear-gradient(
+    90deg,
+    var(--clinks-rule) 0 40%,
+    transparent 40% 60%,
+    var(--clinks-rule) 60% 100%
+  );
+  border-radius: 2px;
+}
+
+/* ── the row of categories ───────────────────────────────────────────────── */
+
+/* Flex, not grid, and that is the whole point: a merchant with seven or nine
+   categories would otherwise get a last row glued to the reading edge with a
+   ragged hole beside it. `justify-content: center` centres whatever is left
+   over, so every count looks composed — six per row when there are six.
+
+   Guarded with `:not([data-as_slider])`: the merchant's «عرض كعناصر متحركة»
+   switch turns the same list into a horizontal scroller, and `flex-wrap: wrap`
+   would stack the cards instead of scrolling them. */
+.selia--circle-links:not([data-as_slider='1']) .selia-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--clinks-gap-y) var(--clinks-gap-x);
+}
+
+.selia--circle-links:not([data-as_slider='1']) .selia-tiles > * {
+  flex: 0 0 var(--clinks-cell);
+  width: var(--clinks-cell);
+  max-width: var(--clinks-cell);
+  min-width: 0;
+}
+
+.selia--circle-links .selia-tiles__item {
+  overflow: visible;
+  border-radius: 0;
+  background: none;
+}
+
+.selia--circle-links .selia-tiles__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── the medallion ───────────────────────────────────────────────────────── */
+
+.selia--circle-links .selia-tiles__media {
+  position: relative;
+  flex: 0 0 auto;
+  width: var(--clinks-circle);
+  height: var(--clinks-circle);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--line-1);
+  /* An outline instead of a pseudo-element: the media clips its own overflow
+     to keep the round crop, so anything drawn outside it would be cut off. */
+  outline: 1px solid transparent;
+  outline-offset: 5px;
+  transition:
+    outline-color 260ms ease,
+    outline-offset 260ms ease;
+}
+
+.selia--circle-links .selia-tiles__media picture,
+.selia--circle-links .selia-tiles__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.selia--circle-links .selia-tiles__media img {
+  object-fit: cover;
+  transition: transform 620ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ── the label under the medallion ───────────────────────────────────────── */
+
+.selia--circle-links .selia-tiles__caption {
+  position: static;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-block-start: 14px;
+  padding: 0;
+  background: none;
+  color: var(--ink-1);
+  text-align: center;
+}
+
+.selia--circle-links .selia-tiles__title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: normal;
+  color: var(--ink-1);
+  text-wrap: balance;
+}
+
+.selia--circle-links .selia-tiles__subtitle {
+  margin-block-start: 2px;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--ink-3);
+  opacity: 1;
+  text-wrap: pretty;
+}
+
+/* Latin type only: Arabic is cursive and a negative track breaks its joins. */
+html[lang='en'] .selia--circle-links .selia__title {
+  letter-spacing: -0.025em;
+}
+
+html[lang='en'] .selia--circle-links .selia-tiles__title {
+  letter-spacing: -0.025em;
+}
+
+/* ── interaction ─────────────────────────────────────────────────────────── */
+
+@media (hover: hover) and (pointer: fine) {
+  .selia--circle-links .selia-tiles__link:hover .selia-tiles__media,
+  .selia--circle-links .selia-tiles__link:focus-visible .selia-tiles__media {
+    /* Same muted accent as the heading rule, so the ring belongs to the
+       ornament rather than introducing a second red. */
+    outline-color: color-mix(in srgb, var(--clinks-rule) 70%, transparent);
+    outline-offset: 7px;
+  }
+
+  .selia--circle-links .selia-tiles__link:hover img,
+  .selia--circle-links .selia-tiles__link:focus-visible img {
+    transform: scale(1.07);
+  }
+
+  .selia--circle-links .selia-tiles__link:hover .selia-tiles__subtitle {
+    color: var(--ink-1);
+  }
+}
+
+.selia--circle-links .selia-tiles__subtitle {
+  transition: color 220ms ease;
+}
+
+.selia--circle-links .selia-tiles__link:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selia--circle-links .selia-tiles__media,
+  .selia--circle-links .selia-tiles__media img,
+  .selia--circle-links .selia-tiles__subtitle {
+    transition: none;
+  }
+
+  .selia--circle-links .selia-tiles__link:hover img {
+    transform: none;
+  }
+}
+
+/* ── responsive ──────────────────────────────────────────────────────────── */
+
+/* The generated grid drops to two columns at this width; six medallions at
+   96px still fit comfortably, four is the point where the labels stop
+   competing with the thumbnails. */
+@media (max-width: 1023.98px) {
+  .selia--circle-links {
+    --clinks-cols: 4;
+    --clinks-gap-x: 18px;
+    --clinks-gap-y: 24px;
+  }
+}
+
+@media (max-width: 639.98px) {
+  .selia--circle-links {
+    --clinks-cols: 3;
+    --clinks-gap-x: 12px;
+    --clinks-gap-y: 22px;
+    --clinks-circle: clamp(64px, 17vw, 82px);
+  }
+
+  .selia--circle-links .selia-tiles__caption {
+    margin-block-start: 10px;
+  }
+
+  .selia--circle-links .selia-tiles__title {
+    font-size: 0.9375rem;
+  }
+
+  .selia--circle-links .selia-tiles__subtitle {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+  }
+
+  .selia--circle-links .selia__head::after {
+    margin-block-start: 14px;
+  }
+}

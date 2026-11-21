@@ -1,0 +1,216 @@
+/* ==========================================================================
+   Before & After — «قبل وبعد»
+
+   The block is a single interaction and it was missing its control. What
+   shipped was a 2px white rule with a transparent range input on top: on a
+   light photo the seam vanished, and nothing on screen said the picture could
+   be dragged at all. This stylesheet adds the grip, makes the rule legible on
+   any artwork, and fixes three right-to-left defects that only show up in
+   Arabic — which is the language this store actually ships in.
+
+   Scoped to `.selia--before-after` and imported after `selia-generated`, so
+   the shared `.selia-ba__*` base stays the fallback for every other block.
+   ========================================================================== */
+
+.selia--before-after {
+  --ba-grip: clamp(46px, 3.4vw, 54px);
+}
+
+/* ── the frame ───────────────────────────────────────────────────────────── */
+
+.selia--before-after .selia-ba__frame {
+  position: relative;
+  isolation: isolate;
+  aspect-ratio: 16 / 9;
+  border-radius: clamp(16px, 1.5vw, 22px);
+  background: var(--line-1);
+  touch-action: pan-y;
+}
+
+.selia--before-after .selia-ba__img {
+  /* Without this a slow drag lifts the image into a native drag ghost and the
+     comparison freezes mid-gesture. */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── the seam ────────────────────────────────────────────────────────────────
+   `clip-path` is physical while `inset-inline-start` is logical, so the base
+   rule cut the «before» layer from the left while the rule sat on the right:
+   in Arabic the handle and the seam ended up on opposite sides of the frame,
+   metres apart at 25%. The layer now grows from the inline-start edge on both
+   sides of the mirror, and the vertical mode (block axis, never mirrored)
+   keeps the original inset. */
+.selia--before-after .selia-ba__clip {
+  clip-path: inset(0 calc(100% - var(--ba-split, 50%)) 0 0);
+}
+
+html[dir='rtl'] .selia--before-after .selia-ba__clip {
+  clip-path: inset(0 0 0 calc(100% - var(--ba-split, 50%)));
+}
+
+.selia--before-after .selia-ba[data-vertical='yes'] .selia-ba__clip {
+  clip-path: inset(0 0 calc(100% - var(--ba-split, 50%)) 0);
+}
+
+/* A hairline with a shadow, not a hairline. Pure white on a sunlit wall is
+   invisible; the shadow gives it an edge on light and dark artwork alike. */
+.selia--before-after .selia-ba__line {
+  z-index: 2;
+  width: 2px;
+  background: var(--ba-line, #fff);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 12%),
+    0 0 18px rgb(0 0 0 / 32%);
+  overflow: visible;
+}
+
+.selia--before-after .selia-ba[data-vertical='yes'] .selia-ba__line {
+  width: auto;
+  height: 2px;
+}
+
+/* ── the grip ────────────────────────────────────────────────────────────────
+   Centred with negative insets on all four sides plus `margin: auto` rather
+   than `translate(-50%)`: a percentage translate is always physical X, so it
+   would sit half a grip off the seam in Arabic. Negative `inset` is symmetric
+   and therefore direction-blind. */
+.selia--before-after .selia-ba__grip {
+  position: absolute;
+  inset: calc(var(--ba-grip) / -2);
+  margin: auto;
+  display: grid;
+  place-items: center;
+  width: var(--ba-grip);
+  height: var(--ba-grip);
+  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 72%);
+  background: rgb(255 255 255 / 94%);
+  box-shadow:
+    0 10px 26px rgb(0 0 0 / 26%),
+    0 1px 2px rgb(0 0 0 / 22%),
+    0 0 0 1px rgb(0 0 0 / 6%);
+  color: #16181d;
+  pointer-events: none;
+  transition:
+    transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 220ms ease;
+}
+
+.selia--before-after .selia-ba__grip svg {
+  width: 58%;
+  height: 58%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.selia--before-after .selia-ba[data-vertical='yes'] .selia-ba__grip svg {
+  rotate: 90deg;
+}
+
+/* ── labels ──────────────────────────────────────────────────────────────── */
+
+.selia--before-after .selia-ba__label {
+  z-index: 3;
+  inset-block-start: 16px;
+  padding: 0.42em 1.05em;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 26%);
+  background: rgb(12 14 18 / 32%);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  color: #fff;
+  font-size: clamp(0.75rem, 0.95vw, 0.8125rem);
+  font-weight: 600;
+  letter-spacing: normal;
+  line-height: 1.4;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 38%);
+  pointer-events: none;
+}
+
+.selia--before-after .selia-ba__label--start {
+  inset-inline-start: 16px;
+}
+
+.selia--before-after .selia-ba__label--end {
+  inset-inline-end: 16px;
+}
+
+/* ── the control ─────────────────────────────────────────────────────────────
+   The range stays transparent and covers the frame — dragging anywhere works,
+   not just on the grip — but it must announce itself to the keyboard and to
+   the pointer. */
+.selia--before-after .selia-ba__range {
+  z-index: 4;
+  cursor: ew-resize;
+}
+
+.selia--before-after .selia-ba[data-vertical='yes'] .selia-ba__range {
+  cursor: ns-resize;
+}
+
+.selia--before-after .selia-ba__range:focus-visible {
+  outline: none;
+}
+
+/* A dark ring hugging the grip and a white one outside it: on a sunlit wall
+   the white ring is the one that shows, on a night shot the dark one. A single
+   colour would vanish on one of the two. */
+.selia--before-after .selia-ba__frame:has(.selia-ba__range:focus-visible) .selia-ba__grip {
+  box-shadow:
+    0 0 0 3px rgb(0 0 0 / 55%),
+    0 0 0 6px rgb(255 255 255 / 95%),
+    0 10px 26px rgb(0 0 0 / 26%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .selia--before-after .selia-ba__frame:hover .selia-ba__grip {
+    transform: scale(1.06);
+  }
+}
+
+.selia--before-after .selia-ba__frame:has(.selia-ba__range:active) .selia-ba__grip {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selia--before-after .selia-ba__grip {
+    transition: none;
+  }
+
+  .selia--before-after .selia-ba__frame:hover .selia-ba__grip,
+  .selia--before-after .selia-ba__frame:has(.selia-ba__range:active) .selia-ba__grip {
+    transform: none;
+  }
+}
+
+/* ── responsive ──────────────────────────────────────────────────────────────
+   16:9 on a phone is a letterbox: the two halves get 200px of height each and
+   the comparison is unreadable. 4:3 gives the artwork room to be looked at. */
+@media (max-width: 639.98px) {
+  .selia--before-after {
+    --ba-grip: 44px;
+  }
+
+  .selia--before-after .selia-ba__frame {
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+  }
+
+  .selia--before-after .selia-ba__label {
+    inset-block-start: 10px;
+    padding: 0.34em 0.85em;
+    font-size: 0.75rem;
+  }
+
+  .selia--before-after .selia-ba__label--start {
+    inset-inline-start: 10px;
+  }
+
+  .selia--before-after .selia-ba__label--end {
+    inset-inline-end: 10px;
+  }
+}
