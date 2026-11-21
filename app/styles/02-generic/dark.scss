@@ -13,8 +13,14 @@ html.dark {
     color: var(--ink-1);
   }
 
-  /* soft block backgrounds become transparent — the page canvas carries them */
-  .s-block,
+  /* Soft block backgrounds become transparent — the page canvas carries them.
+     The SECTION reads its level (so a band the merchant set survives the night
+     flip); the block's own children stay transparent, because painting them
+     the band colour would hide anything they are supposed to sit on. */
+  .s-block {
+    background-color: var(--bg-section, transparent);
+  }
+
   [class^='s-block__'] {
     background: transparent;
   }
@@ -102,11 +108,15 @@ html.dark {
     border-color: var(--line-2) !important;
   }
 
+  /* The day ramp is the TEXT ink at low alpha; at night that ink is near
+     white, so a card would glow. `--shadow-night` is its own token (and the
+     shadow setting re-points it), so "no shadows" still means no shadows
+     after dark. */
   .shadow,
   .shadow-md,
   .shadow-lg,
   .shadow-xl {
-    box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.7) !important;
+    box-shadow: var(--shadow-night) !important;
   }
 
   /* selection + focus colours follow the night surface too */

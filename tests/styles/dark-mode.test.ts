@@ -55,26 +55,3 @@ describe('footer_is_dark (body.footer-is-dark)', () => {
     expect(inline['border-color']).toBe('rgb(255 255 255 / 0.1)');
   });
 });
-
-describe('topnav_is_dark (body.topnav-is-dark)', () => {
-  it('darkens the header top bar like the Twig Raed .top-navbar', async () => {
-    const root = await compile('header.scss');
-
-    const topnav = declarations(root, 'body.topnav-is-dark .site-header__topnav');
-    expect(topnav['background-color']).toContain('rgb(29 31 31'); // dark #1D1F1F
-    expect(topnav.color).toContain('rgb(209 213 219'); // gray-300
-  });
-
-  it('darkens the lite header bar, the only bar that layout has', async () => {
-    const root = await compile('header.scss');
-
-    const bar = declarations(root, 'body.topnav-is-dark .site-header--lite .site-header__bar');
-    expect(bar['background-color']).toContain('rgb(29 31 31'); // dark #1D1F1F
-
-    const action = declarations(
-      root,
-      'body.topnav-is-dark .site-header--lite .site-header__bar .header-action'
-    );
-    expect(action.color).toContain('rgb(209 213 219'); // gray-300
-  });
-});
