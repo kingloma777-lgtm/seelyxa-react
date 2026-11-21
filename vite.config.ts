@@ -3,7 +3,50 @@ import { twilightReact } from '@salla.sa/twilight-theme-engine/vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
 
+// The shell exports HTTP_PROXY/HTTPS_PROXY/ALL_PROXY pointing at a loopback
+// proxy. Wrangler passes them into workerd, so every SSR fetch() is proxied;
+// on Windows that crashes the native runtime after the first heavy render
+// ("There was an access violation in the runtime"), miniflare's dispatchFetch
+// rejects with `fetch failed`, and Vite paints the full-page error overlay /
+// restarts the server. Direct HTTPS works here, so dev runs without a proxy.
+// `scripts/dev-local.cjs` already removes the variables before Vite is loaded;
+// this is the second line of defence for anyone running `vite dev` directly.
+// Set SEELYXA_KEEP_PROXY=1 to opt out (e.g. on a machine that needs a proxy).
+if (process.env.SEELYXA_KEEP_PROXY !== '1') {
+  for (const key of [
+    'HTTP_PROXY',
+    'HTTPS_PROXY',
+    'ALL_PROXY',
+    'http_proxy',
+    'https_proxy',
+    'all_proxy',
+  ] as const) {
+    delete process.env[key];
+  }
+}
+// Never route the dev server's own loopback traffic through a proxy that may
+// be injected later (or kept via SEELYXA_KEEP_PROXY=1).
+const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '::1', '[::1]', '0.0.0.0'];
+for (const key of ['NO_PROXY', 'no_proxy'] as const) {
+  const current = (process.env[key] ?? '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  process.env[key] = [...new Set([...current, ...LOOPBACK_HOSTS])].join(',');
+}
+
 export default defineConfig(async () => ({
+  server: {
+    hmr: {
+      // workerd on Windows can still die with a native "access violation" on a
+      // cold render. `scripts/dev-local.cjs` restarts it and the next request
+      // is 200, but Vite would otherwise cover the preview with a full-page
+      // overlay for that self-healing error. Errors are still printed in the
+      // dev-server terminal; set SEELYXA_SHOW_OVERLAY=1 when debugging real
+      // theme errors so they show up in the browser too.
+      overlay: process.env.SEELYXA_SHOW_OVERLAY === '1',
+    },
+  },
   plugins: [
     // twilightReact() registers and configures the SSR runtime, so a theme
     // configures no server runtime of its own.
@@ -118,6 +161,13 @@ export default defineConfig(async () => ({
           if (id.includes('node_modules/@tanstack/react-router/')) {
             return 'vendor-router';
           }
+          /* The theme no longer DECLARES `@uidotdev/usehooks` (it never imported
+             it), but `@salla.sa/twilight-theme-engine` does — its BrandsPage,
+             dropdown and ThankYouPage bundles import it. The rule therefore
+             still fires, and must stay: without it the engine's hooks land in
+             the engine chunk and every page that touches a dropdown pays for
+             them. Removing the rule because the package left our package.json
+             would silently undo the split. */
           if (id.includes('node_modules/@uidotdev/usehooks/')) {
             return 'vendor-hooks';
           }

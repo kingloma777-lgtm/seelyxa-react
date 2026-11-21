@@ -33,9 +33,6 @@ importers:
       '@tanstack/virtual-file-routes':
         specifier: ~1.162.0
         version: 1.162.0
-      '@uidotdev/usehooks':
-        specifier: ^2.4.1
-        version: 2.4.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       fslightbox:
         specifier: ^3.8.0
         version: 3.8.0

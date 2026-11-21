@@ -4,14 +4,19 @@
   "description": "seelyxa-react - a Salla React theme",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "node scripts/dev-local.cjs",
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "check:manifest": "twilight-check-manifest",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "check:selia": "node scripts/verify-selia.cjs",
+    "test:selia": "vitest run tests/components/home/SeliaBlocks.ssr-csr.test.tsx tests/components/home/SeliaAllBlocks.ssr-csr.test.tsx",
+    "test:selia:all": "vitest run tests/components/home/SeliaAllBlocks.ssr-csr.test.tsx",
+    "audit:design": "node scripts/audit-design-system.cjs",
+    "audit:design:detail": "node scripts/audit-design-system.cjs --detail"
   },
   "dependencies": {
     "@salla.sa/twilight-components-react": "^3.0.0-beta.1",
@@ -21,7 +26,6 @@
     "@tanstack/react-router-devtools": "~1.167.2",
     "@tanstack/react-start": "~1.168.57",
     "@tanstack/virtual-file-routes": "~1.162.0",
-    "@uidotdev/usehooks": "^2.4.1",
     "fslightbox": "^3.8.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
