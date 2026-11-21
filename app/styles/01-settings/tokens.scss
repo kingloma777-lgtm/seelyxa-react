@@ -1,0 +1,272 @@
+/* ==========================================================================
+   DESIGN TOKENS — the semantic layer every component reads.
+
+   `01-settings/global.scss` owns the PALETTE (surfaces, ink, lines) and the
+   night flip. This file owns the ROLES built on top of it: type, background
+   levels, radius, shadow, spacing, container and motion. A component that
+   reads a role never needs to know which literal it resolves to, and a
+   merchant who changes one role changes every component that reads it.
+
+   THE RULE
+   --------
+   A component may declare a LOCAL override of a token for its own subtree —
+   that is how a block gets its identity — but it may not introduce a new
+   literal for something the system already has a role for. `npm run
+   audit:design` counts what is left.
+
+   ── THE THREE BACKGROUND LEVELS ──────────────────────────────────────────
+   Store → Section → Card. They are deliberately NOT the same value, and the
+   inheritance is one-way: each level DEFAULTS to the level above it.
+
+     --bg-store     the page canvas. Set by the theme (and flipped at night).
+     --bg-section   a band inside the page. Defaults to `transparent`, which
+                    means "show the store canvas through me".
+     --bg-card      a surface that sits ON a section. Defaults to the
+                    merchant's card colour (`--pc-bg`), then to `--surface-1`.
+
+   That gives the three cases the merchant asked for, with no component
+   needing to know the store's colour:
+
+     1. A block that should blend        → sets nothing. Transparent section,
+                                           cards read `--bg-card`.
+     2. A block with its own band        → sets `--bg-section` only. Its cards
+                                           keep the merchant's card colour, so
+                                           they still read as raised.
+     3. A block whose cards must pop     → sets `--bg-section` AND
+                                           `--bg-card` together. The pair is
+                                           the unit: a band that does not also
+                                           set the card colour leaves cream
+                                           cards on a cream band.
+
+   Why the defaults live where they do: `--bg-card` resolves `--pc-bg`, and
+   `--pc-bg` is written INLINE on `.app-inner` by `ThemeLayout` (the merchant's
+   card settings). A token declared on `:root` would resolve `--pc-bg` in
+   `:root`'s context — where it does not exist — and fall through to the
+   literal. So the card level is declared on `.app-inner`, the same element
+   that carries `--pc-*` (`04-components/product-card.scss`).
+
+   ── MOTION ───────────────────────────────────────────────────────────────
+   Durations, easings and the standard travel distance are tokens so a block
+   does not invent its own curve. The VARIANTS (fade / slide / scale / reveal)
+   are per-component decisions — a menu should not enter like a hero — but
+   they all spend the same durations and curves, which is what makes the site
+   feel like one thing.
+
+   ── THE FIVE SCALE HOOKS ─────────────────────────────────────────────────
+   Five unitless multipliers sit between the merchant's panel and the scales
+   below. They are declared here with their neutral value (`1`) and re-pointed
+   in `global-settings.scss` from the merchant's choice, so a store that never
+   opens the panel computes `calc(16px * 1)` — byte-for-byte the value it
+   shipped with, and provably so, because there is no second literal to drift.
+
+     --type-scale     every font size          (global_type_scale)
+     --line-scale     every line height        (global_line_height)
+     --density        every padding/margin/gap (global_density)
+     --radius-scale   the whole corner ramp    (global_radius)
+     --motion-scale   every duration           (global_motion_speed)
+
+   A multiplier and not a list of overridden sizes: the merchant asks for
+   "smaller type" once and every size — including the sizes a future block
+   adds — follows. A list would freeze the scale at today's eight steps.
+
+   `--radius-scale` is derived, not chosen: the panel offers card radii
+   (0/8/12/18/22px) and 22px is the theme's own `--radius-xl`, so
+   `scale = choice / 22`. That keeps the ramp proportional instead of
+   flattening every corner to one number, and it makes `--radius-xl` equal the
+   merchant's choice exactly — which is what `--radius-card` reads.
+   ========================================================================== */
+
+:root {
+  /* ── the scale hooks (see above) ───────────────────────────────────────── */
+  --type-scale: 1;
+  --line-scale: 1;
+  --density: 1;
+  --radius-scale: 1;
+  --motion-scale: 1;
+
+  /* ── type roles ────────────────────────────────────────────────────────
+     `--font-main` is the store's body face; the engine writes it from the
+     merchant's setting. The theme's two extra roles default to the same
+     family so a store that never touches them is consistent by construction. */
+  --font-body: var(--font-main, system-ui, -apple-system, 'Segoe UI', sans-serif);
+  --font-heading: var(--font-main, system-ui, -apple-system, 'Segoe UI', sans-serif);
+  /* the editorial serif the magazine-style blocks set headlines in */
+  --font-display: 'Playfair Display', Georgia, serif;
+  /* tabular / technical numerals (counters, coordinates, prices in tables) */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* The handwritten face the editorial blocks sign a headline in. It is a ROLE,
+     not a per-block literal: two blocks (portal hero, stamp story) share it, and
+     a merchant who swaps it once moves both. Loaded by `app.scss`'s single font
+     request, with a system fallback so a blocked font never breaks the line. */
+  --font-script: 'La Belle Aurore', 'Aref Ruqaa', cursive;
+  /* The condensed display face of the auth surface. `login-auth` (our sheet)
+     and `login-modal` (the hosted iframe's skin) are one visual surface in two
+     stylesheets, so the stack is declared once here instead of twice. */
+  --font-condensed: 'Barlow Condensed', 'Hanken Grotesk', 'Inter', sans-serif;
+
+  /* the scale — a 1.25 ratio off a 16px body, floored for Arabic's taller
+     ascenders (anything under 12px stops being readable in Cairo/Tajawal).
+     Every step is multiplied by `--type-scale`, so one setting moves all of
+     them and a block that writes `text-sm` moves with them. */
+  --fs-xs: calc(0.75rem * var(--type-scale));    /* 12px — captions, legal */
+  --fs-sm: calc(0.8125rem * var(--type-scale));  /* 13px — card meta */
+  --fs-base: calc(1rem * var(--type-scale));     /* 16px — body */
+  --fs-md: calc(1.125rem * var(--type-scale));   /* 18px — lead paragraph */
+  --fs-lg: calc(1.375rem * var(--type-scale));   /* 22px — card title */
+  --fs-xl: calc(1.75rem * var(--type-scale));    /* 28px — block title */
+  --fs-2xl: calc(2.25rem * var(--type-scale));   /* 36px — page title */
+  --fs-3xl: calc(3rem * var(--type-scale));      /* 48px — hero */
+
+  --lh-tight: calc(1.15 * var(--line-scale));
+  --lh-snug: calc(1.35 * var(--line-scale));
+  --lh-normal: calc(1.6 * var(--line-scale));
+  --lh-loose: calc(1.85 * var(--line-scale));
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-bold: 700;
+  --fw-black: 800;
+  /* The weight a heading is set in. `global_heading_weight` writes this
+     variable, and — exactly like `--radius-button` — it ships NO default here:
+     the store has two heading families with two different designed weights
+     (a block title is 700, an engine `<h1>`…`<h6>` is 600), so the fallback
+     belongs to the surface that uses it. A single `:root` default would have
+     silently re-weighted one of the two the moment the other was unified. */
+
+  --ls-tight: -0.02em;
+  --ls-normal: 0;
+  --ls-wide: 0.08em;
+  /* the small-caps eyebrow every editorial block uses */
+  --ls-eyebrow: 0.24em;
+
+  /* ── background levels (store → section → card) ───────────────────────── */
+  --bg-section: transparent;
+  --bg-card-soft: var(--surface-2);
+
+  /* ── status ─────────────────────────────────────────────────────────────
+     One red family, three roles. The store used to carry four unrelated reds
+     (`#dc2626`, `#ff443a`, `#ff6767`, `#cf3b3b`) for the same meaning, so a
+     merchant could not restyle "danger" without hunting them all.
+
+       --danger         on a light surface (borders, badges, delete)
+       --danger-on-ink  on the header's dark ink (it needs a lighter red to
+                        clear contrast, which is why it is a second role and
+                        not the same token)
+       --danger-soft    the tint behind a danger chip */
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-on-ink: #ff443a;
+  --danger-on-ink-hover: #ff6b62;
+  --danger-soft: #fdeeee;
+  /* the red that reads ON a red fill (a spinner inside a danger button) */
+  --danger-bright: #ff6767;
+  --danger-ink-on-soft: #cf3b3b;
+
+  /* ── radius ──────────────────────────────────────────────────────────────
+     One ramp, multiplied by `--radius-scale`. `--radius-full` is deliberately
+     NOT scaled: a pill is a shape decision, not a corner size, and collapsing
+     it with the rest would turn every badge and avatar into a square the
+     moment the merchant asks for square cards. */
+  --radius-xs: calc(4px * var(--radius-scale));
+  --radius-sm: calc(8px * var(--radius-scale));
+  --radius-md: calc(12px * var(--radius-scale));
+  --radius-lg: calc(18px * var(--radius-scale));
+  --radius-xl: calc(22px * var(--radius-scale));
+  --radius-2xl: calc(28px * var(--radius-scale));
+  --radius-full: 999px;
+
+  /* role aliases — a component says what it IS, not how round.
+     `--radius-button` is NOT here: buttons come in three shipped sizes with
+     three different corners (`.btn` is 16px, `.selia-cta` is a pill, Salla's
+     `<s-button>` paints its own), so a single shipped default would flatten
+     them. Like `--radius-media`, the role exists only when the merchant sets
+     it, and each button surface reads `var(--radius-button, <its own corner>)`. */
+  --radius-card: var(--radius-xl);
+  --radius-input: var(--radius-md);
+  /* `--radius-media` is deliberately NOT declared here. Each media surface
+     derives its own corner from the card it sits in (a product card paints
+     `--pc-radius - 9px`, the ported Selia blocks paint `--selia-radius`), and
+     a single shipped default would flatten both into one number. The role
+     exists only when `global_media_radius` sets it, and every consumer reads
+     it as `var(--radius-media, <its own derivation>)`. */
+
+  /* ── controls ───────────────────────────────────────────────────────────
+     `--btn-h` / `--btn-fs` / `--btn-fw` are NOT declared here. The store has
+     three button families with three different shipped numbers (`.btn`,
+     `.selia-cta`, Salla's `<s-button>`), so each one reads
+     `var(--btn-x, <its own value>)` and the role only exists once the
+     merchant asks for it — the same pattern as `--radius-media`. */
+
+  /* ── icons ─────────────────────────────────────────────────────────────── */
+  --icon-size: 18px;
+
+  /* ── elevation ─────────────────────────────────────────────────────────
+     One ink, four weights: a shadow is never a new colour, it is the store's
+     text ink at a lower alpha, so it works on any background the merchant
+     picks.
+
+     `--shadow-card` is the value the theme's 221 bare `shadow` utilities paint
+     today; it is a role of its own rather than `var(--shadow-sm)` because the
+     card shadow is deliberately softer and wider than the "small" step. */
+  --shadow-xs: 0 1px 2px -1px color-mix(in srgb, var(--ink-1) 18%, transparent);
+  --shadow-sm: 0 4px 12px -8px color-mix(in srgb, var(--ink-1) 45%, transparent);
+  --shadow-md: 0 14px 30px -22px color-mix(in srgb, var(--ink-1) 55%, transparent);
+  --shadow-lg: 0 22px 44px -34px color-mix(in srgb, var(--ink-1) 70%, transparent);
+  --shadow-card: 5px 10px 30px #2b2d340d;
+  /* Night needs its own shadow: the ramp above is the TEXT ink at low alpha,
+     and at night that ink is near-white, so a card would glow. `02-generic/
+     dark.scss` reads this token for the same utilities it remaps. */
+  --shadow-night: 0 18px 40px -22px rgba(0, 0, 0, 0.7);
+
+  /* ── spacing (4px base) ────────────────────────────────────────────────── */
+  --space-1: calc(4px * var(--density));
+  --space-2: calc(8px * var(--density));
+  --space-3: calc(12px * var(--density));
+  --space-4: calc(16px * var(--density));
+  --space-5: calc(20px * var(--density));
+  --space-6: calc(24px * var(--density));
+  --space-8: calc(32px * var(--density));
+  --space-10: calc(40px * var(--density));
+  --space-12: calc(48px * var(--density));
+  --space-16: calc(64px * var(--density));
+  --space-20: calc(80px * var(--density));
+
+  /* ── layout ────────────────────────────────────────────────────────────── */
+  --container-max: 1440px;
+  /* fluid gutter: 16px on a phone, 32px on a desktop, no breakpoint needed.
+     Density multiplies the RESULT, so a compact store keeps its fluid ramp
+     and a relaxed one keeps its own — only the amplitude changes. */
+  --gutter: calc(clamp(16px, 4vw, 32px) * var(--density));
+  /* the vertical rhythm between home sections */
+  --section-gap: calc(clamp(40px, 6vw, 88px) * var(--density));
+
+  /* ── overlays ───────────────────────────────────────────────────────────
+     The veil behind a modal, a drawer, a bottom sheet and a hero caption.
+     One alpha, so "make the overlays lighter" is one control and not six
+     rgba() edits. */
+  --overlay-alpha: 0.5;
+  --scrim: rgb(0 0 0 / var(--overlay-alpha));
+
+  /* ── motion ────────────────────────────────────────────────────────────── */
+  --motion-fast: calc(160ms * var(--motion-scale));
+  --motion-base: calc(280ms * var(--motion-scale));
+  --motion-slow: calc(520ms * var(--motion-scale));
+  --motion-xslow: calc(900ms * var(--motion-scale));
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);      /* the house curve */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.42, 0.64, 1); /* overshoot, for controls */
+  --ease-linear: linear;                           /* only for marquees */
+  /* What Tailwind's `ease-out` / `ease-in-out` UTILITIES mean. Separate from
+     the house curve above on purpose: 31 existing rules already say
+     `ease-out`, and pointing them at the house curve would re-time them the
+     moment the config loaded, with no merchant involved. These two are the
+     ones `global_motion_easing` re-points, so the setting reaches every
+     `@apply … ease-out` in the project. */
+  --ease-utility-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-utility-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* the distance a reveal travels; a block that moves further is a choice,
+     not a default */
+  --motion-distance: 24px;
+}

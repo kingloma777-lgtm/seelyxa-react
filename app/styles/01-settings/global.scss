@@ -25,7 +25,12 @@ $main-text-color: var(--main-text-color);
   /* ── theme surfaces — the semantic palette the site-wide dark mode flips.
      Light values here; `html.dark` overrides them below in one place, so
      components keep ONE token each instead of if-dark overrides. */
-  --bg-page: #ffffff;   /* the page canvas */
+  /* The page canvas. `--bg-store` is the FIRST of the three background levels
+     (store → section → card, see `01-settings/tokens.scss`); `--bg-page` is
+     kept as the alias every existing rule already reads, so the level has one
+     definition and no component has to be rewritten to adopt it. */
+  --bg-store: #ffffff;
+  --bg-page: var(--bg-store);
   --surface-1: #ffffff; /* cards / panels / the classic white boxes */
   --surface-2: #f5f7f9; /* inputs, soft fills, page-mute zones */
   --surface-3: #eceff3; /* stronger fills, chips over surfaces */
@@ -37,6 +42,11 @@ $main-text-color: var(--main-text-color);
 
   /* font-size */
   --font-sm: 0.8685714286rem;
+
+  /* Typography roles, the type scale, the radius/shadow/spacing scales, the
+     motion system and the three background levels live in
+     `01-settings/tokens.scss` — this file owns the PALETTE and the night flip,
+     that one owns the ROLES built on top of it. */
   
   /* plugins */
   --mm-ocd-width: calc(100% - 51px);
@@ -65,7 +75,9 @@ $main-text-color: var(--main-text-color);
 html.dark {
   color-scheme: dark;
 
-  --bg-page: #0b0e14;
+  /* the STORE level flips here; `--bg-page` follows it through the alias above,
+     so there is one place a night canvas is decided */
+  --bg-store: #0b0e14;
   --surface-1: #141923;
   --surface-2: #1b212c;
   --surface-3: #242b37;

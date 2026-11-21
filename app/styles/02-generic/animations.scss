@@ -107,3 +107,18 @@
   animation-fill-mode: both;
   animation-iteration-count: 1;
 }
+
+/* These are decorative entrances (a slide, a squash, a travelling band). A
+   shopper who asked the system for less motion gets the END STATE at once:
+   the element still appears, it just does not travel to get there. Opacity is
+   kept — a fade is not the motion the preference is about — so nothing
+   vanishes for someone who also cannot see a 400ms blink. */
+@media (prefers-reduced-motion: reduce) {
+  .animated,
+  .fadeInDown,
+  .rubberBand {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

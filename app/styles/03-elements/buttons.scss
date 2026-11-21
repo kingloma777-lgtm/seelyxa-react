@@ -21,6 +21,24 @@ salla-button {
 .btn {
   @apply transition duration-300 flex-1 inline-flex justify-center items-center px-6 pb-2.5 pt-2 text-sm font-bold rounded hover:opacity-80 whitespace-nowrap;
 
+  /* ── the store's button numbers ────────────────────────────────────────
+     `.btn` is the one button class the theme owns, and it is one of the three
+     surfaces the merchant's button settings reach (the others are
+     `.selia-cta` and Salla's own `<s-button>`). Each declaration is written
+     AFTER the `@apply` above and carries its SHIPPED value as the fallback, so
+     an untouched panel changes nothing:
+
+       --btn-fs        0.875rem × the type scale   (was `text-sm`)
+       --btn-fw        700                         (was `font-bold`)
+       --radius-button 16px × the radius scale     (was `rounded`)
+       --btn-h         auto → the merchant's height (was no height at all)
+       --ease-utility-in-out  Tailwind's own `transition` curve */
+  font-size: var(--btn-fs, calc(0.875rem * var(--type-scale)));
+  font-weight: var(--btn-fw, 700);
+  border-radius: var(--radius-button, calc(16px * var(--radius-scale)));
+  min-height: var(--btn-h, auto);
+  transition-timing-function: var(--ease-utility-in-out);
+
   .loader {
     width: 0;
     opacity: 0;

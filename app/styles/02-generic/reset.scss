@@ -1,7 +1,15 @@
+/* The store's base text — the one line of type every paragraph in the
+   storefront inherits, and therefore the one that has to answer to the type
+   scale. It used to be two literals (`15px` / `26px`), which meant a merchant
+   could set the type scale to 115% and watch the headings grow while every
+   paragraph on the store stayed exactly the same size.
+
+   `--type-scale` and `--line-scale` both default to `1`, so an untouched panel
+   computes 15px / 26px to the pixel. */
 body {
-  font-size: 15px;
+  font-size: calc(15px * var(--type-scale));
   font-weight: 400;
-  line-height: 26px;
+  line-height: calc(26px * var(--line-scale));
   color: var(--main-text-color);
   position: relative;
 }
@@ -24,13 +32,25 @@ body {
   padding: 0;
 }
 
+/* Every heading in the store — the engine's product names and page titles as
+   well as the theme's own block titles — reads the two heading roles, so
+   `global_heading_font` and `global_heading_weight` reach the whole storefront
+   instead of only the 34 Selia blocks.
+
+   The weight's fallback is 600, which is what this rule has always shipped;
+   the block titles carry their own 700 (see `selia-base.scss`). Neither ships
+   a `:root` default, so unifying the two through the setting cannot
+   re-weight one of them behind the merchant's back. `--font-heading` does
+   have a `:root` default and it is `var(--font-main)` — the store's own face —
+   so an untouched panel computes exactly what it computed before. */
 h1, .h1,
 h2, .h2,
 h3, .h3,
 h4, .h4,
 h5, .h5,
 h6, .h6 {
-  font-weight: 600;
+  font-family: var(--font-heading);
+  font-weight: var(--fw-heading, 600);
   margin-bottom: 0px;
 }
 
@@ -85,7 +105,7 @@ h3 {
 // }
 
 .f-color {
-  color: #FF6767;
+  color: var(--danger-bright);
 }
 
 h5.subtitle {

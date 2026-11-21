@@ -1,0 +1,320 @@
+/* ==========================================================================
+   global-settings — where the merchant's panel meets the design tokens.
+
+   `app/lib/storeSettings.ts` reads the `global_*` choices and
+   `app/routes/__root.tsx` writes them as custom properties **on `<html>`,
+   server-rendered**, in the first byte of the document. `app/lib/
+   storeSettings.ts` also owns every setting → token mapping, so there is one
+   file to read when you want to know what a control does.
+
+   THIS FILE OWNS THE PART A SCRIPT CANNOT DO
+   -------------------------------------------
+   Two things are not a plain "write the value" and have to be CSS:
+
+   1. **The palette bridge** (surface family, text tone, border strength).
+      Night mode is a VISITOR state, toggled at runtime by the header's
+      moon/sun button (`html.dark`). A value written inline on `<html>` would
+      out-rank the `html.dark` stylesheet rule and the store could never go
+      dark again — so the palette has to be re-pointed from a stylesheet that
+      can say `:not(.dark)`.
+
+   2. **The opt-in overrides** (media radius, card border, reduced motion).
+      They need to out-rank a component's own single-class rule, which means a
+      selector with a `html[data-…]` prefix — again, CSS.
+
+   Everything else — type scale, density, radius scale, shadows, button
+   numbers, icon size, overlay alpha, motion — is a plain token replacement and
+   is emitted from `globalVars()`. Splitting it this way means the mappings
+   live in ONE place (the TS module) instead of being copied into a
+   stylesheet, where the copy could rot.
+
+   THE RULE
+   --------
+   A token here is only ever *re-pointed* — `--x: var(--gs-x, <the value
+   `:root` already ships>)`. It is never given a NEW literal. If the merchant
+   did not choose, the variable is absent and the second argument wins, so an
+   untouched panel computes exactly what it computed before this file existed.
+   `token-contract.test.ts` re-compiles the token layer and fails if one
+   fallback drifts from it, so the copies cannot rot.
+   ========================================================================== */
+
+/* The vertical rhythm between home sections. There is no other owner of this
+   spacing: `.s-block` paints no padding and each block brings its own, so two
+   adjacent Selia sections genuinely touch. Default `0px` reproduces today's
+   rendering exactly; the merchant opts in by picking a value.
+
+   `margin-block-start` on the second of a pair — not padding on both — because
+   a section with its own `--bg-section` band must not grow the band, and
+   because padding here would beat the engine blocks' own `py-*` utilities. */
+.s-block + .s-block {
+  margin-block-start: var(--gs-section-gap, 0px);
+}
+
+/* ==========================================================================
+   THE PALETTE BRIDGE — surface family, text tone, border strength.
+
+   Three settings, two rules, one limit: **each mode gets its own face.**
+
+   Why the split exists at all: night mode is a VISITOR state, toggled at
+   runtime by the header's moon/sun button (`html.dark`). A palette written
+   inline on `<html>` would out-rank the `html.dark` stylesheet rule and the
+   store could never go dark again — so the palette has to be re-pointed from
+   a stylesheet that can say `:not(.dark)` / `.dark`.
+
+   Why BOTH modes are bridged, and not only day mode: a store whose dashboard
+   colour mode is dark used to get nothing from these three settings — the
+   merchant picked "warm" and the storefront did not move, which is the
+   definition of a fake control. Each preset therefore carries a night face
+   (`SURFACE_PRESETS[x].night` in `app/lib/storeSettings.ts`), and the night
+   rule reads it. The night values are the family's HUE at the theme's night
+   lightness, so a warm store stays warm after dark instead of turning into
+   the same cool grey as every other store.
+
+   Why the literals in the `var()` fallbacks are not a second design system:
+   they are the exact values `01-settings/global.scss` ships for that mode, and
+   they are only reached when the merchant never opened this panel — in which
+   case the document computes precisely what it computes today.
+   `token-contract.test.ts` re-reads both palettes and fails if one of them
+   drifts, so the copies cannot rot.
+
+   `html:not(.dark)` / `html.dark` and `:root` are the same element, which is
+   exactly why the palette can be re-pointed at the root now: the value is
+   written inline on that element by `__root.tsx`, so the root's own `var()`
+   references resolve it.
+   ========================================================================== */
+html:not(.dark) {
+  /* the STORE level — `02-generic/common.scss` paints `body` from `--bg-store`,
+     so re-pointing it is what moves the page itself; `--bg-page` is the alias
+     every existing rule already reads and it follows by reference */
+  --bg-store: var(--gs-canvas, #ffffff);
+  --bg-page: var(--gs-canvas, var(--bg-store));
+
+  /* the three surface levels */
+  --surface-1: var(--gs-surface-1, #ffffff);
+  --surface-2: var(--gs-surface-2, #f5f7f9);
+  --surface-3: var(--gs-surface-3, #eceff3);
+
+  /* the reading inks, then the muted ink the family measured */
+  --ink-1: var(--gs-ink-1, #231f1e);
+  --ink-2: var(--gs-ink-2, #465058);
+  --ink-3: var(--gs-ink-3, #7c8082);
+
+  /* hairline weight */
+  --line-1: var(--gs-line-1, rgba(20, 20, 30, 0.08));
+  --line-2: var(--gs-line-2, rgba(20, 20, 30, 0.16));
+
+  /* the product-photo well. The card names this variable (its own inline
+     `--pc-image-bg` cannot be mode-aware), so the MODE is decided here and the
+     merchant's card colour still wins when they pick one. */
+  --surface-media: var(--gs-card-image-day, #f4ebdc);
+
+  /* The CARD elevation role. The card is the one surface whose shadow the
+     merchant's `global_shadow` has to reach through an `!important` rule (see
+     the shadow block below), and that rule cannot be written twice — so the
+     MODE is resolved here instead.
+
+     Why it cannot simply read `--shadow-card` in both modes: the whole ramp is
+     "the store's text ink at a low alpha", and at night that ink is near-white
+     — a card painted with it glows. `02-generic/dark.scss` already says this in
+     its own comment and swaps in `--shadow-night`; the card has to do the same
+     or `soft` and `strong` would be the only glowing surfaces on a dark page
+     while `medium` (a literal) stayed dark. Both tokens come from
+     `globalVars()`, so an untouched panel still reads `tokens.scss` exactly. */
+  --elevation-card: var(--shadow-card);
+}
+
+/* The night face. The fallbacks are `html.dark`'s own values, so an untouched
+   panel still computes the designed night surface to the byte. */
+html.dark {
+  --bg-store: var(--gs-canvas-night, #0b0e14);
+  --bg-page: var(--gs-canvas-night, var(--bg-store));
+
+  --surface-1: var(--gs-surface-1-night, #141923);
+  --surface-2: var(--gs-surface-2-night, #1b212c);
+  --surface-3: var(--gs-surface-3-night, #242b37);
+
+  --ink-1: var(--gs-ink-1-night, #f2f3f5);
+  --ink-2: var(--gs-ink-2-night, #b7bfca);
+  --ink-3: var(--gs-ink-3-night, #8d95a2);
+
+  --line-1: var(--gs-line-1-night, rgba(255, 255, 255, 0.09));
+  --line-2: var(--gs-line-2-night, rgba(255, 255, 255, 0.18));
+
+  /* the product-photo well at night: the theme's own night `s2`. Without this
+     the card's cream `#f4ebdc` well stayed a bright circle on a dark page —
+     the most visible inconsistency left in night mode. */
+  --surface-media: var(--gs-card-image-night, #1b212c);
+
+  /* the card elevation, night step — see the day rule for why the mode lives
+     here and not in the shadow override */
+  --elevation-card: var(--shadow-night);
+}
+
+/* A block's own background colour (nine blocks offer one) is a literal the
+   merchant picked by day. `--bg-block` keeps its HUE and drops it to a tint at
+   night, so a section the merchant set to `#eeeeee` reads as a slightly lifted
+   band instead of a white rectangle on a dark page.
+
+   It is declared on the SECTION and not on `html`, and that is the whole
+   point: a custom property is substituted where it is DECLARED, so on `<html>`
+   `var(--selia-bg)` would resolve to nothing — the merchant's colour is
+   written inline on the section — and `--bg-block` would compute to
+   `transparent`. `transparent` is a valid colour, so it would then win the
+   `var(--bg-block, var(--selia-bg, …))` fallback and *delete* the merchant's
+   colour at night instead of tinting it. Declared here, the substitution
+   happens in the element's own scope, where the inline `--selia-bg` exists.
+
+   Specificity `(0,1,1)` beats the section's own `.selia` rule `(0,1,0)`, so
+   this is the value the three `background` rules read. Unset stays
+   byte-identical: no `--selia-bg` → the mix is `transparent` → the section
+   paints nothing, exactly as before. */
+html.dark :where(.selia) {
+  --bg-block: color-mix(in srgb, var(--selia-bg, transparent) 16%, transparent);
+}
+
+/* The canvas is PAINTED, not only re-pointed: `.app-inner` covers the viewport
+   and `app.css` gives it `@apply bg-white`, which is a hard white regardless of
+   any token.
+
+   Only the day half needs a rule. At night `02-generic/dark.scss` already
+   remaps `.bg-white` to `var(--surface-1)`, and `--surface-1` is the token the
+   night bridge above re-points — so the night face reaches the page through
+   the remap that is already there, and the untouched panel keeps painting
+   `#141923`, the level it paints today. */
+html:not(.dark) .app-inner {
+  background-color: var(--gs-canvas, var(--bg-store));
+}
+
+/* ==========================================================================
+   THE OPT-IN OVERRIDES.
+
+   Three settings are *decisions about the store*, not scale steps, and each
+   one is only meaningful when the merchant made it. They arrive as data
+   attributes on `<html>` (written by `__root.tsx` from the same object that
+   produces the custom properties) and the selectors below are deliberately
+   scoped `html[data-…] :where(…)`: specificity (0,1,1) beats a component's
+   own single-class rule, so the decision actually reaches the block — while
+   the whole rule set disappears the moment the setting is left on `theme`,
+   which is what keeps "unset" byte-identical to the shipped design.
+   ========================================================================== */
+
+/* `global_media_radius` — one corner for every surface that shows a picture.
+   The class-substring list is intentional: a block added tomorrow that names
+   its media wrapper `__media`/`__img`/`__thumb` is covered without editing
+   this file, and one that does not keeps its own corners. */
+html[data-gs-media]
+  :where(
+    img,
+    video,
+    [class*='__media'],
+    [class*='__img'],
+    [class*='__image'],
+    [class*='__thumb'],
+    [class*='__photo'],
+    [class*='__poster'],
+    [class*='__cover']
+  ) {
+  border-radius: var(--radius-media, 0px);
+}
+
+/* `global_button_shape` — Salla's own `<s-button>` / `<salla-button>` is the
+   majority of the storefront's calls to action (add to cart, checkout, apply
+   coupon), and it paints its corner from the web component's `--s-radius`, not
+   from our `.btn`. Scoped to the button element and not to `--s-radius`,
+   because that token is shared with the components' modals and sheets: a pill
+   button shape must not turn a dialog into a pill. */
+html[data-gs-btn] :where(s-button, salla-button) .s-button-element {
+  border-radius: var(--radius-button);
+}
+
+/* `global_icon_size` — one glyph size for the store's icons.
+   Three families live here: Salla's `sicon-*` web font (sized by `font-size`),
+   the engine's own glyph classes (`.s-cart-summary-icon`,
+   `.s-slider-button-icon` — a `span`, so a `sicon`-only selector missed them
+   entirely) and the theme's own SVGs (sized by width/height).
+
+   The selector matches the GLYPH, not the button: `:where(i, span, svg)` with
+   an `icon` in the class. That is what keeps `a.morph-icon-btn` — a 44px chip
+   that happens to be named `…-icon-btn` — out of the rule, because widening a
+   button's font-size would resize the button.
+
+   `!important` is deliberate and bounded to these three glyph families. A
+   component that pins its own glyph size is exactly what this control exists
+   to override, and the theme's rules carry more specificity (`(0,2,0)` for
+   `.morph-header .sicon-search`) than a `html[data-…]` prefix can honestly
+   beat. Without it the control measured 14px in both states — a setting that
+   resolved, emitted, and changed nothing. */
+html[data-gs-icon] :where(i, span, svg)[class*='icon'] {
+  font-size: var(--icon-size) !important;
+}
+html[data-gs-icon] :where(svg)[class*='icon'] {
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+}
+
+/* `global_card_border` — off means the card family reads as a filled surface
+   with no outline. `border-color` and not `border-width`, so nothing reflows:
+   the hairline's 1px stays in the box model. */
+html[data-gs-card-border='off'] :where(.s-product-card, [class*='-card'], [class*='__card']) {
+  border-color: transparent;
+}
+
+/* `global_shadow` — ALL four levels, one rule.
+   The product card owns its own elevation (`--pc-shadow`, gated by the card's
+   `data-pc-shadow` setting), so re-pointing the `--shadow-*` tokens alone left
+   the largest surface on the page at its designed depth: "no shadows" and
+   "strong" both looked like nothing happened on a card. The value here is the
+   CARD role (`--elevation-card`), which the palette bridge resolves per mode
+   from the two tokens `globalVars()` writes — so one declaration covers
+   none / soft / medium / strong without four rules that could drift apart, and
+   night gets the night step instead of a white glow.
+
+   `!important` because the card's rules carry a `[data-pc-shadow='soft']`
+   attribute prefix, one step more specific than a `html[data-…]` prefix can
+   honestly reach. It costs nothing in interaction: the card's hover state
+   changes `transform` and `border-color`, never its shadow (checked in
+   `product-card.scss`), so no hover feedback is lost. */
+html[data-gs-shadow] :where(.s-product-card, .s-product-card-vertical, [class*='__card']) {
+  box-shadow: var(--elevation-card) !important;
+}
+
+/* `global_heading_weight` — the store's own block titles carry explicit
+   `font-bold` / `font-black` utilities, and a utility class out-ranks the
+   element rule in `02-generic/reset.scss`, so those titles ignored the setting.
+
+   Scoped to the elements a merchant reads as a heading, and only when they
+   actually chose a weight. `:not()` keeps the two intentional exceptions out:
+   an eyebrow is a label (set in `--ls-eyebrow` small caps, deliberately light)
+   and a badge is a pill, not a title. */
+html[data-gs-heading-weight]
+  :where(h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6, [class*='__title'], [class*='__heading'], .selia__title):not(
+    [class*='eyebrow']
+  ):not([class*='badge']):not([class*='chip']) {
+  font-weight: var(--fw-heading) !important;
+}
+
+/* `global_container` — Tailwind's `.container` ships its own `max-width`
+   (1280px at `2xl`, from `tailwind.config.cjs`), so the merchant's width
+   reached the 34 Selia blocks and stopped there. The utility is used by the
+   engine's own markup, which is not ours to rewrite — so it is re-pointed
+   here, and only when a width was actually chosen. */
+html[data-gs-container] .container {
+  max-width: var(--container-max);
+}
+
+/* `global_reduce_motion` — the merchant's switch, doing exactly what the OS
+   switch does in the twenty `prefers-reduced-motion` blocks this project
+   already carries. One rule instead of twenty copies, and it wins over them
+   because it is `!important` on every element. `1ms` and not `0s`: a zero
+   duration still fires `transitionend` in some engines and leaves a stuck
+   `transitioning` class behind. */
+html[data-reduce-motion='1'] *,
+html[data-reduce-motion='1'] *::before,
+html[data-reduce-motion='1'] *::after {
+  animation-duration: 1ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}

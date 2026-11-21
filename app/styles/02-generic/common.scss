@@ -22,6 +22,16 @@ body {
   padding-bottom: var(--app-safe-area-bottom, 0px);
 }
 
+/* ── the STORE level of the background chain ───────────────────────────────
+   Without this the canvas was whatever the UA paints (white), so `--bg-store`
+   — and therefore the merchant's store-background setting — had no effect in
+   day mode; only the night theme painted a canvas. Every section is
+   `transparent` by default, which is what makes this ONE declaration enough
+   to retint the whole storefront. */
+body {
+  background-color: var(--bg-store, #fff);
+}
+
 body {
   [type='text'],
   [type='email'],
@@ -156,8 +166,8 @@ body {
     animation: loader 1s ease-in-out infinite;
 
     .btn--danger & {
-      border-top-color: #ff6767;
-      border-left-color: #ff6767;
+      border-top-color: var(--danger-bright);
+      border-left-color: var(--danger-bright);
     }
   }
 
@@ -577,6 +587,69 @@ salla-localization-modal {
 /* Off-screen, not-yet-mounted home blocks skip rendering, so their skeletons don't pulse unseen. */
 main > .s-block:nth-of-type(n + 4)[style*='min-height'] {
   content-visibility: auto;
+}
+
+/* ── the SECTION level of the background chain ─────────────────────────────
+   The engine wraps every home block in `<section class="s-block …">`, which
+   makes that element the section level for free. It paints `--bg-section`,
+   and that token defaults to `transparent` — so every block today is a
+   window onto the store canvas and nothing changes visually.
+
+   A block that wants its own band overrides the token on its own selector,
+   never the property:
+
+       .s-block--offers { --bg-section: var(--surface-2); }
+
+   …and if its cards must stand out against that band, it sets the card level
+   in the SAME rule — the pair is the unit, because a band without a card
+   colour leaves cream cards on a cream band:
+
+       .s-block--offers {
+         --bg-section: var(--surface-2);
+         --bg-card: var(--surface-1);
+       }
+
+   Both are local overrides of a global token, which is exactly the
+   "global default, local override" contract. */
+.s-block {
+  background-color: var(--bg-section, transparent);
+}
+
+/* ── reduced motion ────────────────────────────────────────────────────────
+   Two kinds of animation live in this file and they are not treated alike:
+
+   - DECORATIVE (a slide-in, a squash, a pulse, a skeleton shimmer) — the
+     shopper gets the end state immediately. The element is still there and
+     still visible; it just does not travel.
+   - FUNCTIONAL (the `.btn` spinner) — a frozen spinner reads as a frozen
+     store, so it keeps turning, just slowly enough not to be motion.
+
+   `1ms` rather than `0` on purpose: a zero duration cancels the animation and
+   some browsers never fire `animationend`, which several blocks wait on. */
+@media (prefers-reduced-motion: reduce) {
+  .pulse-anime,
+  .slide-in-start,
+  .scale-pulse,
+  .animated {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  /* the shimmer is the one endless animation that is pure decoration */
+  .s-skeleton-pulse {
+    animation: none !important;
+    opacity: 0.7;
+  }
+
+  .fade-out-collapse {
+    transition-duration: 1ms;
+  }
+
+  .loader:before,
+  .loader--small:before {
+    animation-duration: 3s;
+  }
 }
 
 /* `SliderSkeleton`'s image placeholder (`photos-slider`'s loading state,
