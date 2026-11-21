@@ -1,0 +1,119 @@
+/* ---------------------------------------------------------------------------
+   Scroll reveal — the reference storefront's GSAP entrance, expressed as two
+   compositor properties and one IntersectionObserver (see app/lib/scrollReveal).
+
+   Ported numbers (do not "tidy" them without re-reading the reference):
+     start     top 90%       → observer rootMargin -10% / hidden state below
+     from      opacity .08, y 58px
+     duration  1s
+     ease      power3.out    → easeOutQuart cubic-bezier(.165,.84,.44,1)
+     stagger   .16s per sibling
+     one-shot  play none none none
+
+   CSS animations (not transitions) are used on purpose: the hidden state is a
+   plain rule with no transition, so arming the layer cannot animate content
+   *into* invisibility. `animation-fill-mode: both` holds the first frame
+   through the stagger delay and keeps the settled frame afterwards.
+
+   `translate` is a separate property from `transform`, so a revealed card's
+   own hover lift (which lives on `transform`) still answers immediately.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --sr-rise: 58px;
+  --sr-duration: 1s;
+  --sr-ease: cubic-bezier(0.165, 0.84, 0.44, 1); /* GSAP power3.out */
+  --sr-ease-split: cubic-bezier(0.23, 1, 0.32, 1); /* GSAP power4.out */
+  --sr-stagger: 0.16s;
+  --sr-from-opacity: 0.08;
+}
+
+/* Word masks exist in the DOM but are inert until the layer arms. */
+.sr-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  /* A little room for Arabic descenders and diacritics inside the mask. */
+  padding-block: 0.14em;
+  margin-block: -0.14em;
+}
+
+.sr-word__in {
+  display: inline-block;
+}
+
+html.sr-armed {
+  [data-sr]:not([data-sr-visible]) {
+    opacity: var(--sr-from-opacity);
+    translate: 0 var(--sr-rise);
+  }
+
+  [data-sr][data-sr-visible] {
+    animation: sr-rise var(--sr-duration) var(--sr-ease)
+      calc(min(var(--sr-i, 0), 10) * var(--sr-stagger)) both;
+  }
+
+  /* A heading whose words were split does not also fade as a box: two
+     stacked fades would bury the word rise. The words are the entrance. */
+  [data-sr-words]:not([data-sr-visible]),
+  [data-sr-words][data-sr-visible] {
+    opacity: 1;
+    translate: 0 0;
+    animation: none;
+  }
+
+  [data-sr] .sr-word__in {
+    transform-origin: 0% 100%;
+  }
+
+  [data-sr]:not([data-sr-visible]) .sr-word__in {
+    translate: 0 118%;
+    rotate: 2.5deg;
+    opacity: 0.12;
+  }
+
+  [data-sr][data-sr-visible] .sr-word__in {
+    animation: sr-word var(--sr-duration) var(--sr-ease-split)
+      calc(min(var(--sr-w, 0), 12) * 0.13s) both;
+  }
+}
+
+html[dir='rtl'] .sr-word__in {
+  transform-origin: 100% 100%;
+}
+
+@keyframes sr-rise {
+  from {
+    opacity: var(--sr-from-opacity);
+    translate: 0 var(--sr-rise);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes sr-word {
+  from {
+    translate: 0 118%;
+    rotate: 2.5deg;
+    opacity: 0.12;
+  }
+  to {
+    translate: 0 0;
+    rotate: 0deg;
+    opacity: 1;
+  }
+}
+
+/* The runtime never arms under reduced motion, but a user can switch the OS
+   preference mid-visit: this is the belt-and-braces still composition. */
+@media (prefers-reduced-motion: reduce) {
+  html.sr-armed [data-sr],
+  html.sr-armed [data-sr] .sr-word__in {
+    animation: none !important;
+    opacity: 1 !important;
+    translate: none !important;
+    rotate: none !important;
+  }
+}
