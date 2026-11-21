@@ -7,6 +7,9 @@ packages:
 # release-age delay so fresh releases install immediately.
 minimumReleaseAgeExclude:
   - '@salla.sa/*'
+  - '@cloudflare/workers-utils@0.56.0'
+  - miniflare@5.20261119.0-beta
+  - wrangler@4.166.0
 
 # Skip the pre-run lockfile sweep; run `pnpm install` explicitly when deps change.
 verifyDepsBeforeRun: false
@@ -27,3 +30,23 @@ allowBuilds:
 overrides:
   'undici@>=7.0.0 <7.29.1': 7.29.1
   'sharp@>=0.35.0 <0.35.5': 0.35.5
+  # Engine 1.0.133 pins wrangler 4.125.0 and @cloudflare/vite-plugin ~1.53.1.
+  # That pair drags in miniflare 5.20260820.0-alpha + workerd 1.20260820.1, and
+  # that alpha native runtime is what dies on Windows with
+  #   "There was an access violation in the runtime"
+  #   -> "fetch failed" / ECONNRESET -> "Workers runtime crashed (crash #N)"
+  # These are the newest stable releases whose peer range still accepts Vite 8
+  # (@cloudflare/vite-plugin 1.70.1 peer: vite ^6.1 || ^7 || ^8).
+  '@cloudflare/vite-plugin': 1.70.1
+  'wrangler': 4.166.0
+  # miniflare has NO stable release in the 5.x line (npm `latest` is still
+  # 4.20260730.0). Pin the single beta wrangler 4.166.0 ships so the plugin and
+  # wrangler share one copy instead of 5.20261117.0-beta + 5.20261119.0-beta.
+  # workerd follows from it (1.20261119.1) — do not override it separately.
+  'miniflare': 5.20261119.0-beta
+  # `pnpm why react` showed TWO physical copies of the router (1.170.42 x6,
+  # 1.170.44 x5): @tanstack/react-start pins 1.170.42 exactly while this theme
+  # and the engine float on ~1.170.38. Two router copies means two React
+  # contexts (router context, QueryClient context) and two route trees. Pin the
+  # exact version react-start requires — it still satisfies ~1.170.38.
+  '@tanstack/react-router': 1.170.42
