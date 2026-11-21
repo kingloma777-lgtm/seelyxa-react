@@ -1,0 +1,677 @@
+/*
+  Cart drawer — the slide-over panel behind the header cart chip, the mobile
+  bar's cart tab and the add-to-cart event.
+  Markup: app/components/cart/{CartDrawer,CartDrawerItem}.tsx
+  Enter / exit are driven by `.is-open` on `.cart-drawer-root`; the component
+  keeps the panel mounted through the exit and flips the class after a forced
+  reflow, exactly like `bottom-sheet.scss`.
+
+  Every colour is a `--surface-* / --ink-* / --line-*` token, so `html.dark`
+  flips the whole panel in one place (01-settings/global.scss).
+*/
+
+/* `html` reserves the viewport scrollbar gutter (`app.css`) so overlays never
+   shift the page. A fixed panel is laid out in the initial containing block,
+   which excludes that gutter — without this the panel stops ~15px short of the
+   screen edge and a bare strip shows beside it. The body is scroll-locked while
+   the panel is open, so releasing the reservation cannot move anything. */
+html.cart-drawer-open {
+  scrollbar-gutter: auto;
+}
+
+.cart-drawer-root {
+  position: fixed;
+  inset: 0;
+  /* above the header (240) and the mobile bottom bar (220), below the login
+     modal, which the checkout CTA may hand over to */
+  z-index: 260;
+  pointer-events: none;
+
+  &.is-open {
+    pointer-events: auto;
+  }
+}
+
+.cart-drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 10, 14, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity 0.34s ease;
+
+  .cart-drawer-root.is-open & {
+    opacity: 1;
+  }
+}
+
+.cart-drawer {
+  position: absolute;
+  inset-block: 0;
+  /* the END edge: the side the cart chip itself sits on — physical left in
+     RTL, physical right in LTR */
+  inset-inline-end: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 100vw);
+  max-width: 100%;
+  background: var(--surface-1);
+  color: var(--ink-1);
+  box-shadow: 0 0 80px -20px rgba(6, 8, 12, 0.55);
+  transform: translateX(100%);
+  transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+  outline: none;
+  overflow: hidden;
+
+  /* the panel enters from its own edge, so the closed offset flips with the
+     writing direction — `translateX(100%)` always means "further right" */
+  html[dir='rtl'] & {
+    transform: translateX(-100%);
+  }
+}
+
+.cart-drawer-root.is-open .cart-drawer {
+  transform: translateX(0);
+}
+
+/* ── head ────────────────────────────────────────────────────────────────── */
+
+.cart-drawer__head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  padding-top: calc(18px + var(--safe-top));
+  border-bottom: 1px solid var(--line-1);
+}
+
+.cart-drawer__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink-1);
+}
+
+.cart-drawer__count {
+  display: inline-flex;
+  min-width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.cart-drawer__close {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  margin-inline-end: -10px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background: var(--surface-2);
+    border-color: var(--line-1);
+    color: var(--ink-1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary, #004956);
+    outline-offset: 2px;
+  }
+}
+
+/* ── body ────────────────────────────────────────────────────────────────── */
+
+.cart-drawer__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 2px 20px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* ── one line ────────────────────────────────────────────────────────────── */
+
+.cart-drawer__row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 34px;
+  align-items: start;
+  gap: 4px 14px;
+  margin-inline: -10px;
+  padding: 16px 10px;
+  border-radius: 14px;
+  border-bottom: 1px solid var(--line-1);
+
+  &:last-of-type {
+    border-bottom: 0;
+  }
+}
+
+/* the line that was just added: a one-shot wash in the brand colour */
+.cart-drawer__row.is-new {
+  animation: cart-drawer-flash 2.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes cart-drawer-flash {
+  0%,
+  22% {
+    background: color-mix(in srgb, var(--color-primary, #004956) 12%, transparent);
+  }
+
+  100% {
+    background: transparent;
+  }
+}
+
+.cart-drawer__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface-2);
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 6 / 5;
+    object-fit: cover;
+  }
+}
+
+.cart-drawer__free {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-start: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.cart-drawer__info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cart-drawer__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--ink-1);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-primary, #004956);
+  }
+}
+
+.cart-drawer__price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cart-drawer__price-now {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.cart-drawer__price-was {
+  color: var(--ink-3);
+  font-size: 12px;
+  text-decoration: line-through;
+}
+
+.cart-drawer__line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.cart-drawer__total {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  strong {
+    color: var(--ink-1);
+    font-size: 14px;
+    font-weight: 700;
+  }
+}
+
+.cart-drawer__total-label {
+  color: var(--ink-3);
+  font-size: 12px;
+}
+
+.cart-drawer__qty-static {
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+.cart-drawer__remove {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: var(--surface-2);
+    border-color: var(--line-1);
+    color: var(--danger);
+  }
+
+  &:disabled {
+    cursor: wait;
+  }
+}
+
+.cart-drawer__remove-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--line-2);
+  border-top-color: var(--ink-2);
+  border-radius: 50%;
+  animation: cart-drawer-spin 0.8s linear infinite;
+}
+
+@keyframes cart-drawer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* the stepper keeps its own pill (quantity-stepper.scss) but on panel tokens —
+   its base rules are light-mode `bg-white` / `text-gray-900` literals */
+.cart-drawer .s-quantity-input {
+  .s-quantity-input-container {
+    height: 34px;
+    padding: 3px;
+    border-color: var(--line-1);
+    background: var(--surface-2);
+  }
+
+  .s-quantity-input-button {
+    width: 26px;
+    height: 26px;
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  .s-quantity-input-decrease-button {
+    background: var(--surface-3);
+    color: var(--ink-2);
+    fill: var(--ink-2);
+
+    &:hover:not(:disabled) {
+      background: var(--line-2);
+      color: var(--ink-1);
+      fill: var(--ink-1);
+    }
+  }
+
+  .s-quantity-input-input {
+    width: 34px;
+    color: var(--ink-1);
+    font-size: 13px;
+  }
+}
+
+/* the item's own options element, tucked under the row instead of the cart
+   page's padded card */
+.cart-drawer__row salla-product-options {
+  display: block;
+  grid-column: 1 / -1;
+  margin-top: 2px;
+}
+
+.cart-drawer__row .s-product-options-wrapper {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* ── empty + loading ─────────────────────────────────────────────────────── */
+
+.cart-drawer__empty {
+  display: flex;
+  min-height: 260px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px 8px;
+  text-align: center;
+
+  svg {
+    width: 42px;
+    height: 42px;
+    color: var(--ink-3);
+  }
+}
+
+.cart-drawer__empty-title {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cart-drawer__empty-cta {
+  display: inline-flex;
+  height: 42px;
+  align-items: center;
+  padding: 0 20px;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  color: var(--ink-1);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background-color 0.18s ease;
+
+  &:hover {
+    background: var(--surface-2);
+  }
+}
+
+.cart-drawer__skeleton-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-1);
+}
+
+.cart-drawer__skeleton-media {
+  width: 84px;
+  aspect-ratio: 6 / 5;
+  border-radius: 12px;
+  background: var(--surface-2);
+  animation: cart-drawer-pulse 1.4s ease-in-out infinite;
+}
+
+.cart-drawer__skeleton-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+
+  i {
+    display: block;
+    height: 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    animation: cart-drawer-pulse 1.4s ease-in-out infinite;
+
+    &:nth-child(1) {
+      width: 70%;
+    }
+
+    &:nth-child(2) {
+      width: 40%;
+    }
+
+    &:nth-child(3) {
+      width: 55%;
+    }
+  }
+}
+
+@keyframes cart-drawer-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* ── foot ────────────────────────────────────────────────────────────────── */
+
+.cart-drawer__foot {
+  flex: none;
+  padding: 16px 20px;
+  padding-bottom: calc(16px + var(--safe-bottom));
+  border-top: 1px solid var(--line-1);
+  background: var(--surface-1);
+}
+
+.cart-drawer__sum {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.cart-drawer__sum-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+
+  dt {
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--ink-1);
+    font-weight: 700;
+  }
+
+  &--muted {
+    dt,
+    dd {
+      color: var(--ink-3);
+      font-size: 13px;
+      font-weight: 500;
+    }
+  }
+}
+
+.cart-drawer__note {
+  margin: 8px 0 0;
+  color: var(--ink-3);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.cart-drawer__cta {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.cart-drawer__checkout {
+  display: inline-flex;
+  width: 100%;
+  height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 18px;
+  border: 1px solid var(--color-primary, #004956);
+  border-radius: 14px;
+  background: var(--color-primary, #004956);
+  color: var(--color-primary-reverse, #fff);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    filter 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover {
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    transform: scale(0.995);
+  }
+
+  /* `submit` has to fetch the cart status before it can hand off to checkout —
+     without this the button looks dead for a second */
+  &[aria-busy='true'] {
+    cursor: progress;
+    filter: brightness(0.96);
+  }
+
+  &:disabled {
+    cursor: progress;
+  }
+}
+
+.cart-drawer__spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid color-mix(in srgb, var(--color-primary-reverse, #fff) 35%, transparent);
+  border-top-color: var(--color-primary-reverse, #fff);
+  border-radius: 50%;
+  animation: cart-drawer-spin 0.8s linear infinite;
+}
+
+.cart-drawer__view {
+  display: inline-flex;
+  width: 100%;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ink-1);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+
+  &:hover {
+    background: var(--surface-2);
+    border-color: var(--ink-3);
+  }
+}
+
+.cart-drawer__checkout:focus-visible,
+.cart-drawer__view:focus-visible,
+.cart-drawer__empty-cta:focus-visible,
+.cart-drawer__remove:focus-visible {
+  outline: 2px solid var(--color-primary, #004956);
+  outline-offset: 2px;
+}
+
+/* ── small screens: the panel IS the screen ──────────────────────────────── */
+
+@media (max-width: 480px) {
+  .cart-drawer {
+    width: 100%;
+  }
+
+  .cart-drawer__body {
+    padding-inline: 16px;
+  }
+
+  .cart-drawer__head,
+  .cart-drawer__foot {
+    padding-inline: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-drawer,
+  .cart-drawer__backdrop {
+    transition: none;
+  }
+
+  .cart-drawer__row.is-new,
+  .cart-drawer__skeleton-media,
+  .cart-drawer__skeleton-lines i,
+  .cart-drawer__spinner,
+  .cart-drawer__remove-spinner {
+    animation: none;
+  }
+}
