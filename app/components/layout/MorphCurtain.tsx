@@ -1,6 +1,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { MouseEvent as ReactMouseEvent } from 'react';
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from 'react';
 import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
+import { useTwilight } from '@salla.sa/twilight-theme-engine/providers';
 import { prefersReducedMotion } from '../../lib/homeBlock';
 import { ArrowLeftIcon, ArrowRightIcon } from '../icons';
 import { useQuery } from '@tanstack/react-query';
@@ -10,6 +11,14 @@ import { category } from '@salla.sa/twilight-theme-engine/api/category';
 import { product, type ProductsListSource } from '@salla.sa/twilight-theme-engine/api/product';
 import { buildCategoryIndex, enrichMenuNode } from '../../lib/menuCategoryIndex';
 import { MorphMenuCard, type MenuCardProduct } from '../product/MorphMenuCard';
+import {
+  ProductCardSettingsContext,
+  readProductCardOverrides,
+  productCardOverrideAttrs,
+  productCardOverrideVars,
+  resolveProductCardSettings,
+  useProductCardSettings,
+} from '../../lib/productCardSettings';
 import { SallaProductsList, ProductsListSkeleton } from '@salla.sa/twilight-components-react';
 import type { CurtainSlot } from '../../lib/curtainSlots';
 import { menuProductIds } from '../../lib/menuProducts';
@@ -218,6 +227,14 @@ function SlotColumn({
     } else if (!rawText || rawText === '[]' || rawText === 'null' || rawText === '""') {
       text = labels.noSlotMissing;
       hint = labels.slotMissingHint;
+    }
+    /* These strings are addressed to the MERCHANT ("this is a theme problem,
+       re-saving the form will not fix it") — measured in the storefront, where
+       a shopper read them as broken content. The diagnostic is a build-time
+       affordance: in a production bundle an unconfigured slot shows the same
+       neutral line a section without products shows, and nothing else. */
+    if (!import.meta.env.DEV) {
+      return <p className="morph-layer__empty">{labels.emptyFeatured}</p>;
     }
     return (
       <>
@@ -474,6 +491,39 @@ export function MorphCurtain({
   pieces: (n: number) => string;
   onDrill: (node: CurtainMenu) => void;
 }) {
+  /* ── the Global Product Card System, component half ───────────────────────
+     The curtain's cards wear the STORE's card design by default: the
+     resolved context below starts as the global `ProductCardSettingsContext`
+     value `ThemeLayout` provides, and the mega menu's own panel
+     («تخصيص كارت الميجا منيو») can override properties PER PROPERTY —
+     anything left on «مثل المتجر» inherits the global value live, so a
+     radius change next week still moves a curtain that only overrode its
+     ratio today.
+
+     Two channels, mirroring how the global settings reach a card:
+     - the switches the CARD decides in React (badge / wishlist / desc /
+       rating) travel as a scoped context provider — every `MorphMenuCard`
+       under the curtain reads the resolved value, never the raw setting;
+     - the surface properties (ratio / radius / colours) travel as custom
+       properties on the curtain root, which is a NEARER ancestor than
+       `.app-inner` — the subtree follows the override, the rest of the
+       store never sees it, and "inherit" writes nothing at all. */
+  const { theme } = useTwilight();
+  const globalCard = useProductCardSettings();
+  const overrides = useMemo(
+    () => readProductCardOverrides(theme?.settings as Record<string, unknown> | undefined),
+    [theme?.settings]
+  );
+  const resolvedCard = useMemo(
+    () => resolveProductCardSettings(globalCard, overrides),
+    [globalCard, overrides]
+  );
+  const cardOverrideStyle = productCardOverrideVars(overrides) as CSSProperties;
+  const cardOverrideAttrs = productCardOverrideAttrs(overrides) as Record<
+    `data-${string}`,
+    string
+  >;
+
   /* The category tree fills what the menus payload left empty: the store's
      real tree carries a picture and the raw `id_` on every row, while a
      form-builder menu item answers `image: ""` and an url without a category
@@ -521,57 +571,66 @@ export function MorphCurtain({
   };
 
   return (
-    <div className="morph-curtain" hidden={!open} data-morph-curtain data-testid="morph-curtain">
+    <ProductCardSettingsContext.Provider value={resolvedCard}>
       <div
-        className="morph-curtain__panel"
-        role="region"
-        onMouseOver={onPanelOver}
-        onClick={onPanelClick}
+        className="morph-curtain"
+        hidden={!open}
+        data-morph-curtain
+        data-testid="morph-curtain"
+        style={cardOverrideStyle}
+        {...cardOverrideAttrs}
       >
-        <div className="morph-curtain__layers" data-morph-layers>
-          <div className="morph-layer">
-            {activeMenu && (
-              <p className="morph-layer__label">{activeMenu.title}</p>
-            )}
-            {kids.length ? (
-              <div className="morph-layer__grid">
-                {kids.map((kid) => (
-                  <CurtainNode
-                    key={`${String(kid.id)}-${kid.url}`}
-                    node={kid}
-                    active={Boolean(focus && String(focus.id) === String(kid.id))}
-                    onDrill={onDrill}
-                  />
-                ))}
-              </div>
-            ) : (
-              activeMenu && <p className="morph-layer__empty">{labels.noSubs}</p>
-            )}
+        <div
+          className="morph-curtain__panel"
+          role="region"
+          onMouseOver={onPanelOver}
+          onClick={onPanelClick}
+        >
+          <div className="morph-curtain__layers" data-morph-layers>
+            <div className="morph-layer">
+              {activeMenu && (
+                <p className="morph-layer__label">{activeMenu.title}</p>
+              )}
+              {kids.length ? (
+                <div className="morph-layer__grid">
+                  {kids.map((kid) => (
+                    <CurtainNode
+                      key={`${String(kid.id)}-${kid.url}`}
+                      node={kid}
+                      active={Boolean(focus && String(focus.id) === String(kid.id))}
+                      onDrill={onDrill}
+                    />
+                  ))}
+                </div>
+              ) : (
+                activeMenu && <p className="morph-layer__empty">{labels.noSubs}</p>
+              )}
+            </div>
+            {/* the slot layer keeps its wrapper through every re-render: its
+                class IS its grid slot and its plate (rule 18) */}
+            <div className="morph-layer" data-morph-dyn="slot">
+              {activeMenu && (
+                <SlotColumn
+                  menu={activeMenu}
+                  focus={focus}
+                  slots={slots}
+                  slotsRaw={slotsRaw}
+                  labels={labels}
+                />
+              )}
+            </div>
           </div>
-          {/* the slot layer keeps its wrapper through every re-render: its
-              class IS its grid slot and its plate (rule 18) */}
-          <div className="morph-layer" data-morph-dyn="slot">
-            {activeMenu && (
-              <SlotColumn
-                menu={activeMenu}
-                focus={focus}
-                slots={slots}
-                slotsRaw={slotsRaw}
-                labels={labels}
-              />
-            )}
-          </div>
+          {activeMenu && (
+            /* keyed on the focused node: the old rebuild replaced the dynamic
+               region's innerHTML on every category change, which replayed the
+               entrances (morphCurtainIn on the featured rectangle) — React keeps
+               the wrapper, so a remount is what replays the same transition. */
+            <div data-morph-dyn="featured" key={String((focus ?? activeMenu).id)}>
+              <FeaturedRow node={focus ?? activeMenu} labels={labels} pieces={pieces} />
+            </div>
+          )}
         </div>
-        {activeMenu && (
-          /* keyed on the focused node: the old rebuild replaced the dynamic
-             region's innerHTML on every category change, which replayed the
-             entrances (morphCurtainIn on the featured rectangle) — React keeps
-             the wrapper, so a remount is what replays the same transition. */
-          <div data-morph-dyn="featured" key={String((focus ?? activeMenu).id)}>
-            <FeaturedRow node={focus ?? activeMenu} labels={labels} pieces={pieces} />
-          </div>
-        )}
       </div>
-    </div>
+    </ProductCardSettingsContext.Provider>
   );
 }

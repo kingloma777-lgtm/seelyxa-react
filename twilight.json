@@ -1165,28 +1165,11 @@
       "variant": "h6"
     },
     {
-      "id": "header_layout",
-      "type": "items",
-      "format": "dropdown-list",
-      "icon": "sicon-layout-01",
-      "label": "تخطيط الهيدر",
-      "description": "التخطيط الوحيد في هذا الثيم: السينمائي (MorphPill) — شريط زجاجي يتحوّل عند التمرير، مع قائمة كاملة وستارة ميجا منيو. لا يوجد تخطيط بديل.",
-      "source": "Manual",
-      "required": true,
-      "selected": [
-        {
-          "label": "السينمائي (MorphPill)",
-          "value": "morph",
-          "key": "header-layout-morph"
-        }
-      ],
-      "options": [
-        {
-          "label": "السينمائي (MorphPill)",
-          "value": "morph",
-          "key": "header-layout-morph"
-        }
-      ]
+      "type": "static",
+      "format": "title",
+      "id": "static-title-hf-shape",
+      "value": "الشكل والبنية",
+      "variant": "h6"
     },
     {
       "id": "header_shape",
@@ -1215,70 +1198,137 @@
           "value": "pill",
           "key": "header-shape-pill"
         }
-      ],
-      "conditions": [
+      ]
+    },
+    {
+      "id": "header_radius",
+      "key": "f06cfe84-hdr9-4a1c-9e2f-000dhdrsettings",
+      "type": "items",
+      "format": "dropdown-list",
+      "icon": "sicon-border-radius",
+      "label": "استدارة أسطح الهيدر",
+      "description": "زوايا لوحة الميجا منيو وقائمة نتائج البحث. «وراثة من المتجر» يجعلها تتبع استدارة البطاقات في الإعدادات العامة، وأي اختيار آخر يتجاوزها للهيدر وحده. لا يؤثر على شكل الحبة أو الشريط العلوي.",
+      "source": "Manual",
+      "required": false,
+      "selected": [
         {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
+          "label": "وراثة من المتجر (افتراضي)",
+          "value": "inherit",
+          "key": "5d983c29-hdr9-4a1c-9e2f-000dhdrsettings"
+        }
+      ],
+      "options": [
+        {
+          "label": "وراثة من المتجر (افتراضي)",
+          "value": "inherit",
+          "key": "5d983c29-hdr9-4a1c-9e2f-000dhdrsettings"
+        },
+        {
+          "label": "بدون استدارة",
+          "value": "0",
+          "key": "39bf25de-hdr9-4a1c-9e2f-0007hdrsettings"
+        },
+        {
+          "label": "8 بكسل",
+          "value": "8",
+          "key": "39bf25e6-hdr9-4a1c-9e2f-0007hdrsettings"
+        },
+        {
+          "label": "12 بكسل",
+          "value": "12",
+          "key": "fe259633-hdr9-4a1c-9e2f-0008hdrsettings"
+        },
+        {
+          "label": "18 بكسل",
+          "value": "18",
+          "key": "fe259639-hdr9-4a1c-9e2f-0008hdrsettings"
+        },
+        {
+          "label": "22 بكسل",
+          "value": "22",
+          "key": "fe259652-hdr9-4a1c-9e2f-0008hdrsettings"
         }
       ]
     },
     {
-      "id": "header_theme_toggle",
-      "key": "3dbc16fc-5482-4178-8c83-12a87662fad8",
+      "type": "static",
+      "format": "title",
+      "id": "static-title-hf-logo",
+      "value": "الشعار",
+      "variant": "h6"
+    },
+    {
+      "id": "header_logo_dark",
+      "key": "b6b1f0a2-hdr9-4a1c-9e2f-0009hdrsettings",
+      "type": "string",
+      "format": "image",
+      "icon": "sicon-image",
+      "label": "شعار الوضع الليلي",
+      "description": "نسخة فاتحة من شعارك تُعرض في الوضع الليلي فقط، لأن الشعار الداكن يختفي على خلفية الهيدر الداكنة. اتركه فارغًا ليُستخدم الشعار الأساسي في الوضعين. لا يغيّر حجم الشعار ولا موضعه.",
+      "required": false,
+      "value": ""
+    },
+    {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-hf-sticky",
+      "value": "التثبيت والسطح",
+      "variant": "h6"
+    },
+    {
+      "id": "header_sticky",
+      "key": "f32fc3db-hdr9-4a1c-9e2f-000dhdrsettings",
       "type": "boolean",
       "format": "switch",
-      "label": "زر الوضع الليلي",
-      "description": "يضيف زر تبديل الوضع الليلي في الهيدر بجانب البحث. يبقى اختيار الزائر محفوظًا في متصفحه.",
-      "icon": "sicon-toggle-off",
+      "icon": "sicon-pin",
+      "label": "تثبيت الهيدر أثناء التمرير",
+      "description": "عند التفعيل يبقى الهيدر ظاهرًا أعلى الصفحة أثناء التمرير، ويظهر شريطه الزجاجي عند النزول. عند الإيقاف يتحرك الهيدر مع الصفحة ويختفي، ويبقى ارتفاعه محفوظًا فلا تقفز الصفحة.",
       "required": false,
       "value": true,
-      "selected": true,
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "selected": true
     },
     {
-      "type": "string",
-      "icon": "sicon-format-color-text",
-      "label": "لون خلفية الهيدر",
-      "description": "لون الخلفية الزجاجية للهيدر. يعمل مع «شفافية خلفية الهيدر» أدناه.",
-      "id": "header_glass_color",
-      "format": "color",
+      "id": "header_surface",
+      "key": "74fd98fb-hdr9-4a1c-9e2f-000ehdrsettings",
+      "type": "items",
+      "format": "dropdown-list",
+      "icon": "sicon-color-swatch",
+      "label": "سطح الهيدر عند التمرير",
+      "description": "زجاجي: خلفية شفافة مع تمويه يظهر محتوى الصفحة خلفها. صلب: خلفية معتمة بلا تمويه، أوضح للقراءة فوق الصور المزدحمة. اللون في الحالتين من «لون خلفية الهيدر» أو من سطح المتجر العام.",
+      "source": "Manual",
       "required": false,
-      "value": "#ffffff",
-      "conditions": [
+      "selected": [
         {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
+          "label": "زجاجي (افتراضي)",
+          "value": "glass",
+          "key": "e0ddfeef-hdr9-4a1c-9e2f-000chdrsettings"
+        }
+      ],
+      "options": [
+        {
+          "label": "زجاجي (افتراضي)",
+          "value": "glass",
+          "key": "e0ddfeef-hdr9-4a1c-9e2f-000chdrsettings"
+        },
+        {
+          "label": "صلب",
+          "value": "solid",
+          "key": "e1889e1e-hdr9-4a1c-9e2f-000chdrsettings"
         }
       ]
     },
     {
       "type": "number",
       "icon": "sicon-opacity",
-      "label": "شفافية خلفية الهيدر",
-      "description": "كلما زادت القيمة صارت الخلفية أكثر ظهورًا وأقل شفافية، وكلما قلّت ظهر المحتوى الذي يمرّ خلفها.",
+      "label": "كثافة خلفية الهيدر",
+      "description": "كم تكون خلفية الهيدر معتمة عند التمرير: 100 تعني خلفية معتمة تمامًا، و40 خلفية شفافة يظهر محتوى الصفحة من خلالها. تُقرأ مع «سطح الهيدر عند التمرير» أعلى.",
       "id": "header_glass_opacity",
       "format": "integer",
       "required": false,
       "value": 78,
       "minimum": 1,
       "maximum": 100,
-      "step": 5,
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "step": 5
     },
     {
       "type": "number",
@@ -1291,31 +1341,41 @@
       "value": 18,
       "minimum": 0,
       "maximum": 40,
-      "step": 2,
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "step": 2
+    },
+    {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-hf-colors",
+      "value": "الألوان",
+      "variant": "h6"
+    },
+    {
+      "type": "string",
+      "icon": "sicon-format-color-text",
+      "label": "لون خلفية الهيدر",
+      "description": "لون خلفية الهيدر الزجاجية عند التمرير. اتركه على الأبيض ليتبع سطح المتجر العام في الوضعين النهاري والليلي، أو اختر لونًا فيُطبَّق كما هو في الوضعين. تُقرأ مع «كثافة خلفية الهيدر» أعلى.",
+      "id": "header_glass_color",
+      "format": "color",
+      "required": false,
+      "value": "#ffffff"
     },
     {
       "type": "string",
       "icon": "sicon-format-color-text",
       "label": "لون نصوص الهيدر وأيقوناته",
-      "description": "يشمل الشعار وروابط القائمة والأيقونات. اختر لونًا يتباين مع خلفية الهيدر أعلاه.",
+      "description": "لون نصوص الهيدر وأيقوناته وشعاره. اتركه على القيمة الافتراضية ليتبع لون نص المتجر العام (ويتبدّل تلقائيًا في الوضع الليلي)، أو اختر لونًا فيُطبَّق في الوضعين معًا.",
       "id": "header_text_color",
       "format": "color",
       "required": false,
-      "value": "#0f172a",
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "value": "#0f172a"
+    },
+    {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-hf-links",
+      "value": "الروابط",
+      "variant": "h6"
     },
     {
       "type": "number",
@@ -1328,14 +1388,7 @@
       "value": 14,
       "minimum": 1,
       "maximum": 20,
-      "step": 1,
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "step": 1
     },
     {
       "id": "header_nav_weight",
@@ -1380,14 +1433,28 @@
           "key": "42f9b78e-3a6d-4f5b-81c9-7e0a4d2b8a65"
         }
       ],
-      "source": "Manual",
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "source": "Manual"
+    },
+    {
+      "id": "header_nav_gap",
+      "key": "4a92ca08-hdr9-4a1c-9e2f-000ehdrsettings",
+      "type": "number",
+      "format": "integer",
+      "icon": "sicon-spacing",
+      "label": "المسافة بين روابط القائمة",
+      "description": "الفراغ الأفقي بين روابط القائمة الرئيسية على سطح المكتب. القيمة الصغيرة تعطي صفًا مضغوطًا، والكبيرة تفتح المسافات. عند ضيق الشاشة تنتقل الروابط الزائدة إلى «المزيد» تلقائيًا.",
+      "required": false,
+      "value": 2,
+      "minimum": 0,
+      "maximum": 24,
+      "step": 1
+    },
+    {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-hf-icons",
+      "value": "الأزرار والأيقونات",
+      "variant": "h6"
     },
     {
       "id": "header_icon_menu",
@@ -1422,14 +1489,7 @@
           "key": "91891bc2-5085-4b9f-8ce0-4f0cafb529a8"
         }
       ],
-      "source": "Manual",
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "source": "Manual"
     },
     {
       "id": "header_icon_account",
@@ -1464,14 +1524,7 @@
           "key": "db9e51a9-4341-4077-8957-b7b2a13e67b1"
         }
       ],
-      "source": "Manual",
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "source": "Manual"
     },
     {
       "id": "header_icon_search",
@@ -1501,14 +1554,7 @@
           "key": "62ded55c-f050-415a-a711-0bfde3f94cbe"
         }
       ],
-      "source": "Manual",
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "source": "Manual"
     },
     {
       "id": "header_icon_close",
@@ -1543,14 +1589,19 @@
           "key": "64068bbd-9653-405d-be80-e95ba62561c3"
         }
       ],
-      "source": "Manual",
-      "conditions": [
-        {
-          "id": "header_layout",
-          "operation": "=",
-          "value": "morph"
-        }
-      ]
+      "source": "Manual"
+    },
+    {
+      "id": "header_theme_toggle",
+      "key": "3dbc16fc-5482-4178-8c83-12a87662fad8",
+      "type": "boolean",
+      "format": "switch",
+      "label": "زر الوضع الليلي",
+      "description": "يضيف زر تبديل الوضع الليلي في الهيدر بجانب البحث. يبقى اختيار الزائر محفوظًا في متصفحه.",
+      "icon": "sicon-toggle-off",
+      "required": false,
+      "value": true,
+      "selected": true
     },
     {
       "type": "static",
@@ -1564,6 +1615,669 @@
       "format": "description",
       "id": "static-desc-hf-curtain",
       "value": "سلة تدعم مستويين من التصنيفات، لذا لا تُبنى الخانة الثالثة من التصنيفات. اربط كل خانة بتصنيف لتظهر عند تمرير المؤشر على التصنيف أو أحد فروعه. كل خانة إما منتج مميز أو صورة."
+    },
+    {
+      "id": "header_mega_layout",
+      "key": "b41d7c05-2a6e-4f18-9d33-7e5a1c8b6042",
+      "type": "items",
+      "format": "dropdown-list",
+      "required": false,
+      "label": "توزيعة الميجا منيو",
+      "description": "«التوزيعة الكلاسيكية»: التصنيفات في عمود والمنتجات في صف أسفل اللوحة. «واجهة العرض»: لوحة واحدة بثلاثة أعمدة — تصنيفات، منتجات، ثم خانة الصورة. نفس المحتوى بترتيبين.",
+      "icon": "sicon-layout",
+      "selected": [
+        {
+          "label": "التوزيعة الكلاسيكية (افتراضي)",
+          "value": "classic",
+          "key": "3a5f8b21-6c4d-4e97-8f10-9d2b7c4e5a83"
+        }
+      ],
+      "options": [
+        {
+          "label": "التوزيعة الكلاسيكية (افتراضي)",
+          "value": "classic",
+          "key": "3a5f8b21-6c4d-4e97-8f10-9d2b7c4e5a83"
+        },
+        {
+          "label": "واجهة العرض (ثلاثة أعمدة)",
+          "value": "showcase",
+          "key": "d7e9c104-2b58-4a63-91cf-5e8a0b7d3c26"
+        }
+      ]
+    },
+    {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-mega-card",
+      "value": "كارت المنتج في الميجا منيو",
+      "variant": "h6"
+    },
+    {
+      "type": "static",
+      "format": "description",
+      "id": "static-desc-mega-card",
+      "value": "كروت الميجا منيو ترث «إعدادات كارت المنتج» تلقائيًا: الألوان والاستدارة ونسبة الصورة والخط والظل. فعّل التخصيص لتغيير خصائص بعينها هنا فقط دون بقية المتجر؛ كل خاصية تبقى على «مثل المتجر» ترجع للإعداد العام فورًا وبمجرد تغييره لاحقًا."
+    },
+    {
+      "type": "boolean",
+      "icon": "sicon-toggle-on",
+      "label": "تخصيص كارت الميجا منيو",
+      "description": "مطفأ: الكروت داخل الميجا منيو تتبع تصميم كارت المنتج العام بالكامل. مفعّل: تظهر خصائص التخصيص أدناه، وكل خاصية لم تغيّرها تبقى على «مثل المتجر».",
+      "id": "mega_card_customize",
+      "format": "switch",
+      "required": false,
+      "value": false,
+      "selected": false
+    },
+    {
+      "id": "mega_card_ratio",
+      "key": "c1a2d3e4-4f5b-6a7c-8d9e-0f1a2b3c4d5e",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "شكل صورة المنتج",
+      "description": "«مثل المتجر» يتبع إعداد شكل الصورة العام في كارت المنتج. اختر نسبة أخرى لتسري على كروت الميجا منيو وحدها، وبقية صفحات المتجر لا تتأثر.",
+      "icon": "sicon-image",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "e5f6a7b8-8c9d-0e1f-2a3b-4c5d6e7f8a9b"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "e5f6a7b8-8c9d-0e1f-2a3b-4c5d6e7f8a9b"
+        },
+        {
+          "label": "مربّع",
+          "value": "square",
+          "key": "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+        },
+        {
+          "label": "أفقي (Landscape)",
+          "value": "landscape",
+          "key": "b2c3d4e5-6f7a-8b9c-0d1e-2f3a4b5c6d7e"
+        },
+        {
+          "label": "طولي (Portrait)",
+          "value": "portrait",
+          "key": "c3d4e5f6-7a8b-9c0d-1e2f-3a4b5c6d7e8f"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_img_fit",
+      "key": "5f8c3a51-37e1-4cab-8852-c226d6ea6134",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "طريقة ملء الصورة",
+      "description": "«مثل المتجر» يتبع طريقة ملء الصورة في كارت المنتج العام. اختر طريقة أخرى لتسري على كروت الميجا منيو وحدها — دون أن تتغير صورة المنتج في بقية صفحات المتجر.",
+      "icon": "sicon-image",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "5c06f620-3450-4d5a-a55f-2be297b09838"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "30e1b9f7-568a-4a1e-a831-bf233bc4758d"
+        },
+        {
+          "label": "ملء الإطار",
+          "value": "cover",
+          "key": "7ee42337-afc0-445c-8fc6-39333e6d8eaa"
+        },
+        {
+          "label": "احتواء كامل للصورة",
+          "value": "contain",
+          "key": "92e122c8-6a52-4e2d-898e-60e4c5da1882"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_img_position",
+      "key": "b0d0e92a-9636-4e05-8be3-ba505b6618f4",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "موضع القص في الصورة",
+      "description": "«مثل المتجر» يتبع موضع القص العام. يظهر أثره فقط عندما تكون طريقة الملء «ملء الإطار».",
+      "icon": "sicon-layout-01",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "0cf7d36d-191d-4d3f-8789-640e0c8894fe"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "f4eb33f6-804d-4f65-9793-e02d55e580d2"
+        },
+        {
+          "label": "المنتصف",
+          "value": "center",
+          "key": "c591a779-8b24-4ae9-bfb2-2fc330ab2062"
+        },
+        {
+          "label": "من الأعلى",
+          "value": "top",
+          "key": "012f4042-96b3-43fc-a2ab-ff00d24a45c9"
+        },
+        {
+          "label": "من الأسفل",
+          "value": "bottom",
+          "key": "72728d0c-5166-46a8-ac26-fee6c93a319e"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_hover",
+      "key": "15b8237a-7e20-4438-a3aa-31f98186abaf",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "حركة الكارت عند المرور",
+      "description": "«مثل المتجر» يتبع حركة كارت المنتج العام. اختر حركة أخرى لكروت الميجا منيو وحدها.",
+      "icon": "sicon-motion",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "e6ef0487-299b-4852-a322-d56f639538aa"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "1fe9e95f-4909-4383-83f5-74fbc3b018e4"
+        },
+        {
+          "label": "رفع وتكبير",
+          "value": "both",
+          "key": "26737d88-94a8-477e-b462-711c6b4699e7"
+        },
+        {
+          "label": "رفع فقط",
+          "value": "lift",
+          "key": "96690830-e8f0-4942-8004-531d2d0d40fe"
+        },
+        {
+          "label": "تكبير فقط",
+          "value": "zoom",
+          "key": "fedaaf43-4732-4c3b-a316-d0750c8aa74e"
+        },
+        {
+          "label": "بلا حركة",
+          "value": "none",
+          "key": "8513acea-22ef-4f71-bd3a-191f1a976f59"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_radius",
+      "key": "d4e5f6a7-8b9c-0d1e-2f3a-4b5c6d7e8f9a",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "استدارة زوايا الكارت",
+      "description": "«مثل المتجر» يتبع استدارة كارت المنتج العام. القيم بالبكسل وتسري على كروت الميجا منيو فقط.",
+      "icon": "sicon-radiobutton",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "f6a7b8c9-9d0e-1f2a-3b4c-5d6e7f8a9b0c"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "f6a7b8c9-9d0e-1f2a-3b4c-5d6e7f8a9b0c"
+        },
+        {
+          "label": "حادة (٠)",
+          "value": "0",
+          "key": "a7b8c9d0-0e1f-2a3b-4c5d-6e7f8a9b0c1d"
+        },
+        {
+          "label": "٨",
+          "value": "8",
+          "key": "b8c9d0e1-1f2a-3b4c-5d6e-7f8a9b0c1d2e"
+        },
+        {
+          "label": "١٢",
+          "value": "12",
+          "key": "c9d0e1f2-2a3b-4c5d-6e7f-8a9b0c1d2e3f"
+        },
+        {
+          "label": "١٨",
+          "value": "18",
+          "key": "d0e1f2a3-3b4c-5d6e-7f8a-9b0c1d2e3f4a"
+        },
+        {
+          "label": "٢٢",
+          "value": "22",
+          "key": "e1f2a3b4-4c5d-6e7f-8a9b-0c1d2e3f4a5b"
+        },
+        {
+          "label": "٢٨",
+          "value": "28",
+          "key": "f2a3b4c5-5d6e-7f8a-9b0c-1d2e3f4a5b6c"
+        },
+        {
+          "label": "٣٤",
+          "value": "34",
+          "key": "a3b4c5d6-6e7f-8a9b-0c1d-2e3f4a5b6c7d"
+        },
+        {
+          "label": "٤٤",
+          "value": "44",
+          "key": "b4c5d6e7-7f8a-9b0c-1d2e-3f4a5b6c7d8e"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_shadow",
+      "key": "c5d6e7f8-8a9b-0c1d-2e3f-4a5b6c7d8e9f",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "ظل الكارت",
+      "description": "«مثل المتجر» يتبع ظل كارت المنتج العام. اللوحة تطفو فوق الصفحة، فقد تحتاج ظلًا مختلفًا عن كروت الصفحات.",
+      "icon": "sicon-layer",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "d6e7f8a9-9b0c-1d2e-3f4a-5b6c7d8e9f0a"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "d6e7f8a9-9b0c-1d2e-3f4a-5b6c7d8e9f0a"
+        },
+        {
+          "label": "بلا ظل",
+          "value": "none",
+          "key": "e7f8a9b0-0c1d-2e3f-4a5b-6c7d8e9f0a1b"
+        },
+        {
+          "label": "خفيف",
+          "value": "soft",
+          "key": "f8a9b0c1-1d2e-3f4a-5b6c-7d8e9f0a1b2c"
+        },
+        {
+          "label": "مرتفع",
+          "value": "lift",
+          "key": "a9b0c1d2-2e3f-4a5b-6c7d-8e9f0a1b2c3d"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_font",
+      "key": "b0c1d2e3-3f4a-5b6c-7d8e-9f0a1b2c3d4e",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "خط اسم المنتج",
+      "description": "«مثل المتجر» يتبع خط اسم المنتج العام. السيريف يمنح الأسماء اللاتينية طابعًا تحريريًا، والأسماء العربية تبقى بخط المتجر.",
+      "icon": "sicon-format-text",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "c1d2e3f4-4a5b-6c7d-8e9f-0a1b2c3d4e5f"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "c1d2e3f4-4a5b-6c7d-8e9f-0a1b2c3d4e5f"
+        },
+        {
+          "label": "خط المتجر",
+          "value": "main",
+          "key": "d2e3f4a5-5b6c-7d8e-9f0a-1b2c3d4e5f6a"
+        },
+        {
+          "label": "سيريف تحريري",
+          "value": "serif",
+          "key": "e3f4a5b6-6c7d-8e9f-0a1b-2c3d4e5f6a7b"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_cart",
+      "key": "f4a5b6c7-7d8e-9f0a-1b2c-3d4e5f6a7b8c",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "شكل زر الإضافة إلى السلة",
+      "description": "«مثل المتجر» يتبع شكل زر السلة العام في الكارت. الشريط المكتوب أوضح، والدائرة أصغر وأهدأ.",
+      "icon": "sicon-cart",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "a5b6c7d8-8e9f-0a1b-2c3d-4e5f6a7b8c9d"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "a5b6c7d8-8e9f-0a1b-2c3d-4e5f6a7b8c9d"
+        },
+        {
+          "label": "دائري بأيقونة",
+          "value": "circle",
+          "key": "b6c7d8e9-9f0a-1b2c-3d4e-5f6a7b8c9d0e"
+        },
+        {
+          "label": "شريط مكتوب",
+          "value": "bar",
+          "key": "c7d8e9f0-0a1b-2c3d-4e5f-6a7b8c9d0e1f"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "type": "string",
+      "icon": "sicon-format-color-fill",
+      "label": "لون خلفية الكارت",
+      "description": "«مثل المتجر» يتبع لون خلفية الكارت العام — للعودة إليه اختر اللون الافتراضي #fdfaf3. يسري على كروت الميجا منيو فقط، وفي الوضع الليلي للكروت ألوان الثيم.",
+      "id": "mega_card_bg",
+      "format": "color",
+      "required": false,
+      "value": "#fdfaf3",
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "string",
+      "icon": "sicon-format-color-fill",
+      "label": "لون خلفية الصورة",
+      "description": "اللوح الذي تجلس عليه صورة المنتج داخل الميجا منيو. «مثل المتجر» يتبع لون خلفية صورة الكارت العام — للعودة اختر #f4ebdc. نهاري فقط.",
+      "id": "mega_card_image_bg",
+      "format": "color",
+      "required": false,
+      "value": "#f4ebdc",
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "string",
+      "icon": "sicon-format-color-text",
+      "label": "لون نصوص الكارت",
+      "description": "الاسم والسعر والتقييم داخل الميجا منيو. «مثل المتجر» يتبع لون نصوص الكارت العام — للعودة اختر #2b2519. نهاري فقط.",
+      "id": "mega_card_ink",
+      "format": "color",
+      "required": false,
+      "value": "#2b2519",
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "mega_card_badge",
+      "key": "d8e9f0a1-1b2c-3d4e-5f6a-7b8c9d0e1f2a",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "شارة المنتج",
+      "description": "«مثل المتجر» يتبع خيار شارة الكارت العام. الإخفاء يحذف شارة الخصم و«نفدت الكمية» من كروت الميجا منيو وحدها.",
+      "icon": "sicon-tag",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "e9f0a1b2-2c3d-4e5f-6a7b-8c9d0e1f2a3b"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "e9f0a1b2-2c3d-4e5f-6a7b-8c9d0e1f2a3b"
+        },
+        {
+          "label": "إظهار",
+          "value": "on",
+          "key": "f0a1b2c3-3d4e-5f6a-7b8c-9d0e1f2a3b4c"
+        },
+        {
+          "label": "إخفاء",
+          "value": "off",
+          "key": "a1b2c3d4-4e5f-6a7b-8c9d-0e1f2a3b4c5d"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_wishlist",
+      "key": "b2c3d4e5-5f6a-7b8c-9d0e-1f2a3b4c5d6e",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "زر المفضلة",
+      "description": "«مثل المتجر» يتبع خيار زر المفضلة العام. الإخفاء يحذف القلب من كروت الميجا منيو وحدها ويبقيه في بقية المتجر.",
+      "icon": "sicon-heart",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "c3d4e5f6-6a7b-8c9d-0e1f-2a3b4c5d6e7f"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "c3d4e5f6-6a7b-8c9d-0e1f-2a3b4c5d6e7f"
+        },
+        {
+          "label": "إظهار",
+          "value": "on",
+          "key": "d4e5f6a7-7b8c-9d0e-1f2a-3b4c5d6e7f8a"
+        },
+        {
+          "label": "إخفاء",
+          "value": "off",
+          "key": "e5f6a7b8-8c9d-0e1f-2a3b-4c5d6e7f8a9b"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_desc",
+      "key": "f6a7b8c9-9d0e-1f2a-3b4c-5d6e7f8a9b0c",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "الوصف المختصر",
+      "description": "«مثل المتجر» يتبع خيار الوصف المختصر العام. الإخفاء يجعل كروت الميجا منيو اسمًا وسعرًا فقط — أنسب للقوائم المزدحمة.",
+      "icon": "sicon-note",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "a7b8c9d0-0e1f-2a3b-4c5d-6e7f8a9b0c1d"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "a7b8c9d0-0e1f-2a3b-4c5d-6e7f8a9b0c1d"
+        },
+        {
+          "label": "إظهار",
+          "value": "on",
+          "key": "b8c9d0e1-1f2a-3b4c-5d6e-7f8a9b0c1d2e"
+        },
+        {
+          "label": "إخفاء",
+          "value": "off",
+          "key": "c9d0e1f2-2a3b-4c5d-6e7f-8a9b0c1d2e3f"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "mega_card_rating",
+      "key": "d0e1f2a3-3b4c-5d6e-7f8a-9b0c1d2e3f4a",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "تقييم النجوم",
+      "description": "«مثل المتجر» يتبع خيار تقييم النجوم العام. الإخفاء يحذف صف النجوم من كروت الميجا منيو وحدها.",
+      "icon": "sicon-star2",
+      "required": false,
+      "conditions": [
+        {
+          "id": "mega_card_customize",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "e1f2a3b4-4c5d-6e7f-8a9b-0c1d2e3f4a5b"
+        }
+      ],
+      "options": [
+        {
+          "label": "مثل المتجر (توريث)",
+          "value": "inherit",
+          "key": "e1f2a3b4-4c5d-6e7f-8a9b-0c1d2e3f4a5b"
+        },
+        {
+          "label": "إظهار",
+          "value": "on",
+          "key": "f2a3b4c5-5d6e-7f8a-9b0c-1d2e3f4a5b6c"
+        },
+        {
+          "label": "إخفاء",
+          "value": "off",
+          "key": "a3b4c5d6-6e7f-8a9b-0c1d-2e3f4a5b6c7d"
+        }
+      ],
+      "source": "Manual"
     },
     {
       "id": "curtain_slots",
@@ -1719,6 +2433,118 @@
       "source": "Manual"
     },
     {
+      "id": "product_card_img_fit",
+      "key": "012f4042-96b3-43fc-a2ab-ff00d24a45c9",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "طريقة ملء الصورة",
+      "description": "«ملء الإطار» يجعل الصورة تغطي اللوح كاملًا وتُقتطع الزوائد من أطرافها — الأنسب لصور المنتجات المربعة. «احتواء كامل» يُظهر المنتج كله ويترك لون لوح الصورة حوله — الأنسب للصور الطولية كالفساتين. الإعداد نفسه يسري على الميجا منيو.",
+      "icon": "sicon-image",
+      "required": false,
+      "selected": [
+        {
+          "label": "ملء الإطار (افتراضي)",
+          "value": "cover",
+          "key": "72728d0c-5166-46a8-ac26-fee6c93a319e"
+        }
+      ],
+      "options": [
+        {
+          "label": "ملء الإطار (افتراضي)",
+          "value": "cover",
+          "key": "15b8237a-7e20-4438-a3aa-31f98186abaf"
+        },
+        {
+          "label": "احتواء كامل للصورة",
+          "value": "contain",
+          "key": "e6ef0487-299b-4852-a322-d56f639538aa"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "product_card_img_position",
+      "key": "1fe9e95f-4909-4383-83f5-74fbc3b018e4",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "موضع القص في الصورة",
+      "description": "يحدد الجزء الذي يبقى ظاهرًا حين تُقتطع الصورة الطولية. «من الأعلى» يحفظ الوجه أو أعلى المنتج، و«من الأسفل» يحفظ قاعدة المنتج. لا أثر لهذا الإعداد عندما تكون طريقة الملء «احتواء كامل».",
+      "icon": "sicon-layout-01",
+      "required": false,
+      "conditions": [
+        {
+          "id": "product_card_img_fit",
+          "operation": "=",
+          "value": "cover"
+        }
+      ],
+      "selected": [
+        {
+          "label": "المنتصف (افتراضي)",
+          "value": "center",
+          "key": "26737d88-94a8-477e-b462-711c6b4699e7"
+        }
+      ],
+      "options": [
+        {
+          "label": "المنتصف (افتراضي)",
+          "value": "center",
+          "key": "96690830-e8f0-4942-8004-531d2d0d40fe"
+        },
+        {
+          "label": "من الأعلى",
+          "value": "top",
+          "key": "fedaaf43-4732-4c3b-a316-d0750c8aa74e"
+        },
+        {
+          "label": "من الأسفل",
+          "value": "bottom",
+          "key": "8513acea-22ef-4f71-bd3a-191f1a976f59"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "product_card_hover",
+      "key": "6487deca-a4ef-4aab-a422-bb578413193f",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "حركة الكارت عند المرور",
+      "description": "«رفع وتكبير» يرفع الكارت قليلًا ويكبّر الصورة داخله. «رفع فقط» أهدأ، و«تكبير فقط» يحرّك الصورة وحدها، و«بلا حركة» يجمّد الكارت تمامًا. لا تعمل الحركة على شاشات اللمس.",
+      "icon": "sicon-motion",
+      "required": false,
+      "selected": [
+        {
+          "label": "رفع وتكبير (افتراضي)",
+          "value": "both",
+          "key": "12f9e856-47c5-4ca2-b1de-f717c3ca2844"
+        }
+      ],
+      "options": [
+        {
+          "label": "رفع وتكبير (افتراضي)",
+          "value": "both",
+          "key": "f552a4f9-8d4f-41e1-9d51-a054e63a28b3"
+        },
+        {
+          "label": "رفع فقط",
+          "value": "lift",
+          "key": "0d20a163-b454-4c2f-b3f7-66e7959c889f"
+        },
+        {
+          "label": "تكبير فقط",
+          "value": "zoom",
+          "key": "d4e15d84-e604-494c-9f17-a479a8d4c8b6"
+        },
+        {
+          "label": "بلا حركة",
+          "value": "none",
+          "key": "06e6e847-6e41-44c0-b7c4-272124d21aba"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
       "type": "boolean",
       "icon": "sicon-gallery",
       "label": "التنقل بين صور المنتج",
@@ -1733,12 +2559,654 @@
       "type": "boolean",
       "icon": "sicon-tag",
       "label": "شارة المنتج",
-      "description": "تظهر أعلى الصورة وتحمل «العنوان الترويجي» من صفحة المنتج أو شارة الحملة.",
+      "description": "تلتصق بحافة الكارت العلوية: نصفها على الصفحة ونصفها على الصورة، ويحيط بها إطار من لون الكارت نفسه فتبدو مقتطعة منه. تحمل «العنوان الترويجي» من صفحة المنتج أو شارة الحملة أو نسبة الخصم أو «نفدت الكمية».",
       "id": "product_card_badge",
       "format": "switch",
       "required": false,
       "value": true,
       "selected": true
+    },
+        {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-badge-place",
+      "value": "مكان الشارة وشكلها",
+      "variant": "h6"
+    },
+    {
+      "id": "product_card_badge_placement",
+      "key": "22710fd0-276a-47fa-9334-2e73bcc54af9",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "علاقة الشارة بالكارت",
+      "description": "«على الحافة» تُثبَّت على حافة الكارت العلوية: نصفها على الصفحة ونصفها على الصورة، ويحيط بها إطار من لون الكارت فتبدو مقتطعة منه. «داخل الإطار» تجلس في زاوية الكارت وتأخذ استدارتها فتبدو جزءًا من الكارت. «معلّقة على الجانب» تخرج من حافة الكارت الجانبية. «حرة» تطفو داخل الصورة بظلّها الخاص.",
+      "icon": "sicon-pin",
+      "required": false,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "على الحافة (افتراضي)",
+          "value": "edge",
+          "key": "d642a5ca-ed60-4d9a-a469-2fa4ca358650"
+        }
+      ],
+      "options": [
+        {
+          "label": "على الحافة (افتراضي)",
+          "value": "edge",
+          "key": "cbc40958-fe81-4455-b7ef-c3e9a2974785"
+        },
+        {
+          "label": "داخل إطار الكارت",
+          "value": "frame",
+          "key": "37cc570d-b6a9-4656-87d3-df402ecee1b6"
+        },
+        {
+          "label": "معلّقة على الجانب",
+          "value": "attached",
+          "key": "8ba2ea18-8d5a-4401-9d4e-f2529445312b"
+        },
+        {
+          "label": "حرة داخل الصورة",
+          "value": "free",
+          "key": "b1bc9f2f-bdaf-49c1-83eb-654fcac82699"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "product_card_badge_shape",
+      "key": "f5bbe153-d22a-4300-9f32-a0ce396cd858",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "شكل الشارة",
+      "description": "«حاد» مستطيل مطبوع بزوايا قائمة، «حواف ناعمة» يلين زواياها، «كبسولة» يجعلها كاملة الاستدارة، و«تذكرة» تُبقي زاوية واحدة قائمة والباقي مستديرًا.",
+      "icon": "sicon-border-radius",
+      "required": false,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "حاد (افتراضي)",
+          "value": "sharp",
+          "key": "1a5e3046-9226-456c-927d-61fb1c53f746"
+        }
+      ],
+      "options": [
+        {
+          "label": "حاد (افتراضي)",
+          "value": "sharp",
+          "key": "d288ecf0-a456-4c8d-8a71-d15092deae05"
+        },
+        {
+          "label": "حواف ناعمة",
+          "value": "soft",
+          "key": "68cc6104-7fc9-4929-bc73-34ec5064c2f5"
+        },
+        {
+          "label": "كبسولة",
+          "value": "pill",
+          "key": "d72c1dc1-6eb4-4065-bf3d-8a0bff0ac171"
+        },
+        {
+          "label": "تذكرة",
+          "value": "ticket",
+          "key": "896dff03-63f3-4c6c-bc78-97ed8e9925fe"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "type": "number",
+      "icon": "sicon-radiobutton",
+      "label": "استدارة زوايا الشارة",
+      "description": "تُطبَّق على «حاد» و«حواف ناعمة» فقط؛ الكبسولة والتذكرة لهما استدارتهما. ٠ زوايا قائمة.",
+      "id": "product_card_badge_radius",
+      "format": "integer",
+      "required": false,
+      "value": 0,
+      "minimum": 0,
+      "maximum": 40,
+      "step": 1,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "boolean",
+      "icon": "sicon-arrow-expand-horizontal",
+      "label": "تمديد الشارة بعرض الكارت",
+      "description": "تحوّل الشارة إلى شريط يمتد على عرض الكارت بدل أن يحيط بالنص. مفيد للعروض القوية، ومزعج إن تعدّدت في الصفحة.",
+      "id": "product_card_badge_stretch",
+      "format": "switch",
+      "required": false,
+      "value": false,
+      "selected": false,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "icon": "sicon-arrow-expand-horizontal",
+      "label": "إزاحة أفقية",
+      "description": "تحرّك الشارة يمينًا ويسارًا من موضعها الأصلي بالبكسل. القيمة السالبة تقرّبها من الحافة.",
+      "id": "product_card_badge_offset_x",
+      "format": "integer",
+      "required": false,
+      "value": 0,
+      "minimum": -24,
+      "maximum": 40,
+      "step": 1,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "icon": "sicon-arrow-expand-vertical",
+      "label": "إزاحة رأسية",
+      "description": "ترفع الشارة أو تنزلها من موضعها الأصلي بالبكسل. القيمة السالبة ترفعها فوق الحافة.",
+      "id": "product_card_badge_offset_y",
+      "format": "integer",
+      "required": false,
+      "value": 0,
+      "minimum": -24,
+      "maximum": 40,
+      "step": 1,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "icon": "sicon-opacity",
+      "label": "سماكة الإطار الفاصل",
+      "description": "الفجوة بلون الكارت حول الشارة. هي التي تجعل حافة الكارت تمرّ خلفها فتبدو مقتطعة منه. ٠ يلغيها تمامًا.",
+      "id": "product_card_badge_ring",
+      "format": "integer",
+      "required": false,
+      "value": 3,
+      "minimum": 0,
+      "maximum": 8,
+      "step": 1,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-badge-face",
+      "value": "سطح الشارة وإطارها",
+      "variant": "h6"
+    },
+    {
+      "id": "product_card_badge_surface",
+      "key": "0fa9138b-55a7-4443-bc3a-273194c4a618",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "سطح الشارة",
+      "description": "«حبر» لوح داكن بلون نص الكارت، «ورق» لوح فاتح بلون خلفية الكارت، «هادئ» الحبر ممزوجًا بالورق، و«مخصّص» بلونين تختارهما بنفسك.",
+      "icon": "sicon-format-color-fill",
+      "required": false,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "حبر (افتراضي)",
+          "value": "ink",
+          "key": "68d8ef59-3901-4e37-aa85-7896f7fc0a78"
+        }
+      ],
+      "options": [
+        {
+          "label": "حبر (افتراضي)",
+          "value": "ink",
+          "key": "3c487e78-74ab-4ac7-8fd6-ba1c921a9c75"
+        },
+        {
+          "label": "ورق",
+          "value": "paper",
+          "key": "4a66b5ab-a0fb-407a-b7a7-98831e331567"
+        },
+        {
+          "label": "هادئ",
+          "value": "soft",
+          "key": "2b677070-46c2-45f4-a1d9-a86fb78f9f74"
+        },
+        {
+          "label": "مخصّص",
+          "value": "custom",
+          "key": "2d747f5c-bc4e-4f5a-8205-5be33ede403e"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "type": "string",
+      "icon": "sicon-format-color-fill",
+      "label": "لون خلفية الشارة",
+      "description": "يُستخدم مع السطح «مخصّص» فقط. اختر لونًا واضحًا على الصورة، فالشارة تُقرأ فوق صورة لا فوق ورق.",
+      "id": "product_card_badge_bg",
+      "format": "color",
+      "required": false,
+      "value": "#2b2519",
+      "conditions": [
+        {
+          "id": "product_card_badge_surface",
+          "operation": "=",
+          "value": "custom"
+        }
+      ]
+    },
+    {
+      "type": "string",
+      "icon": "sicon-format-color-text",
+      "label": "لون نص الشارة",
+      "description": "يُستخدم مع السطح «مخصّص» فقط، ويجب أن يكون متباينًا مع لون الخلفية.",
+      "id": "product_card_badge_ink",
+      "format": "color",
+      "required": false,
+      "value": "#fdfaf3",
+      "conditions": [
+        {
+          "id": "product_card_badge_surface",
+          "operation": "=",
+          "value": "custom"
+        }
+      ]
+    },
+    {
+      "id": "product_card_badge_border_style",
+      "key": "b4e28175-cd3f-4c25-ab8d-4220c489f119",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "نمط إطار الشارة",
+      "description": "إطار حول الشارة بلون النص نفسه. «متقطّع» يقرأ كقسيمة أو بطاقة، و«متصل» كإطار مطبوع.",
+      "icon": "sicon-border-radius",
+      "required": false,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "بلا إطار (افتراضي)",
+          "value": "none",
+          "key": "60d40d3e-b77d-41c5-b563-203678a43666"
+        }
+      ],
+      "options": [
+        {
+          "label": "بلا إطار (افتراضي)",
+          "value": "none",
+          "key": "28a525b5-589c-4c9c-adf7-c264d84a320b"
+        },
+        {
+          "label": "متصل",
+          "value": "solid",
+          "key": "37fd0d91-e8bc-4943-8c76-131e5abf77f0"
+        },
+        {
+          "label": "متقطّع",
+          "value": "dashed",
+          "key": "cb01d56f-e016-4409-a880-7eecbaed195d"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "type": "number",
+      "icon": "sicon-arrow-expand-horizontal",
+      "label": "سماكة إطار الشارة",
+      "description": "٠ بلا إطار. ١ رفيع وأنيق، و٢ أو أكثر يقرأ كملصق.",
+      "id": "product_card_badge_border_width",
+      "format": "integer",
+      "required": false,
+      "value": 0,
+      "minimum": 0,
+      "maximum": 4,
+      "step": 1,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-badge-type",
+      "value": "الخط والحشو والتفاصيل",
+      "variant": "h6"
+    },
+    {
+      "type": "number",
+      "icon": "sicon-font-size",
+      "label": "حجم خط الشارة",
+      "description": "١٠ هو الحجم المرجعي. أقل من ٩ يصعب قراءته على الجوال.",
+      "id": "product_card_badge_font_size",
+      "format": "integer",
+      "required": false,
+      "value": 10,
+      "minimum": 8,
+      "maximum": 16,
+      "step": 1,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "product_card_badge_font_weight",
+      "key": "3514a6b4-8e48-4003-ae82-74e3ccb91bc9",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "وزن خط الشارة",
+      "description": "٧٠٠ هو الوزن المرجعي. ٥٠٠ أهدأ وأقرب إلى نص الكارت، و٨٠٠ أعلى صوتًا.",
+      "icon": "sicon-format-bold",
+      "required": false,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "عريض ٧٠٠ (افتراضي)",
+          "value": "700",
+          "key": "3d8f82b2-1097-4080-83a1-5f70d1725b26"
+        }
+      ],
+      "options": [
+        {
+          "label": "متوسط ٥٠٠",
+          "value": "500",
+          "key": "9da0f0e1-10c7-423f-b256-09438446acde"
+        },
+        {
+          "label": "نصف عريض ٦٠٠",
+          "value": "600",
+          "key": "ced463e3-0fdd-482b-979b-99caf0ed6c16"
+        },
+        {
+          "label": "عريض ٧٠٠ (افتراضي)",
+          "value": "700",
+          "key": "48359db9-5974-41c0-925f-b2da8823d094"
+        },
+        {
+          "label": "ثقيل ٨٠٠",
+          "value": "800",
+          "key": "0b59f1e1-7f03-4099-959c-5437e12e46d6"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "type": "number",
+      "icon": "sicon-arrow-expand-horizontal",
+      "label": "الحشو الأفقي الداخلي",
+      "description": "المسافة بين النص وحافتي الشارة يمينًا ويسارًا.",
+      "id": "product_card_badge_pad_x",
+      "format": "integer",
+      "required": false,
+      "value": 10,
+      "minimum": 4,
+      "maximum": 20,
+      "step": 1,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "type": "number",
+      "icon": "sicon-arrow-expand-vertical",
+      "label": "الحشو الرأسي الداخلي",
+      "description": "المسافة بين النص وحافتي الشارة أعلى وأسفل. هي التي تحدّد ارتفاع الشارة.",
+      "id": "product_card_badge_pad_y",
+      "format": "integer",
+      "required": false,
+      "value": 6,
+      "minimum": 2,
+      "maximum": 14,
+      "step": 1,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "product_card_badge_detail",
+      "key": "c5f23207-8190-4f28-be21-1520a9c084b9",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "تفصيل زخرفي",
+      "description": "«نقطة» تضع نقطة مطبوعة قبل الكلمات، و«خط داخلي» يرسم إطارًا رفيعًا داخل الشارة يجعلها تبدو مطبوعة لا مصبوغة.",
+      "icon": "sicon-flash",
+      "required": false,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "بلا تفصيل (افتراضي)",
+          "value": "none",
+          "key": "cbb84522-86e9-4a21-96fb-80ca3a2e7cbf"
+        }
+      ],
+      "options": [
+        {
+          "label": "بلا تفصيل (افتراضي)",
+          "value": "none",
+          "key": "69b3139e-4c4b-4d99-86fa-81b9d983e3be"
+        },
+        {
+          "label": "نقطة قبل النص",
+          "value": "dot",
+          "key": "d4c20217-a51e-4de9-94bf-450e8dd7470d"
+        },
+        {
+          "label": "خط داخلي",
+          "value": "keyline",
+          "key": "a575e61a-1e4a-4746-b0db-fca8e3506677"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "type": "static",
+      "format": "title",
+      "id": "static-title-badge-content",
+      "value": "محتوى الشارة ونبرتها",
+      "variant": "h6"
+    },
+    {
+      "type": "string",
+      "icon": "sicon-note",
+      "label": "نص شارة نفاد الكمية",
+      "description": "اتركه فارغًا ليُستخدم نص المتجر المترجم «نفدت الكمية». اكتبه هنا إن أردت صياغة مختلفة.",
+      "id": "product_card_badge_out_text",
+      "format": "text",
+      "required": false,
+      "value": "",
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "placeholder": "نفدت الكمية"
+    },
+    {
+      "type": "string",
+      "icon": "sicon-tag",
+      "label": "صيغة شارة الخصم",
+      "description": "النسبة المحسوبة تُوضع مكان {value}. الافتراضي «-{value}%» يظهر مثل ‎-٢٢٪. اكتب «خصم {value}%» ليظهر «خصم ٢٢%». الحساب نفسه لا يتغيّر.",
+      "id": "product_card_badge_sale_template",
+      "format": "text",
+      "required": false,
+      "value": "-{value}%",
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "placeholder": "-{value}%"
+    },
+    {
+      "id": "product_card_badge_out_tone",
+      "key": "ddd677ff-c728-413b-b220-8ee4ac08be72",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "نبرة شارة نفاد الكمية",
+      "description": "«هادئة» تجعلها أفتح من شارة الخصم، و«حبر» تجعلها بنفس قوّتها، و«ورق» لوحًا فاتحًا. «موروثة» تعني أن تأخذ سطح الشارة كما هو.",
+      "icon": "sicon-opacity",
+      "required": false,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "هادئة (افتراضي)",
+          "value": "quiet",
+          "key": "8007ff44-2646-4dc7-8800-10916b106289"
+        }
+      ],
+      "options": [
+        {
+          "label": "هادئة (افتراضي)",
+          "value": "quiet",
+          "key": "f7ad7e1d-8880-48ea-b222-45b8f8eb645c"
+        },
+        {
+          "label": "موروثة من السطح",
+          "value": "inherit",
+          "key": "44499eab-16e9-40df-8aaa-5d2b1e0d0bcc"
+        },
+        {
+          "label": "حبر",
+          "value": "ink",
+          "key": "34b5a0ca-ae0c-4f8b-abe9-838e16411573"
+        },
+        {
+          "label": "ورق",
+          "value": "paper",
+          "key": "e5c55fb7-46cb-4734-ad90-8ac0e85d4965"
+        }
+      ],
+      "source": "Manual"
+    },
+    {
+      "id": "product_card_badge_sale_tone",
+      "key": "abbb32ef-becb-4a20-8da9-0512ccd9be0c",
+      "type": "items",
+      "format": "dropdown-list",
+      "label": "نبرة شارة الخصم",
+      "description": "«موروثة» تعني أن تأخذ سطح الشارة كما هو، وهو الافتراضي. اختر نبرة أخرى إن أردت تمييز الخصم عن بقية الشارات.",
+      "icon": "sicon-opacity",
+      "required": false,
+      "conditions": [
+        {
+          "id": "product_card_badge",
+          "operation": "=",
+          "value": true
+        }
+      ],
+      "selected": [
+        {
+          "label": "موروثة من السطح (افتراضي)",
+          "value": "inherit",
+          "key": "788710cc-86e7-4b94-9ae1-235aa8d4fdc8"
+        }
+      ],
+      "options": [
+        {
+          "label": "موروثة من السطح (افتراضي)",
+          "value": "inherit",
+          "key": "d0d4dc4e-ea16-42c1-8455-787d055a5a40"
+        },
+        {
+          "label": "حبر",
+          "value": "ink",
+          "key": "5ef592ea-a4f4-4539-970e-2e02165936d1"
+        },
+        {
+          "label": "ورق",
+          "value": "paper",
+          "key": "374a7bd8-2ffb-43c2-8857-15122e2f14ee"
+        },
+        {
+          "label": "هادئة",
+          "value": "quiet",
+          "key": "1e02316e-a53a-426b-854b-d538af45fb87"
+        }
+      ],
+      "source": "Manual"
     },
     {
       "type": "boolean",
@@ -1759,7 +3227,7 @@
       "id": "product_card_desc_lines",
       "format": "integer",
       "required": false,
-      "value": 2,
+      "value": 1,
       "minimum": 1,
       "maximum": 4,
       "step": 1,
@@ -1804,12 +3272,12 @@
       "type": "boolean",
       "icon": "sicon-star-o",
       "label": "إظهار حالة عدم وجود تقييمات",
-      "description": "يعرض «لا تقييمات» للمنتجات التي لم تُراجَع، بدل إخفاء صف التقييم واختلاف ارتفاع الكروت.",
+      "description": "يعرض «لا تقييمات» للمنتجات التي لم تُراجَع. إخفاؤه يجعل الكارت أهدأ ولا يؤثر على محاذاة صف الكروت.",
       "id": "product_card_rating_empty",
       "format": "switch",
       "required": false,
-      "value": true,
-      "selected": true,
+      "value": false,
+      "selected": false,
       "conditions": [
         {
           "id": "product_card_rating",

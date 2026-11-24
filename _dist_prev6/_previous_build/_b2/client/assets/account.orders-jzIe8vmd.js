@@ -1,0 +1,1 @@
+import{yr as e}from"./shared-home-BldjTPfC.js";import{n as t}from"./chunk-HIGI3M7E-CFstLtPO.js";import"./orders-B1MDPiL-.js";import{_ as n}from"./hydrate-DQinstiO.js";var r=e();function i(){let e=n.useLoaderData();return(0,r.jsx)(t.Component,{...e})}export{i as component};

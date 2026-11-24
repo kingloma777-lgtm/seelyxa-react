@@ -50,11 +50,35 @@ vi.mock('../../../app/components/product/ProductCard', () => ({
 
 /* the menu card is a black box here too: same testdataid as the slot card, so
    the featured-row assertions keep reading "four cards in the list" no matter
-   which card component paints them */
-vi.mock('../../../app/components/product/MorphMenuCard', () => ({
-  MorphMenuCard: ({ product }: { product: Record<string, unknown> }) => (
-    <div data-testid="curtain-card">{String(product.id)}</div>
-  ),
+   which card component paints them. It also PROBES the resolved card context,
+   because the curtain is the component that must hand its cards the GLOBAL
+   design overridden by `mega_card_*` — a wiring regression would leave the
+   cards reading the raw globals. */
+vi.mock('../../../app/components/product/MorphMenuCard', async () => {
+  const { useProductCardSettings } = await import('../../../app/lib/productCardSettings');
+  return {
+    MorphMenuCard: ({ product }: { product: Record<string, unknown> }) => {
+      const s = useProductCardSettings() as Record<string, unknown>;
+      return (
+        <div
+          data-testid="curtain-card"
+          data-pc-badge={String(s.badge)}
+          data-pc-ratio={String(s.ratio)}
+          data-pc-radius={String(s.radius)}
+        >
+          {String(product.id)}
+        </div>
+      );
+    },
+  };
+});
+
+/* The curtain reads its overrides from `theme.settings` — the same channel
+   `ThemeLayout` reads the GLOBAL card settings from. The fixture is mutable so
+   each scenario can write the merchant's saved values and render. */
+const themeState: { settings: Record<string, unknown> } = { settings: {} };
+vi.mock('@salla.sa/twilight-theme-engine/providers', () => ({
+  useTwilight: () => ({ theme: themeState }),
 }));
 
 vi.mock('@salla.sa/twilight-theme-engine/api/product', () => ({
@@ -135,6 +159,7 @@ const base = (over: Partial<Parameters<typeof MorphCurtain>[0]> = {}) => ({
 beforeEach(() => {
   vi.clearAllMocks();
   mockLoader = null;
+  themeState.settings = {};
   ITEMS = [{ id: 101 }, { id: 102 }, { id: 103 }, { id: 104 }, { id: 105 }];
 });
 
@@ -411,6 +436,65 @@ describe('MorphCurtain', () => {
       expect(container.querySelector('[data-testid="curtain-items"]')).toBeNull();
       expect(mockLoader).toBeNull();
       expect(product.list).not.toHaveBeenCalled();
+    });
+  });
+
+  /* ══ the Global Product Card System's component half ══════════════════════
+     The curtain inherits the store's card design by default and re-declares
+     ONLY what the merchant overrode, on the curtain root — a nearer ancestor
+     than `.app-inner`, so the override is local and the rest of the store
+     never sees it. These pin the wiring, not the resolution (that is
+     `productCardSettings.test.ts`). */
+  describe('the product-card overrides', () => {
+    it('inherits silently: no override style, no override attributes', () => {
+      const { container } = mountCurtain(<MorphCurtain {...base()} />);
+      const root = container.querySelector('.morph-curtain') as HTMLElement;
+      expect(root.getAttribute('data-pc-shadow')).toBeNull();
+      expect(root.getAttribute('data-pc-font')).toBeNull();
+      expect(root.getAttribute('data-pc-cart')).toBeNull();
+      /* React omits the style attribute entirely for an empty object — so a
+         curtain on Inherit Global paints exactly what it painted before the
+         system existed */
+      expect(root.getAttribute('style')).toBeNull();
+    });
+
+    it('a saved local is INERT while the panel gate is off', () => {
+      themeState.settings = { mega_card_ratio: 'portrait', mega_card_radius: '8' };
+      const { container } = mountCurtain(<MorphCurtain {...base()} />);
+      const root = container.querySelector('.morph-curtain') as HTMLElement;
+      expect(root.getAttribute('style')).toBeNull();
+      const card = container.querySelector('[data-testid="curtain-card"]') as HTMLElement;
+      expect(card.getAttribute('data-pc-ratio')).toBe('square');
+    });
+
+    it('writes the overridden properties on the curtain root only', () => {
+      themeState.settings = {
+        mega_card_customize: true,
+        mega_card_ratio: 'portrait',
+        mega_card_radius: '8',
+        mega_card_shadow: 'none',
+      };
+      const { container } = mountCurtain(<MorphCurtain {...base()} />);
+      const root = container.querySelector('.morph-curtain') as HTMLElement;
+      /* jsdom serializes the style attribute with a space after each colon */
+      const style = root.getAttribute('style') ?? '';
+      expect(style).toContain('--pc-ar-num: 0.75');
+      expect(style).toContain('--pc-ar-pad: 133.3333%');
+      expect(style).toContain('--pc-radius: 8px');
+      expect(root.getAttribute('data-pc-shadow')).toBe('none');
+      /* not overridden → not declared, so the subtree keeps inheriting `.app-inner` */
+      expect(root.getAttribute('data-pc-font')).toBeNull();
+      expect(style).not.toContain('--pc-bg');
+    });
+
+    it('hands its cards the resolved design through the scoped context', () => {
+      themeState.settings = { mega_card_customize: true, mega_card_badge: 'off' };
+      const { container } = mountCurtain(<MorphCurtain {...base()} />);
+      const card = container.querySelector('[data-testid="curtain-card"]') as HTMLElement;
+      /* the global default is ON; the local decision wins INSIDE the curtain */
+      expect(card.getAttribute('data-pc-badge')).toBe('false');
+      /* properties the merchant did not touch keep the global values */
+      expect(card.getAttribute('data-pc-ratio')).toBe('square');
     });
   });
 });

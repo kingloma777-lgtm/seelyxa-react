@@ -1,0 +1,1 @@
+import{vr as e}from"./shared-home-CY2hce1J.js";import{r as t}from"./account-DzU7SHZM.js";import{h as n}from"./hydrate-BKHI15OB.js";var r=e();function i(){let e=n.useLoaderData();return(0,r.jsx)(t.Component,{...e})}export{i as component};

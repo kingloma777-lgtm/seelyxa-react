@@ -1,0 +1,1 @@
+export{rn as Footer}from"./shared-home-vpN2Sibc.js";

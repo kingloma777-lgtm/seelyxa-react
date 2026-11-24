@@ -1,0 +1,1336 @@
+/* ==========================================================================
+   Product card actions — the rail, its three panels and the compare tray
+   ==========================================================================
+
+   ONE RAIL, FOUR CONTROLS
+   -----------------------
+   The card's print already carried a wishlist heart in its inline-end corner
+   (the engine's own button). That corner now holds a group: heart, quick view,
+   compare, similar products — same disc, same paper, same 6px rhythm, stacked
+   in the direction the corner has room for.
+
+   Nothing here is a new design system: every colour is the card's own
+   `--pc-*` channel or the store's `--surface-*` / `--ink-*` roles, every corner
+   is `--radius-*`, and the discs are the same 30px paper circle the heart
+   already was — so a store that never touches the settings gets a card that
+   looks like the one it had, with three more controls on the same corner.
+
+   TWO SHAPES, ONE GROUP
+   ---------------------
+   A wide card stacks the four vertically (a column is 38px wide — it never
+   competes with the photograph). A card at the compact scale (≤190px, the same
+   breakpoint the card itself switches at) has no vertical room for four discs
+   before the label's plate starts, so the group becomes a 2×2 cluster. Both
+   are the same element with the same buttons; only the flow changes.
+
+   The badge keeps clear of it through `--pc-actions-w`, declared on the card
+   in `product-card.scss` and read by the tag's max-width rules there.
+
+   THE PANELS
+   ----------
+   Quick view, similar products and the comparison share one dialog shell
+   (`ProductDialog`): a bottom sheet on a phone, a centred panel from 768px.
+   The tray is the compare button's proof — it is the only place the selection
+   is visible outside the card, and it is mounted once in the layout.
+   ========================================================================== */
+
+/* ---------- the rail ---------- */
+
+.pc-actions {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  /* the group is a control cluster, not a surface: it must never swallow a
+     click meant for the photo, and it must never inherit the plate's cursor */
+  cursor: default;
+}
+
+/* A FULL-WIDTH BAND OWNS THE STRIP THE RAIL LIVES IN. The tag is a band across
+   the card's top edge, so the discs would otherwise sit ON it — a white heart on
+   a white band has no edge at all, and on a coloured band it reads as a hole
+   punched through the label. The band's height is its own vertical padding plus
+   one line of type, the same number the tag's own rules use; the 8px is the inset
+   the rail already keeps from the card's edge, so a badged card and an unbadged
+   one hold their discs the same distance from the nearest edge. Reserved on
+   EVERY card in the grid rather than only the badged ones: a row of four where
+   two carry a band would otherwise hang its hearts at two different heights. */
+[data-pc-badge-stretch='1'] .pc-actions {
+  inset-block-start: calc(
+    2 * var(--pc-tag-pad-y, 6px) + 2 * var(--pc-tag-bw, 0px) + var(--pc-tag-fs, 10px) * 1.3 +
+      var(--pc-tag-dy, 0px) + 8px
+  );
+}
+
+.pc-actions__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  min-width: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--pc-ink) 12%, transparent);
+  border-radius: 50%;
+  /* the same flat translucent disc the engine's heart used: a blurred glass
+     control on every card in a grid is a real cost and read as a trend */
+  background: color-mix(in srgb, var(--pc-bg) 86%, transparent);
+  color: var(--pc-ink);
+  box-shadow: 0 2px 10px -3px rgb(0 0 0 / 26%);
+  cursor: pointer;
+  transition:
+    background 0.3s,
+    border-color 0.3s,
+    color 0.3s,
+    transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  svg {
+    width: 16px;
+    height: 16px;
+    /* the icons are line art at one stroke weight, like the rest of the chrome */
+    flex: 0 0 auto;
+  }
+
+  /* 30px of disc, 36px of target — exactly the 6px gap, so two neighbours'
+     hit areas meet without overlapping. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+  }
+
+  &:hover {
+    background: var(--pc-bg);
+    border-color: color-mix(in srgb, var(--pc-ink) 24%, transparent);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* ON — the heart is saved, the product is in the comparison. Paper stays,
+     the glyph takes the store's brand colour, exactly like the engine's own
+     `.s-product-card-wishlist-added`. The icon's fill (heart) or its tint
+     (scale) carries the state, so the group never grows a second loud disc. */
+  &.is-active {
+    background: var(--pc-bg);
+    border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+    color: var(--color-primary);
+  }
+}
+
+/* The label, on a deliberate hover only. A tooltip that appears the instant
+   the pointer crosses the rail covers the photograph the customer is looking
+   at; the 350ms delay means "stopped on this button", and `pointer-events:
+   none` keeps it from stealing its own button's click. */
+.pc-actions__btn::after {
+  content: attr(data-tip);
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: calc(100% + 8px);
+  transform: translateY(-50%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink-1) 94%, transparent);
+  color: var(--surface-1);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease 0.35s;
+}
+
+.pc-actions__btn:hover::after,
+.pc-actions__btn:focus-visible::after {
+  opacity: 1;
+}
+
+/* the engine's own heart stays in the server-rendered HTML and steps aside the
+   moment the rail mounts (`ProductCard` writes the attribute) */
+[data-pc-actions='1'] .s-product-card-image > .s-button-wrap {
+  display: none;
+}
+
+/* ---------- night ---------- */
+
+/* A translucent tint of the night surface measured mid-grey over a white
+   product shot — the same finding the card's own heart rule records. */
+html.dark .pc-actions__btn {
+  background: var(--surface-3);
+  border-color: color-mix(in srgb, var(--ink-1) 16%, transparent);
+  color: var(--ink-1);
+
+  &.is-active {
+    color: var(--color-primary);
+    border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  }
+}
+
+/* ---------- compact card (≤190px, the card's own scale) ---------- */
+
+@container (max-width: 190px) {
+  /* the tag's reserve follows the cluster: 2×24px discs + a 4px gap + the 6px
+     inset. Declared on the tag itself — a container query cannot style its own
+     container, and the tag is the only reader of this number. */
+  .pc-badge {
+    --pc-actions-w: 58px;
+  }
+
+  .pc-actions {
+    inset-block-start: 6px;
+    inset-inline-end: 6px;
+    /* two columns: four discs stacked would run past the print's floor and
+       under the label's plate */
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: 4px;
+  }
+
+  /* the same band step, at the compact tag's own fallbacks — a `var()` fallback
+     is only read by the rule that writes it, so the desktop rule above would
+     measure a 6px/10px band on a card that draws a 4px/9px one */
+  [data-pc-badge-stretch='1'] .pc-actions {
+    inset-block-start: calc(
+      2 * var(--pc-tag-pad-y, 4px) + 2 * var(--pc-tag-bw, 0px) + var(--pc-tag-fs, 9px) * 1.3 +
+        var(--pc-tag-dy, 0px) + 6px
+    );
+  }
+
+  .pc-actions__btn {
+    width: 24px;
+    height: 24px;
+
+    svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    /* the 4px gap, filled exactly — 28px targets, no overlap */
+    &::before {
+      inset: -2px;
+    }
+
+    /* no hover on a touch card, and the label would be wider than the print */
+    &::after {
+      display: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   The dialog shell — quick view, similar products, the comparison
+   ========================================================================== */
+
+.pc-dialog-root {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+
+  &.is-open {
+    pointer-events: auto;
+  }
+}
+
+.pc-dialog__backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity 0.26s ease;
+}
+
+.pc-dialog-root.is-open .pc-dialog__backdrop {
+  opacity: 1;
+}
+
+.pc-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 88vh;
+  max-height: 88dvh;
+  padding-bottom: var(--safe-bottom);
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--surface-1);
+  color: var(--ink-1);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    transform 0.26s var(--ease-out),
+    opacity 0.26s var(--ease-out);
+}
+
+.pc-dialog-root.is-open .pc-dialog {
+  opacity: 1;
+  transform: none;
+}
+
+.pc-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  border-block-end: 1px solid var(--line-1);
+}
+
+.pc-dialog__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--fs-md);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+}
+
+.pc-dialog__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: var(--surface-2);
+    color: var(--ink-1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.pc-dialog__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 16px 20px;
+}
+
+@media (min-width: 768px) {
+  .pc-dialog-root {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .pc-dialog {
+    width: min(100%, 640px);
+    max-height: min(84vh, 760px);
+    padding-bottom: 0;
+    border-radius: var(--radius-card);
+    transform: translateY(10px) scale(0.985);
+  }
+
+  .pc-dialog--lg {
+    width: min(100%, 880px);
+  }
+
+  .pc-dialog__head {
+    padding: 18px 22px 12px;
+  }
+
+  .pc-dialog__body {
+    padding: 20px 22px 24px;
+  }
+}
+
+/* ==========================================================================
+   Quick view — the product page's buy box, without the page
+   ==========================================================================
+
+   The panel measures like the product page (1024px) and splits like it: the
+   gallery on one side with its own arrows and page dots, the words and the
+   price on the other, in the page's own order — category, name, price, the
+   merchant's opening lines, then the buy row at the floor of the column.
+
+   THE CLOSE IS A TAB IN THE CORNER
+   --------------------------------
+   This panel drops the head bar the other two dialogs keep: the title stays
+   for screen readers, and the ✕ becomes a 40px square in the panel's
+   top-inline-end corner, filled with `--danger`. The panel clips it
+   (`overflow: hidden`), so the tab follows the card radius instead of floating
+   over it.
+
+   Nothing here is a new surface: the chips are `--color-primary` tinted, the
+   price is the card's own `--danger` on a reduction, and every corner comes
+   off the radius ramp.
+   ========================================================================== */
+
+.pc-dialog.pc-quick {
+  overflow: hidden;
+}
+
+.pc-quick .pc-dialog__head {
+  position: relative;
+  z-index: 6;
+  display: block;
+  height: 40px;
+  padding: 0;
+  border: 0;
+}
+
+/* Still the dialog's accessible name, never a line of type: the panel opens
+   on the photograph, and a heading that repeats the icon the customer just
+   clicked is a label for a door they are already through. */
+.pc-quick .pc-dialog__title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.pc-quick .pc-dialog__close {
+  position: absolute;
+  inset-block-start: 0;
+  /* the START edge: a 40px block in an RTL row sits at the RIGHT, and the
+     product page's own close sits there too */
+  inset-inline-start: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 0;
+  background: var(--danger);
+  color: #fff;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background: var(--danger-hover);
+    color: #fff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--ink-1);
+    outline-offset: -4px;
+  }
+}
+
+.pc-quick .pc-dialog__body {
+  padding: 12px 16px 20px;
+}
+
+.pc-quick__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+
+/* ---------- the gallery ---------- */
+
+.pc-quick__media {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pc-quick__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* A phone gets the buy box on ONE screen: at 1:1 the photograph alone is
+     343px of an 860px screen, and the add button falls below the fold of the
+     panel the customer opened to press it. The panel's own column is square
+     from 768px, where there is height to spare. */
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+
+.pc-quick__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pc-quick__monogram {
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 1;
+  color: color-mix(in srgb, var(--ink-1) 18%, transparent);
+}
+
+/* The arrow pair sits ON the photograph: a 40px paper disc is the one thing
+   that stays legible over a pale studio shot and a dark one alike. */
+.pc-quick__arrow {
+  position: absolute;
+  inset-block-start: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--surface-1);
+  color: var(--ink-1);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition:
+    background 0.2s,
+    color 0.2s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    color: var(--color-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* RTL is the base: "previous" points at the start of the row, which is the
+   RIGHT edge — so the base glyphs are right/left and an LTR page flips both,
+   the same one-rule flip the back arrow uses. */
+.pc-quick__arrow--prev {
+  inset-inline-start: 12px;
+}
+
+.pc-quick__arrow--next {
+  inset-inline-end: 12px;
+}
+
+[dir='ltr'] .pc-quick__arrow svg {
+  transform: scaleX(-1);
+}
+
+.pc-quick__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pc-quick__dot {
+  width: 20px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--ink-2);
+  opacity: 0.3;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+
+  &[aria-current='true'] {
+    background: var(--color-primary);
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ---------- the words ---------- */
+
+.pc-quick__info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* A column that is taller than the photograph grows the ROW; it does not
+   squeeze its own blocks. Without this the clamped description was pressed
+   against the buy row and cut a line in half instead of ending on an ellipsis. */
+.pc-quick__info > * {
+  flex: 0 0 auto;
+}
+
+.pc-quick__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pc-quick__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* The category, in the page's own chip: a tinted label that answers "where am
+   I" before the name answers "what is it". */
+.pc-quick__chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px 10px;
+  overflow: hidden;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--surface-1));
+  color: var(--color-primary);
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    background: color-mix(in srgb, var(--color-primary) 16%, var(--surface-1));
+  }
+}
+
+.pc-quick__name {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--fs-lg);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+.pc-quick__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+
+  .sicon-star2 {
+    color: var(--pc-star, #c9a227);
+    font-size: 13px;
+  }
+}
+
+.pc-quick__reviews {
+  color: var(--ink-2);
+}
+
+.pc-quick__subtitle {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  color: var(--ink-2);
+}
+
+/* ---------- the two tools ---------- */
+
+.pc-quick__tools {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.pc-quick__tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-full);
+  background: var(--surface-1);
+  color: var(--ink-1);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--ink-1) 30%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  /* saved to the wishlist: the store's own filled disc */
+  &.is-active {
+    border-color: var(--color-primary);
+    background: var(--color-primary);
+    color: #fff;
+  }
+
+  /* the link was copied instead of shared */
+  &.is-done {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+}
+
+/* ---------- the price ---------- */
+
+.pc-quick__price {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+
+.pc-quick__price.is-sale .pc-quick__now {
+  color: var(--danger);
+}
+
+.pc-quick__was {
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--ink-2);
+  text-decoration: line-through;
+}
+
+.pc-quick__save,
+.pc-quick__off {
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--surface-1));
+  color: var(--color-primary);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.pc-quick__stock {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+
+  &.is-out {
+    color: var(--danger);
+  }
+}
+
+/* The merchant's opening lines, in the page's own grey block. Clamped: this is
+   a summary, and «التفاصيل الكاملة» is one line below it.
+   The padding sits on the BOX and the clamp on the text inside it — Chromium
+   counts the clamp against the padding box, so a padded element shows a sliver
+   of the line it just cut. */
+.pc-quick__desc {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.pc-quick__desc-text {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink-2);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+/* ---------- the buy form, after the description ---------- */
+
+/* The column is as tall as the square photograph, so this block keeps the
+   floor: options, price and the buy row sit together at the bottom instead of
+   floating halfway down an empty column. */
+.pc-quick__buy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-block-start: auto;
+}
+
+.pc-quick__buy-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+}
+
+.pc-quick__options-box {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+
+  /* The wrapper arrives with the product page's card padding and paper. */
+  salla-product-options {
+    display: block;
+  }
+
+  .s-product-options-wrapper {
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+/* The second price line is a label and its figures, not another sale banner:
+   the badges live in the headline row above the description. */
+.pc-quick__price-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.pc-quick__price-label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  color: var(--ink-1);
+}
+
+.pc-quick__price-values {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.pc-quick__buy-price {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: var(--lh-snug);
+  color: var(--ink-1);
+
+  &.is-sale {
+    color: var(--danger);
+  }
+}
+
+.pc-quick__buy-was {
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+
+.pc-quick__buy-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pc-quick__cta {
+  flex: 1 1 auto;
+  min-width: 0;
+
+  salla-add-product-button {
+    display: block;
+    width: 100%;
+  }
+
+  .s-button-btn,
+  .s-button-element {
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* Three selectors beat the shared `04-components/quantity-stepper.scss`, which
+   is imported AFTER this file. The stepper lives on the panel's own surfaces,
+   so the night mode never shows a white pill on a dark sheet. */
+.pc-quick .pc-quick__qty {
+  flex: 0 0 auto;
+
+  .s-quantity-input-container {
+    height: 40px;
+    border-color: var(--line-1);
+    background: var(--surface-1);
+    border-radius: var(--radius-full);
+  }
+
+  .s-quantity-input-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .s-quantity-input-input {
+    width: 32px;
+    color: var(--ink-1);
+    background: transparent;
+  }
+
+  .s-quantity-input-increase-button {
+    background: var(--color-primary);
+    color: var(--color-primary-reverse);
+    fill: var(--color-primary-reverse);
+  }
+
+  .s-quantity-input-decrease-button {
+    background: var(--surface-2);
+    color: var(--ink-2);
+    fill: var(--ink-2);
+  }
+}
+
+.pc-quick__more {
+  align-self: center;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--ink-1);
+  }
+}
+
+@media (min-width: 768px) {
+  .pc-dialog.pc-quick {
+    width: min(100%, 1024px);
+  }
+
+  .pc-quick .pc-dialog__body {
+    padding: 8px 24px 24px;
+  }
+
+  .pc-quick__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+  }
+
+  .pc-quick__stage {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+/* ==========================================================================
+   Similar products
+   ========================================================================== */
+
+.pc-similar__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pc-similar__item {
+  min-width: 0;
+}
+
+.pc-similar__link {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.pc-similar__frame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: calc(var(--radius-card) - 10px);
+  background: var(--surface-2);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s var(--ease-out);
+  }
+}
+
+.pc-similar__link:hover .pc-similar__frame img {
+  transform: scale(1.04);
+}
+
+.pc-similar__monogram {
+  font-family: var(--font-display);
+  font-size: 32px;
+  color: color-mix(in srgb, var(--ink-1) 18%, transparent);
+}
+
+.pc-similar__name {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  /* two lines, so a long name cannot make one tile taller than its row */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pc-similar__price {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.pc-similar__skeleton {
+  aspect-ratio: 1 / 1;
+  border-radius: calc(var(--radius-card) - 10px);
+  background: var(--surface-2);
+  animation: pc-similar-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pc-similar-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.pc-similar__empty {
+  margin: 8px 0;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+}
+
+@media (min-width: 640px) {
+  .pc-similar__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+}
+
+/* ==========================================================================
+   The comparison bar
+   ========================================================================== */
+
+.pc-compare-tray {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: calc(var(--safe-bottom) + 72px);
+  z-index: 205;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: calc(100% - 20px);
+  margin-inline: auto;
+  padding: 8px 10px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--radius-full);
+  background: var(--surface-1);
+  color: var(--ink-1);
+  box-shadow: var(--shadow-lg);
+}
+
+.pc-compare-tray__items {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pc-compare-tray__item {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.pc-compare-tray__thumb {
+  display: block;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--surface-2);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.pc-compare-tray__remove {
+  position: absolute;
+  inset-block-start: -4px;
+  inset-inline-end: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink-1);
+  color: var(--surface-1);
+  cursor: pointer;
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+.pc-compare-tray__count {
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+.pc-compare-tray__go {
+  padding: 7px 16px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-primary-reverse);
+  font-family: var(--font-main);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.pc-compare-tray__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    background: var(--surface-2);
+    color: var(--ink-1);
+  }
+}
+
+@media (min-width: 768px) {
+  .pc-compare-tray {
+    inset-block-end: 24px;
+    gap: 12px;
+    padding: 8px 12px;
+  }
+
+  .pc-compare-tray__thumb {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* ==========================================================================
+   The comparison table
+   ========================================================================== */
+
+.pc-compare__scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.pc-compare__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm);
+}
+
+.pc-compare__corner {
+  width: 96px;
+}
+
+.pc-compare__col {
+  min-width: 9rem;
+  padding: 0 8px 12px;
+  vertical-align: top;
+  text-align: start;
+  font-weight: 400;
+}
+
+.pc-compare__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pc-compare__frame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: calc(var(--radius-card) - 10px);
+  background: var(--surface-2);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.pc-compare__monogram {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: color-mix(in srgb, var(--ink-1) 18%, transparent);
+}
+
+.pc-compare__name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: var(--lh-snug);
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.pc-compare__remove {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--danger);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pc-compare__table tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  padding: 10px 12px 10px 0;
+  border-block-start: 1px solid var(--line-1);
+  background: var(--surface-1);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--ink-2);
+  text-align: start;
+  white-space: nowrap;
+}
+
+.pc-compare__table tbody td {
+  padding: 10px 8px;
+  border-block-start: 1px solid var(--line-1);
+  vertical-align: middle;
+}
+
+.pc-compare__sale {
+  font-weight: 700;
+}
+
+.pc-compare__was {
+  display: block;
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
+}
+
+.pc-compare__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+
+  .sicon-star2 {
+    color: var(--pc-star, #c9a227);
+    font-size: 12px;
+  }
+}
+
+.pc-compare__reviews {
+  color: var(--ink-2);
+}
+
+.pc-compare__in {
+  color: var(--ink-2);
+}
+
+.pc-compare__out {
+  color: var(--danger);
+}
+
+.pc-compare__dash {
+  color: var(--ink-2);
+}
+
+/* ---------- motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .pc-actions__btn,
+  .pc-actions__btn::after,
+  .pc-dialog,
+  .pc-dialog__backdrop,
+  .pc-similar__frame img {
+    transition-duration: 1ms;
+  }
+
+  .pc-similar__skeleton {
+    animation: none;
+  }
+}

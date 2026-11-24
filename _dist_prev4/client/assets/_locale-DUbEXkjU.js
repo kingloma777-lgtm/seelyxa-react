@@ -1,0 +1,1 @@
+import{yr as e}from"./shared-home-vpN2Sibc.js";import{c as t}from"./vendor-router-COmScEM1.js";var n=e(),r=()=>(0,n.jsx)(t,{});export{r as component};

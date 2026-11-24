@@ -14,10 +14,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouterState } from '@tanstack/react-router';
 import { Link, Image, CurrencySymbol } from '@salla.sa/twilight-theme-engine/common';
 import { useTranslation } from '@salla.sa/twilight-theme-engine/i18n';
-import { useTwilight, useNavigate } from '@salla.sa/twilight-theme-engine/providers';
+import { useTwilight } from '@salla.sa/twilight-theme-engine/providers';
 import { menu } from '@salla.sa/twilight-theme-engine/api/menu';
-import { product } from '@salla.sa/twilight-theme-engine/api/product';
-import { useMoney } from '@salla.sa/twilight-theme-engine/hooks/useMoney';
 import { SallaSocial } from '@salla.sa/twilight-components-react/social';
 import { SallaUserMenu } from '@salla.sa/twilight-components-react/user-menu';
 import { SallaCartSummary } from '@salla.sa/twilight-components-react/cart-summary';
@@ -32,9 +30,11 @@ import { type MenuItem } from '@salla.sa/twilight-theme-engine/types';
 import { openStoreSwitcher } from '../../lib/storeSwitchers';
 import { applyColorMode, COLOR_MODE_STORAGE_KEY } from '../../lib/colorMode';
 import { isHomePath } from '../../lib/routeIds';
-import { resolveMorphIcon } from '../../lib/morphIcons';
+import { readHeaderSettings, headerVars } from '../../lib/headerSettings';
 import { lockBodyOverflow, unlockBodyOverflow } from '../../lib/bodyOverflow';
 import { MorphCurtain, type CurtainLabels, type CurtainMenu } from './MorphCurtain';
+import { MorphIco, ThemeGlyphs } from './MorphIco';
+import { MorphSearch } from './MorphSearch';
 import { readSlots } from '../../lib/curtainSlots';
 import {
   closeHeaderMenu,
@@ -86,83 +86,6 @@ const ACCOUNT_GRADIENTS = [
   'linear-gradient(140deg,#eae1d6,#b79b7d)',
 ];
 
-/**
- * Salla theme settings can ship any field as the picker shape
- * `[{label, value, key}]` (same runtime boundary the home blocks hit). Flatten
- * one such value to its first string.
- */
-function scalarSetting(value: unknown): string | undefined {
-  let v: unknown = value;
-  if (Array.isArray(v)) v = v[0];
-  if (v && typeof v === 'object' && typeof (v as Record<string, unknown>).value === 'string') {
-    return (v as Record<string, unknown>).value as string;
-  }
-  return typeof v === 'string' && v ? v : undefined;
-}
-
-function numberSetting(value: unknown, fallback: number): number {
-  const raw = value && typeof value === 'object' ? (value as Record<string, unknown>).value : value;
-  const n = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''));
-  return Number.isFinite(n) ? n : fallback;
-}
-
-/** One icon slot: settings' value first, design default second (see morphIcons). */
-function MorphIco({
-  setting,
-  legacy,
-  className,
-  ariaLabel,
-}: {
-  setting: unknown;
-  legacy: string;
-  className?: string;
-  ariaLabel?: string | null;
-}) {
-  const { sicon, glyph } = resolveMorphIcon(setting, legacy);
-  if (sicon) {
-    return <i className={`morph-ico is-sicon sicon-${sicon}${className ? ` ${className}` : ''}`} aria-hidden={!ariaLabel} aria-label={ariaLabel ?? undefined} />;
-  }
-  return (
-    <span
-      className={`morph-ico${className ? ` ${className}` : ''}`}
-      {...(ariaLabel ? { 'aria-label': ariaLabel } : { 'aria-hidden': true })}
-      dangerouslySetInnerHTML={{
-        __html: `<svg viewBox="0 0 24 24" width="${glyph.size}" height="${glyph.size}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${glyph.body}</svg>`,
-      }}
-    />
-  );
-}
-
-/* Both theme glyphs are always in the markup and `html.dark` picks which one
-   paints (see morph-header.scss) — one token, no JS icon state to go stale.
-   Shared by the pill's toggle and the phone index's own button, which is the
-   only copy a phone sees (the pill's is `display: none` there: the row has no
-   width to spare, measured live). */
-function ThemeGlyphs() {
-  return (
-    <>
-      <span className="morph-ico morph-theme-btn__glyph morph-theme-btn__moon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
-        </svg>
-      </span>
-      <span className="morph-ico morph-theme-btn__glyph morph-theme-btn__sun" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2" />
-          <path d="M12 20v2" />
-          <path d="m4.93 4.93 1.41 1.41" />
-          <path d="m17.66 17.66 1.41 1.41" />
-          <path d="M2 12h2" />
-          <path d="M20 12h2" />
-          <path d="m6.34 17.66-1.41 1.41" />
-          <path d="m19.07 4.93-1.41 1.41" />
-        </svg>
-      </span>
-    </>
-  );
-}
-
 const CARET = (
   <svg
     className="morph-link__caret"
@@ -177,30 +100,6 @@ const CARET = (
     <polyline points="6 9 12 15 18 9" />
   </svg>
 );
-
-/* ── the stock search's "recent searches", kept client-side like the
-   platform widget does — last 6 terms, deduped, newest first ── */
-const SEARCH_RECENT_KEY = 'morph_recent_searches';
-function readRecentSearches(): string[] {
-  try {
-    const raw: unknown = JSON.parse(localStorage.getItem(SEARCH_RECENT_KEY) || '[]');
-    if (!Array.isArray(raw)) return [];
-    return raw.filter((s): s is string => typeof s === 'string' && !!s.trim()).slice(0, 6);
-  } catch {
-    return [];
-  }
-}
-function saveRecentSearch(term: string): string[] {
-  const next = [term.trim(), ...readRecentSearches().map((s) => s.trim()).filter((s) => s !== term.trim())]
-    .filter(Boolean)
-    .slice(0, 6);
-  try {
-    localStorage.setItem(SEARCH_RECENT_KEY, JSON.stringify(next));
-  } catch {
-    /* storage may be unavailable — the chip simply stays without history */
-  }
-  return next;
-}
 
 /* The store menu, filtered once at the source: one list, one index space —
    everything (nav, curtain, overlay numbering) reads this same array (old
@@ -400,19 +299,6 @@ function MorphOverlay({
 
 /* Settings we consume (typed only where the engine's `settings` is unknown) */
 interface MorphSettings {
-  header_shape?: unknown;
-  header_glass_color?: unknown;
-  header_glass_opacity?: unknown;
-  header_blur?: unknown;
-  header_text_color?: unknown;
-  header_nav_font_size?: unknown;
-  header_nav_weight?: unknown;
-  header_theme_toggle?: unknown;
-  header_icon_menu?: unknown;
-  header_icon_search?: unknown;
-  header_icon_account?: unknown;
-  header_icon_cart?: unknown;
-  header_icon_close?: unknown;
   /* the curtain mega menu's merchant slots (the theme's only collection) */
   curtain_slots?: unknown;
 }
@@ -433,43 +319,24 @@ export function MorphHeader() {
      without an `h1`. `isHomePath` is identical on the server and on the first
      client render, so the level is decided once in the markup. */
   const isHomePage = isHomePath(pathname);
-  const s = (theme?.settings ?? {}) as MorphSettings;
+  const s = (theme?.settings ?? {}) as MorphSettings & Record<string, unknown>;
 
   /* True translations live in locales/ar.json + en.json (`blocks.header.*`).
      The fallbacks here are only for a missing key — kept SSR-safe (no
      `document` reads), with the design's Arabic as the base fallback. */
   const loc = (key: string, fallback: string) => t(key, fallback);
 
-  /* ── settings → custom properties (inline, like the old style="…" hook) ── */
-  const headerStyle = useMemo(() => {
-    const style = {
-      '--morph-glass-color': scalarSetting(s.header_glass_color) ?? '#ffffff',
-      '--morph-glass-alpha': numberSetting(s.header_glass_opacity, 78),
-      '--morph-blur': `${numberSetting(s.header_blur, 18)}px`,
-      '--morph-fg': scalarSetting(s.header_text_color) ?? '#0f172a',
-      '--morph-nav-size': `${numberSetting(s.header_nav_font_size, 14)}px`,
-      '--morph-nav-weight': scalarSetting(s.header_nav_weight) ?? '700',
-    } as CSSProperties;
-    return style;
-  }, [s.header_glass_color, s.header_glass_opacity, s.header_blur, s.header_text_color, s.header_nav_font_size, s.header_nav_weight]);
-
-  const icons = {
-    menu: s.header_icon_menu,
-    search: s.header_icon_search,
-    account: s.header_icon_account,
-    close: s.header_icon_close,
-  };
-
-  /* `header_topbar_hide` cleared with the topbar itself (2026-10-20): the bar is
-     gone, so its setting has nothing to own. `themeToggleOn` survives. */
-  const themeToggleOn = s.header_theme_toggle !== false && scalarSetting(s.header_theme_toggle) !== 'false';
-
-  /* Two shapes, one behaviour: `wide` spreads the bar across the page with the
-     logo centred and the menu under it, `pill` keeps the floating capsule that
-     collapses on scroll. Anything unrecognised (including a store saved before
-     the setting existed) gets the wide shape — it is the one the merchant asked
-     for, and it needs no extra space at any breakpoint. */
-  const shape: 'wide' | 'pill' = scalarSetting(s.header_shape) === 'pill' ? 'pill' : 'wide';
+  /* ── settings → decisions (`lib/headerSettings`) ──────────────────────────
+     `headerVars` returns ONLY the merchant's deviations, so the stylesheet
+     keeps ownership of the store palette and the night face; a merchant value
+     is the only thing that rides the `style` attribute. See the module header
+     for the precedence chain. */
+  const header = useMemo(() => readHeaderSettings(theme?.settings as Record<string, unknown> | undefined), [theme?.settings]);
+  const headerStyle = useMemo(() => headerVars(header) as CSSProperties, [header]);
+  const icons = header.icons;
+  const themeToggleOn = header.themeToggle;
+  const shape = header.shape;
+  const megaLayout = header.megaLayout;
 
   /* ── store menu (shared lists) ── */
   const { menus, ready } = useStoreMenus();
@@ -492,12 +359,24 @@ export function MorphHeader() {
      counterpart of the `s-block--under-header` flag the block config emits. */
   const rootRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    const setHeight = () =>
+    /* One write per frame at most. The ResizeObserver fires on every height
+       change the header can have (font swap, menu settle, the pill's own
+       morph), and each write is a style recalculation on <html> — the ancestor
+       of everything. Coalescing them is what keeps a scroll-driven morph from
+       turning into a reflow storm; the value is unchanged, so nothing paints
+       twice. */
+    let frame = 0;
+    const write = () => {
+      frame = 0;
       document.documentElement.style.setProperty(
         '--salla-header-h',
         `${rootRef.current?.offsetHeight ?? 0}px`
       );
-    setHeight();
+    };
+    const setHeight = () => {
+      if (!frame) frame = requestAnimationFrame(write);
+    };
+    write();
     const settle = window.setTimeout(setHeight, 250);
     window.addEventListener('resize', setHeight, { passive: true });
     let observer: ResizeObserver | undefined;
@@ -509,6 +388,7 @@ export function MorphHeader() {
       window.clearTimeout(settle);
       window.removeEventListener('resize', setHeight);
       observer?.disconnect();
+      cancelAnimationFrame(frame);
     };
   }, []);
 
@@ -619,62 +499,9 @@ export function MorphHeader() {
     };
   }, [reducedMotion, ready]); // re-bind with the real list
 
-  // listeners that own the hot link state (re-bound with menus)
-  useEffect(() => {
-    const nav = navRef.current;
-    if (!nav) return;
-    const onOver = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      const link = target?.closest<HTMLAnchorElement>('.morph-link');
-      if (!link) return;
-      moveBlob(link);
-      /* Hovering ANY category opens the curtain — the design's one panel, and
-         a childless category still shows its empty state; hover is not a
-         navigation gesture (old rule 9). Opening one screen closes the others
-         (the old showPanel ran closeSearch + closeOverlay). */
-      const at = linksRef.current.indexOf(link);
-      if (curtainIndexRef.current !== at) {
-        curtainIndexRef.current = at;
-        setCurtainIndex(at);
-        setCurtainFocusId(null);
-        setSearchOpen(false);
-        closeHeaderMenu();
-      }
-      linksRef.current.forEach((item) => item.classList.toggle('is-open', item === link));
-      if (link.dataset.morphHas === '1') link.setAttribute('aria-expanded', 'true');
-    };
-    const onOut = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      const link = target?.closest<HTMLAnchorElement>('.morph-link');
-      if (link && !link.contains(event.relatedTarget as Node)) {
-        link.classList.remove('is-open');
-        if (link.getAttribute('aria-expanded')) link.setAttribute('aria-expanded', 'false');
-      }
-    };
-    const onLeave = () => {
-      moveBlob(null);
-      // leave-lean reset
-      linksRef.current.forEach((link) => {
-        const memo = link as unknown as { _mx: number; _my: number };
-        link.style.transform = '';
-        memo._mx = 0;
-        memo._my = 0;
-      });
-      if (blobRef.current) blobRef.current.style.translate = '';
-      pointerRef.current = null;
-    };
-    nav.addEventListener('mouseover', onOver);
-    nav.addEventListener('mouseout', onOut);
-    nav.addEventListener('mouseleave', onLeave);
-    return () => {
-      nav.removeEventListener('mouseover', onOver);
-      nav.removeEventListener('mouseout', onOut);
-      nav.removeEventListener('mouseleave', onLeave);
-      moveBlob(null);
-    };
-  }, [ready]);
-
-  /* ── the curtain (old §3): one panel, hovered nav category owns it ── */
+  /* ── the curtain (old §3): one panel, hovered/focused category owns it ──
+     Declared BEFORE the nav listeners because they close it (the keyboard
+     path) and JSX order is not the constraint — the ref is. */
   const [curtainIndex, setCurtainIndex] = useState<number | null>(null);
   const [curtainFocusId, setCurtainFocusId] = useState<string | null>(null);
   const curtainIndexRef = useRef<number | null>(null);
@@ -709,62 +536,122 @@ export function MorphHeader() {
     pointerRef.current = null;
   }, [closeCurtain]);
 
+  // listeners that own the hot link state (re-bound with menus)
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    /** Make `link` the open category. Shared by the pointer and the keyboard:
+        the panel is the same panel, so the trigger has to be the same trigger.
+        A childless category still opens (it shows its own empty state), and
+        opening one screen closes the others (the old showPanel ran
+        closeSearch + closeOverlay). */
+    const activate = (link: HTMLAnchorElement) => {
+      const at = linksRef.current.indexOf(link);
+      if (at < 0) return;
+      if (curtainIndexRef.current !== at) {
+        curtainIndexRef.current = at;
+        setCurtainIndex(at);
+        setCurtainFocusId(null);
+        setSearchOpen(false);
+        closeHeaderMenu();
+      }
+      linksRef.current.forEach((item) => item.classList.toggle('is-open', item === link));
+      if (link.dataset.morphHas === '1') link.setAttribute('aria-expanded', 'true');
+    };
+
+    const onOver = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const link = target?.closest<HTMLAnchorElement>('.morph-link');
+      if (!link) return;
+      moveBlob(link);
+      activate(link);
+    };
+    const onOut = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const link = target?.closest<HTMLAnchorElement>('.morph-link');
+      if (link && !link.contains(event.relatedTarget as Node)) {
+        link.classList.remove('is-open');
+        if (link.getAttribute('aria-expanded')) link.setAttribute('aria-expanded', 'false');
+      }
+    };
+    const onLeave = () => {
+      moveBlob(null);
+      // leave-lean reset
+      linksRef.current.forEach((link) => {
+        const memo = link as unknown as { _mx: number; _my: number };
+        link.style.transform = '';
+        memo._mx = 0;
+        memo._my = 0;
+      });
+      if (blobRef.current) blobRef.current.style.translate = '';
+      pointerRef.current = null;
+    };
+
+    /* ── keyboard parity (WCAG 2.1.1) ──────────────────────────────────────
+       The curtain was hover-only, so a keyboard user could tab through the
+       categories and never reach a single subcategory: `mouseover` never fires.
+       Focusing a category now opens exactly the panel hovering it opens, and
+       the panel's links follow the nav in DOM order, so Tab walks into it.
+       Leaving the header closes it; moving between the trigger and the panel
+       does not, because both live inside `.morph-header`. */
+    const onFocusIn = (event: FocusEvent) => {
+      const target = event.target as HTMLElement | null;
+      const link = target?.closest<HTMLAnchorElement>('.morph-link');
+      if (link) {
+        activate(link);
+        return;
+      }
+      /* focus moved to a control that is NOT in the panel (the search field,
+         an action chip) — the panel closes, exactly as the pointer leaving it
+         would. Focus inside the panel keeps it. */
+      if (target && !target.closest('.morph-curtain')) closeCurtain();
+    };
+    const onFocusOut = (event: FocusEvent) => {
+      const next = event.relatedTarget as Node | null;
+      if (next && rootRef.current?.contains(next)) return;
+      /* A category switch re-renders the panel, which UNMOUNTS the node that
+         had focus — `focusout` then arrives with `relatedTarget: null` even
+         though the browser is about to move focus to the next nav link. Closing
+         on that edge made the panel flicker shut mid-walk, so the decision is
+         deferred one microtask and made against the real activeElement. */
+      queueMicrotask(() => {
+        const active = document.activeElement;
+        if (active && rootRef.current?.contains(active)) return;
+        /* The pointer may have taken over the panel between the two events
+           (hover a category while the focused node is being replaced) — the
+           hover state is then the owner and must not be closed by a focus
+           edge it did not cause. */
+        if (hoverLinkRef.current) return;
+        closeCurtain();
+      });
+    };
+
+    nav.addEventListener('mouseover', onOver);
+    nav.addEventListener('mouseout', onOut);
+    nav.addEventListener('mouseleave', onLeave);
+    nav.addEventListener('focusin', onFocusIn);
+    rootRef.current?.addEventListener('focusout', onFocusOut);
+    return () => {
+      nav.removeEventListener('mouseover', onOver);
+      nav.removeEventListener('mouseout', onOut);
+      nav.removeEventListener('mouseleave', onLeave);
+      nav.removeEventListener('focusin', onFocusIn);
+      rootRef.current?.removeEventListener('focusout', onFocusOut);
+      moveBlob(null);
+    };
+  }, [ready]);
+
   /* ── expanding search (old §6) ── */
   /* THE primary search: the expanding chip itself is the live search. The
      platform's `salla-search` in its `inline` mode only renders a
      read-only input that opens the engine's own modal ("typing still
      happens in the modal's own input" — docs), so it can never type in
      the field; the merchant asked the expanding field to be the search
-     itself with no blur pop-up. We own the input and fetch live results
-     through the platform's product API (the same list the engine's
-     search page loads), so behaviour stays platform-native. */
+     itself with no blur pop-up. The field itself — its keyword, its
+     debounced query, its results — lives in `MorphSearch`, so typing a
+     character no longer re-renders the nav, the index and the curtain. */
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  /* live results need the *settled* keyword: 350ms after the last keystroke,
-     like the platform widget's own pause */
-  const [searchSettled, setSearchSettled] = useState('');
-  const searchRef = useRef<HTMLDivElement>(null);
-  const searchFieldRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-  const { format: formatMoney } = useMoney();
-  /* history chips are re-read every open so a term saved in another tab
-     shows up too (localStorage is the single source) */
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-
-  useEffect(() => {
-    const settle = window.setTimeout(() => setSearchSettled(searchTerm.trim()), 350);
-    return () => window.clearTimeout(settle);
-  }, [searchTerm]);
-
-  useEffect(() => {
-    if (!searchOpen) return;
-    setRecentSearches(readRecentSearches());
-  }, [searchOpen]);
-
-  const rememberSearchTerm = (term: string) => setRecentSearches(saveRecentSearch(term));
-
-  const searchResults = useQuery({
-    ...product.queries.list({ source: 'search', keyword: searchSettled, perPage: 6 }),
-    enabled: searchOpen && searchSettled.length >= 2,
-  });
-  const searchFound = searchResults.data?.items ?? [];
-  const searchTyped = searchTerm.trim();
-
-  useEffect(() => {
-    if (!searchOpen) return;
-    const input = searchRef.current?.querySelector('input');
-    const focus = window.setTimeout(() => input?.focus(), 220);
-    return () => window.clearTimeout(focus);
-  }, [searchOpen]);
-  useEffect(() => {
-    const onPointerDown = (event: PointerEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setSearchOpen(false);
-      }
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => document.removeEventListener('pointerdown', onPointerDown);
-  }, []);
 
   /* ── fullscreen index (burger) ── */
   /* The open flag lives in a module store (`lib/headerMenu`) so the mobile
@@ -1152,11 +1039,6 @@ export function MorphHeader() {
 
   const searchToggle = (event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    // closing wipes the keyword too — reopening starts a fresh search
-    if (searchOpen) {
-      setSearchTerm('');
-      setSearchSettled('');
-    }
     setSearchOpen((open) => !open);
   };
 
@@ -1173,6 +1055,11 @@ export function MorphHeader() {
       ref={rootRef}
       data-testid="morph-header"
       data-morph-shape={shape}
+      data-morph-mega={megaLayout}
+      /* behaviour flags, not styling: the stylesheet reads them so a merchant
+         choice never needs a second class name to be invented here */
+      data-morph-surface={header.surface}
+      data-morph-sticky={header.sticky ? '1' : '0'}
       className={`morph-header${scrolled ? ' is-scrolled' : ''}${ready ? ' is-ready' : ''}`}
       style={headerStyle}
       onMouseLeave={onHeaderLeave}
@@ -1200,7 +1087,31 @@ export function MorphHeader() {
               <MorphIco setting={icons.menu} legacy="menu" />
             </button>
             <Link to={store?.url || '/'} className="morph-brand" data-testid="morph-header-logo">
-              <Image src={store?.logo} alt={`${store?.name || 'Store'} logo`} priority width={175} height={48} />
+              <Image
+                src={store?.logo}
+                alt={`${store?.name || 'Store'} logo`}
+                priority
+                width={175}
+                height={48}
+                className="morph-brand__logo morph-brand__logo--day"
+              />
+              {/* Salla ships ONE logo, and a merchant's dark wordmark disappears
+                  on the night bar (measured on the demo store: the navy mark sat
+                  on #131820 at ~1.8:1). Recolouring an arbitrary brand image with
+                  a CSS filter would destroy its colours, so the theme offers a
+                  night-only variant instead. Both images share one box and only
+                  one is displayed, so the swap costs no layout — see the
+                  `.morph-brand__logo--night` rules. */}
+              {header.logoDark ? (
+                <Image
+                  src={header.logoDark}
+                  alt=""
+                  aria-hidden="true"
+                  width={175}
+                  height={48}
+                  className="morph-brand__logo morph-brand__logo--night"
+                />
+              ) : null}
               <span className="morph-sr-only">{store?.name}</span>
               {/* The site title is the page's `h1` on the home page and an `h2`
                   everywhere else, where the page owns the `h1`. The level comes
@@ -1294,126 +1205,21 @@ export function MorphHeader() {
                   `salla-search` was removed — its `inline` mode is a read-only
                   input that only opens the engine's blur modal, so typing could
                   never happen in the expanding field. */}
-              <div ref={searchRef} className={`morph-search${searchOpen ? ' is-open' : ''}`} data-testid="morph-search">
-                <div className="morph-search__field" ref={searchFieldRef}>
-                  <input
-                    type="search"
-                    className="morph-search__input"
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' && searchTerm.trim()) {
-                        event.preventDefault();
-                        rememberSearchTerm(searchTerm);
-                        navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
-                        setSearchOpen(false);
-                      }
-                    }}
-                    placeholder={labels.searchPlaceholder}
-                    aria-label={labels.search}
-                    data-testid="morph-search-input"
-                  />
-                </div>
-                <button
-                  type="button"
-                  className={`morph-search__toggle${searchOpen ? ' is-active' : ''}`}
-                  aria-expanded={searchOpen}
-                  aria-label={labels.search}
-                  onClick={searchToggle}
-                >
-                  <MorphIco
-                    setting={icons.search}
-                    legacy="search"
-                    className={`morph-search__glyph morph-search__glyph--open${searchOpen ? ' morph-search__glyph--hidden' : ''}`}
-                  />
-                  <MorphIco
-                    setting={icons.close}
-                    legacy="x"
-                    className={`morph-search__glyph morph-search__glyph--close${searchOpen ? '' : ' morph-search__glyph--hidden'}`}
-                  />
-                </button>
-                {/* live results — a sibling panel so the field's clip can't cut
-                    it off. Idle (empty field) shows the stock search's recent
-                    searches as one-tap chips, plus a hint while the term is
-                    shorter than the platform's own two-character minimum. */}
-                {searchOpen && (
-                  <div className="morph-search__panel" data-testid="morph-search-panel">
-                    {searchTyped.length === 0 && recentSearches.length > 0 && (
-                      <div className="morph-search__recent">
-                        <span className="morph-search__recent-label">{labels.searchRecent}</span>
-                        <div className="morph-search__recent-list">
-                          {recentSearches.map((recent) => (
-                            <button
-                              key={recent}
-                              type="button"
-                              className="morph-search__recent-item"
-                              onClick={() => setSearchTerm(recent)}
-                            >
-                              {recent}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {searchTyped.length < 2 && (
-                      <p className="morph-search__note">{labels.searchHint}</p>
-                    )}
-                    {searchTyped.length >= 2 && searchResults.isFetching && searchFound.length === 0 && (
-                      <p className="morph-search__note">{labels.searchLoading}</p>
-                    )}
-                    {searchTyped.length >= 2 && !searchResults.isFetching && searchFound.length === 0 && (
-                      <p className="morph-search__note">{labels.searchNoResults}</p>
-                    )}
-                    {searchTyped.length >= 2 && searchFound.length > 0 && (
-                      <ul className="morph-search__list">
-                        {searchFound.map((item) => (
-                          <li key={String(item.id)}>
-                            <Link
-                              to={item.url || '#'}
-                              className="morph-search__result"
-                              onClick={() => {
-                                rememberSearchTerm(searchTyped);
-                                setSearchOpen(false);
-                              }}
-                            >
-                              {item.image?.url ? (
-                                <Image
-                                  src={item.image.url}
-                                  alt={item.name}
-                                  width={40}
-                                  height={40}
-                                  noWrapper
-                                  className="morph-search__thumb"
-                                />
-                              ) : (
-                                <span className="morph-search__thumb" aria-hidden="true" />
-                              )}
-                              <span className="morph-search__result-name">{item.name}</span>
-                              <span className="morph-search__result-price">
-                                {item.is_on_sale && item.sale_price != null
-                                  ? formatMoney(item.sale_price)
-                                  : formatMoney(item.price ?? '')}
-                              </span>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {searchTyped.length >= 2 && searchFound.length > 0 && (
-                      <Link
-                        to={`/search?q=${encodeURIComponent(searchTyped)}`}
-                        className="morph-search__all"
-                        onClick={() => {
-                          rememberSearchTerm(searchTyped);
-                          setSearchOpen(false);
-                        }}
-                      >
-                        {labels.searchAll}
-                      </Link>
-                    )}
-                  </div>
-                )}
-              </div>
+              <MorphSearch
+                open={searchOpen}
+                onToggle={() => setSearchOpen((open) => !open)}
+                onClose={() => setSearchOpen(false)}
+                labels={{
+                  search: labels.search,
+                  placeholder: labels.searchPlaceholder,
+                  loading: labels.searchLoading,
+                  noResults: labels.searchNoResults,
+                  all: labels.searchAll,
+                  recent: labels.searchRecent,
+                  hint: labels.searchHint,
+                }}
+                icons={{ search: icons.search, close: icons.close }}
+              />
               {/* wishlist — the heart the wide shape carries next to search;
                   the capsule hides it (no room beside four chips on a phone) */}
               <Link

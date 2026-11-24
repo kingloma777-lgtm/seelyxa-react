@@ -1,0 +1,1 @@
+import{yr as e}from"./shared-home-BldjTPfC.js";import{c as t,s as n}from"./vendor-router-UDe7hL-P.js";import{I as r}from"./hydrate-DQinstiO.js";var i=e();function a(){let e=n().reduceRight((e,t)=>e??(t.loaderData?.page?t.loaderData.page:null),null);return(0,i.jsx)(r,{page:e,children:(0,i.jsx)(t,{})})}export{a as component};

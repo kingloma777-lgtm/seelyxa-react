@@ -104,16 +104,32 @@ function requestedPort() {
 
 const VITE_PORT = requestedPort() ?? 5173;
 
-// The Node inspector is the one port Vite does not choose for us. It only
-// matters when something upstream asked for `--inspect`; override or skip it
-// with SEELYXA_INSPECT_PORT=0 when two dev servers have to coexist.
-const INSPECT_PORT = Number(process.env.SEELYXA_INSPECT_PORT ?? 9229);
+// The Worker inspector port is the one port Vite does not choose for us — and
+// it is NOT a port this run has to own. `@cloudflare/vite-plugin` resolves it
+// itself: `getInputInspectorPort()` falls back to
+// `getFirstAvailablePort(DEFAULT_INSPECTOR_PORT)` and logs "Default inspector
+// port 9229 not available, using N instead". Treating 9229 as required here
+// therefore blocked a case the plugin already supports:
+// `salla theme preview` moves Vite to 5174 when 5173 is busy, then this
+// preflight aborted on 9229 — held by the perfectly healthy first server — and
+// the CLI died with "The dev server exited before it was ready" (2026-11-23).
+// So 9229 is only ADVISORY unless the caller pins it with
+// SEELYXA_INSPECT_PORT (pin it to 0 to silence the check entirely).
+const INSPECT_PORT_ENV = process.env.SEELYXA_INSPECT_PORT;
+const INSPECT_PORT = Number(INSPECT_PORT_ENV ?? 9229);
+const inspectPortPinned = INSPECT_PORT_ENV !== undefined && INSPECT_PORT_ENV !== '';
 
 // 5177 used to sit in this list as "the Salla editor preview". It appears
 // nowhere in the engine, the CLI or this project — the editor is served by the
 // same Vite server at /__twilight/editor — so it only produced false failures.
 const requiredPorts = () =>
-  [...new Set([VITE_PORT, INSPECT_PORT])].filter(port => port > 0);
+  [...new Set([VITE_PORT, inspectPortPinned ? INSPECT_PORT : 0])].filter(
+    port => port > 0
+  );
+
+/** Busy here means "another dev server is alive", not "this run cannot start". */
+const advisoryPorts = () =>
+  inspectPortPinned ? [] : [INSPECT_PORT].filter(port => port > 0 && port !== VITE_PORT);
 
 const MAX_ATTEMPTS = 4;
 const RESTART_DELAY_MS = 2000;
@@ -356,19 +372,29 @@ async function preflight() {
   for (const port of ports) {
     if (await isPortBusy(port)) busy.push(port);
   }
-  if (busy.length === 0) return;
+  if (busy.length > 0) {
+    console.error(
+      `\n[dev-local] port${busy.length > 1 ? 's' : ''} ${busy.join(', ')} already in use.`
+    );
+    console.error(
+      '            A previous workerd / vite run is still alive. Free them with:\n' +
+        '              pnpm clean:dev\n' +
+        `            (or run \`node scripts/dev-local.cjs --port ${
+          VITE_PORT + 7
+        }\` to pick another port).\n`
+    );
+    process.exit(1);
+  }
 
-  console.error(
-    `\n[dev-local] port${busy.length > 1 ? 's' : ''} ${busy.join(', ')} already in use.`
-  );
-  console.error(
-    '            A previous workerd / vite run is still alive. Free them with:\n' +
-      '              pnpm clean:dev\n' +
-      `            (or run \`node scripts/dev-local.cjs --port ${
-        VITE_PORT + 7
-      }\` to pick another port).\n`
-  );
-  process.exit(1);
+  // A held inspector port is informational: the Cloudflare plugin walks up to
+  // the next free one, so this run starts normally next to the first server.
+  for (const port of advisoryPorts()) {
+    if (!(await isPortBusy(port))) continue;
+    console.warn(
+      `[dev-local] ${port} (Worker inspector) is already held — another dev server is alive.\n` +
+        `            Continuing on ${VITE_PORT}; the plugin will use the next free inspector port.`
+    );
+  }
 }
 
 function finish(code, signal, forceNonZero = false) {

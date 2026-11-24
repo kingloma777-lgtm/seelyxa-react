@@ -27,6 +27,7 @@ import {
   readGlobalSettings,
 } from '../../lib/storeSettings';
 import { Header } from './Header';
+import { CompareTray } from '../product/CompareTray';
 import { ImportantLinksSheet } from './ImportantLinksSheet';
 import { MobileAccountSheet } from './MobileAccountSheet';
 import { MobileBottomBar } from './MobileBottomBar';
@@ -301,6 +302,12 @@ export function ThemeLayout({ children }: ThemeLayoutProps) {
         <ImportantLinksSheet open={importantLinksOpen} onClose={() => setImportantLinksOpen(false)} />
 
         <UserMenuSheet open={userMenuOpen} onClose={() => setUserMenuOpen(false)} />
+
+        {/* The comparison bar. Mounted once here rather than per block: a
+            product added from a home rail, a category grid or the search
+            results is the same selection, and the bar has to outlive the card
+            that added it. */}
+        <CompareTray />
 
         <GlobalModals />
       </ProductCardSettingsContext.Provider>

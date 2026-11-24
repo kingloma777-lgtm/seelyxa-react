@@ -1,0 +1,1 @@
+import{Ur as e}from"./shared-home-Baktue9j.js";var t={list:async(t={})=>{let{page:n=1,perPage:r=10,signal:i}=t,a=new URLSearchParams;a.set(`page`,String(n)),a.set(`per_page`,String(r));let o={};i&&(o.signal=i);let s=await e.get(`balance/wallet?${a.toString()}`,o).json(),c=s.data.transactions;return{items:c.data??[],next:c.next_page_url,balance:s.data.balance}}};export{t};

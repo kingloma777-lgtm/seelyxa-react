@@ -1181,6 +1181,21 @@ salla-reviews:not(:has(.s-reviews-swiper-slide)) {
      it falls back to ~a header's height) — so the hero bottom lands on the
      fold line the reference's 100vh occupies. */
   position: relative;
+  /* The block-root contract every section must honour (see the playbook's
+     stacking table): a block that paints its own layers owns a stacking
+     context. Figurines needs it more than any other block — the grain sits at
+     z-50 and the brand / caption / CTA at z-60, and WITHOUT this those four
+     were promoted into the ROOT context, where 50 and 60 out-rank the header's
+     40: the caption and the giant CTA printed straight through the open mega
+     menu (measured 2026-11-24 — `elementFromPoint` inside the curtain panel
+     returned `.figurines__sub`, and its chain was `__info[z=60]` →
+     `.figurines[position:relative, isolation:auto]` → `main`).
+
+     `isolation` and NOT a `z-index`: the numbers stay internal, nothing has to
+     be re-ranked, and the block keeps its own blend group for the
+     multiply cut-out (`mix-blend-mode` on the figure images still blends
+     against this block's own background, which is painted inside the group). */
+  isolation: isolate;
   overflow: hidden;
   height: clamp(560px, calc(100svh - var(--fig-fit, 96px)), 1060px);
   background: var(--fig-bg, #c96f4a);

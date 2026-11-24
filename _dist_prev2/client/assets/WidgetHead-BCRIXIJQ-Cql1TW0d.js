@@ -1,0 +1,1 @@
+export{Vt as WidgetHead}from"./shared-home-BvI2MGk7.js";

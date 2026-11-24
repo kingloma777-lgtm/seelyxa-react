@@ -40,8 +40,8 @@ const appText = sources(path.join(themeRoot, 'app'))
   .map((file) => fs.readFileSync(file, 'utf8'))
   .join('\n');
 
-/** The family prefixes the two readers strip before looking the value up. */
-const FAMILY_PREFIXES = ['product_card_', 'global_'];
+/** The family prefixes the readers strip before looking the value up. */
+const FAMILY_PREFIXES = ['product_card_', 'global_', 'mega_card_'];
 
 /**
  * Settings the ENGINE reads itself. Each one is verified against the installed

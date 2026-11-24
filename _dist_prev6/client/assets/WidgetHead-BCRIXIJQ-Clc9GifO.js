@@ -1,0 +1,1 @@
+export{Kt as WidgetHead}from"./shared-home-DEIFcKkt.js";

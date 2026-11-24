@@ -84,7 +84,17 @@ vi.mock('@salla.sa/twilight-theme-engine/common', () => ({
       {children}
     </a>
   ),
-  Image: (props: Record<string, unknown>) => <img alt={String(props.alt ?? '')} src={String(props.src ?? '')} />,
+  /* the real component puts `className` on the <img> and spreads the rest of
+     the props onto it — the mock has to do the same or a test cannot tell the
+     day logo from the night one */
+  Image: (props: Record<string, unknown>) => (
+    <img
+      alt={String(props.alt ?? '')}
+      src={String(props.src ?? '')}
+      className={props.className as string}
+      aria-hidden={props['aria-hidden'] as boolean | undefined}
+    />
+  ),
   CurrencySymbol: ({ currency }: { currency?: string }) => <i data-currency={currency} />,
 }));
 
@@ -217,6 +227,28 @@ describe('MorphHeader', () => {
     }
   });
 
+  it('publishes the mega-menu layout as data-morph-mega, defaulting to classic', () => {
+    /* CSS hangs both compositions off this one attribute. A store that never
+       touched the editor must advertise `classic`, or the opt-in three-column
+       layout would silently become the default. */
+    const cases: [unknown, string][] = [
+      [undefined, 'classic'],
+      ['classic', 'classic'],
+      ['showcase', 'showcase'],
+      [[{ label: 'واجهة العرض', value: 'showcase', key: 'k' }], 'showcase'],
+      [[{ label: 'التوزيعة الكلاسيكية', value: 'classic', key: 'k' }], 'classic'],
+      ['a future layout we do not know', 'classic'],
+    ];
+    for (const [value, expected] of cases) {
+      state.theme = { settings: { header_layout: 'morph', header_mega_layout: value } };
+      const { container, unmount } = render(<MorphHeader />);
+      expect(container.querySelector('[data-testid="morph-header"]')?.getAttribute('data-morph-mega')).toBe(
+        expected
+      );
+      unmount();
+    }
+  });
+
   /* the heart is the wide shape's extra chip; the capsule has no room for a
      fifth disc, so it is hidden there by CSS — but it must be in the DOM (and
      in the utilities cluster, not the account one) for either shape to use it */
@@ -342,6 +374,107 @@ describe('MorphHeader', () => {
     expect(style).toContain('--morph-fg: #123456');
     expect(style).toContain('--morph-nav-size: 16px');
     expect(style).toContain('--morph-nav-weight: 800');
+  });
+
+  it('writes nothing inline when the merchant changed nothing', () => {
+    /* THE INHERIT CONTRACT. `--morph-fg` and `--morph-glass-color` used to be
+       written on every store as literals, so the header could never follow the
+       store palette and the dark block had to beat them with `!important`.
+       With no decisions there is no `style` attribute at all, and the
+       stylesheet resolves `var(--ink-1)` / `var(--surface-1)` per mode. */
+    state.theme = { settings: {} };
+    const { getByTestId, unmount } = render(<MorphHeader />);
+    expect(getByTestId('morph-header').getAttribute('style')).toBeNull();
+    unmount();
+
+    /* the saved defaults are not decisions either */
+    state.theme = {
+      settings: {
+        header_glass_color: '#ffffff',
+        header_text_color: '#0f172a',
+        header_glass_opacity: 78,
+        header_blur: 18,
+        header_nav_font_size: 14,
+        header_nav_weight: '700',
+      },
+    };
+    const second = render(<MorphHeader />);
+    expect(second.getByTestId('morph-header').getAttribute('style')).toBeNull();
+  });
+
+  it('publishes the behaviour flags as data attributes', () => {
+    state.theme = { settings: { header_sticky: false, header_surface: 'solid' } };
+    const { getByTestId } = render(<MorphHeader />);
+    const header = getByTestId('morph-header');
+    expect(header.getAttribute('data-morph-sticky')).toBe('0');
+    expect(header.getAttribute('data-morph-surface')).toBe('solid');
+  });
+
+  it('keeps the collapsed search field out of the tab order', () => {
+    /* measured failure: the field is clipped to a 44px disc with `opacity: 0`,
+       yet the input kept `tabIndex: 0` — a keyboard user tabbed into a control
+       they could not see, and the focus ring was invisible with it */
+    state.theme = { settings: {} };
+    const { getByTestId, unmount } = render(<MorphHeader />);
+    expect(getByTestId('morph-search-input').tabIndex).toBe(-1);
+    /* `tabIndex` fixes the keyboard only. The field's child keeps
+       `min-width: 340px`, so the closed box still measures 340px (193px of it
+       off-canvas in RTL) — a screen reader could walk into a search field that
+       is nowhere on the screen. `inert` removes the closed subtree from the
+       accessibility tree, which is the half `tabIndex` cannot reach. */
+    expect(getByTestId('morph-search-field').hasAttribute('inert')).toBe(true);
+    unmount();
+
+    /* opening it puts the field back in the sequence and back in the a11y tree */
+    const second = render(<MorphHeader />);
+    act(() => {
+      fireEvent.click(second.getByTestId('morph-search').querySelector('.morph-search__toggle') as Element);
+    });
+    expect(second.getByTestId('morph-search-input').tabIndex).toBe(0);
+    expect(second.getByTestId('morph-search-field').hasAttribute('inert')).toBe(false);
+  });
+
+  it('opens the mega menu on keyboard focus, not only on hover', () => {
+    /* WCAG 2.1.1: the panel was hover-only, so a keyboard user could tab
+       through eleven categories and never reach a subcategory */
+    state.theme = { settings: {} };
+    const { container } = render(<MorphHeader />);
+    const curtain = container.querySelector<HTMLElement>('[data-testid="morph-curtain"]')!;
+    expect(curtain.hidden).toBe(true);
+
+    const link = container.querySelector<HTMLElement>('.morph-pill__nav > .morph-link')!;
+    act(() => {
+      link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
+    expect(curtain.hidden).toBe(false);
+  });
+
+  it('renders a night logo only when the merchant uploaded one', () => {
+    /* Salla ships ONE logo. A dark wordmark on the night bar measured ~1.8:1,
+       and a CSS filter would flatten a coloured brand — so the theme carries a
+       night-only variant instead. With no variant the markup must stay exactly
+       as it was: one image, no dead node, no second request. */
+    state.theme = { settings: {} };
+    const plain = render(<MorphHeader />);
+    expect(plain.container.querySelectorAll('.morph-brand__logo--night').length).toBe(0);
+    expect(plain.container.querySelectorAll('.morph-brand__logo--day').length).toBe(1);
+    plain.unmount();
+
+    state.theme = { settings: { header_logo_dark: 'https://cdn.salla.network/night.png' } };
+    const withNight = render(<MorphHeader />);
+    const night = withNight.container.querySelector('.morph-brand__logo--night') as HTMLImageElement;
+    expect(night).toBeTruthy();
+    expect(night.getAttribute('src')).toContain('night.png');
+    /* the variant is decoration: the accessible name stays on the real logo
+       and the sr-only store name, so a screen reader does not hear it twice */
+    expect(night.getAttribute('aria-hidden')).toBe('true');
+    expect(night.getAttribute('alt')).toBe('');
+    withNight.unmount();
+
+    /* a hostile value is dropped at the settings layer, not at the img */
+    state.theme = { settings: { header_logo_dark: 'javascript:alert(1)' } };
+    const hostile = render(<MorphHeader />);
+    expect(hostile.container.querySelectorAll('.morph-brand__logo--night').length).toBe(0);
   });
 
   it('morphs on one boolean (scrollY > 40) → .is-scrolled', () => {

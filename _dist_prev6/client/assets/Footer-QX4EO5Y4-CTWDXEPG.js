@@ -1,0 +1,1 @@
+export{cn as Footer}from"./shared-home-DEIFcKkt.js";

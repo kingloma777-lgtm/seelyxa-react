@@ -1,0 +1,1 @@
+import{vr as e,xn as t}from"./shared-home-CY2hce1J.js";import{t as n}from"./salla-user-settings-BVv-53xa.js";var r=e();function i(e){return(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{name:`customer:settings.start`}),(0,r.jsx)(n,{}),(0,r.jsx)(t,{name:`customer:settings.end`})]})}export{i as SettingsPage};

@@ -1,0 +1,1 @@
+import{Dn as e,wr as t}from"./shared-home-DEIFcKkt.js";import{t as n}from"./salla-user-settings-ax1cdeyy.js";var r=t();function i(t){return(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(e,{name:`customer:settings.start`}),(0,r.jsx)(n,{}),(0,r.jsx)(e,{name:`customer:settings.end`})]})}export{i as SettingsPage};

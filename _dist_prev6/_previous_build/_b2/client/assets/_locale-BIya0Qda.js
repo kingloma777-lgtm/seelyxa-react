@@ -1,0 +1,1 @@
+import{yr as e}from"./shared-home-BldjTPfC.js";import{c as t}from"./vendor-router-UDe7hL-P.js";var n=e(),r=()=>(0,n.jsx)(t,{});export{r as component};

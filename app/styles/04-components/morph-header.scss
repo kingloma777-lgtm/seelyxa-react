@@ -42,7 +42,31 @@
   --morph-paper: #f6f4ef;
   --morph-accent: #e2543a;
   --morph-on-ink: #f7f5ef;
-  --morph-line: rgba(15, 23, 42, 0.1);
+
+  /* ── what the header INHERITS from the store ─────────────────────────────
+     Three of these used to be literals written inline by the component, which
+     is why the header could never follow the store palette and why the dark
+     block had to out-shout the `style` attribute with `!important`. They are
+     now roles resolved from the bridge in `01-settings/global-settings.scss`
+     (`--line-1`, `--ink-1`, `--surface-1` — each with a night face), so:
+
+       · a store that never opens the header panel gets its own ink, its own
+         hairline and its own surface, in both modes;
+       · a merchant override is written inline by `lib/headerSettings` and wins
+         in both modes — it is their decision, not a light-only one;
+       · the design default is the `var()` fallback, reached only when neither
+         of the two above exists. That is the precedence chain of
+         docs/GLOBAL-SETTINGS.md §5.2, in one line each. */
+  --morph-line: var(--line-1, rgba(20, 20, 30, 0.08));
+  --morph-fg: var(--ink-1, #0f172a);
+  --morph-glass-color: var(--surface-1, #ffffff);
+
+  /* the radius of every floating surface the header owns (the curtain panel,
+     the live-search panel). `inherit` writes nothing, so this reads the store's
+     card radius — the same corner the merchant sees on every product card. */
+  --morph-panel-radius: var(--radius-card, 22px);
+  /* the nav's inter-link gap — `header_nav_gap` writes this inline */
+  --morph-nav-gap: 2px;
 
   /* ── the curtain's own palette, declared ONCE ───────────────────────────
      The mega menu, its cards and the account dropdown used to spell these
@@ -66,9 +90,6 @@
   /* the dropdown's hover ink. The two reds it used to carry now come from the
      global status tokens (`--danger-on-ink`), so "danger" is restyled once. */
   --morph-lime: #c6ff4a;
-  /* the sheen that sweeps the merchant's product slot */
-  --morph-shine: rgba(255, 224, 160, 0.35);
-  --morph-fg: var(--morph-fg-input, #0f172a);
 
   /* One type scale for BOTH fullscreen screens (index + account), so a long
      category title and a short account label are set at the same size. The
@@ -87,6 +108,47 @@
   z-index: 40;
   color: var(--morph-fg);
   isolation: isolate;
+}
+
+/* `header_sticky` = off → the bar scrolls away with the page. It keeps its own
+   height in the flow either way (no layout shift when the merchant flips it);
+   only the pinning changes. */
+.morph-header[data-morph-sticky='0'] {
+  position: relative;
+}
+
+/* `header_surface` = solid → the scrolled bar is OPAQUE and unblurred. Two token
+   re-points, no second rule to keep in sync: `.is-scrolled` already reads both. */
+.morph-header[data-morph-surface='solid'] {
+  --morph-glass: var(--morph-glass-color);
+  --morph-blur: 0px;
+}
+
+.morph-header[data-morph-surface='solid'] .morph-pill {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ── keyboard focus ─────────────────────────────────────────────────────────
+   MEASURED FAILURE (2026-11-21): `02-generic/reset.scss` ships
+   `a:focus { outline: none }`, so every link in this header — the brand, all
+   eleven nav categories, the curtain nodes — had `outline-style: none` while
+   focused, and the pill's icon chips inherited the same silence. A keyboard
+   user could not see where they were, and the closed search field was a
+   tabbable control they could not see at all (both fixed here and in
+   MorphSearch).
+   The ring is the store's accent when the merchant picked one, else Salla's
+   primary, else the element's own ink — never a hardcoded hue. */
+.morph-header :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--gs-accent, var(--color-primary, currentColor));
+  outline-offset: 2px;
+}
+
+/* the search field clips its own box, so the ring goes on the FIELD (the
+   input's outline would be cut by `overflow: hidden` + the 999px radius) */
+.morph-search__field:focus-within {
+  outline: 2px solid var(--gs-accent, var(--color-primary, currentColor));
+  outline-offset: 2px;
 }
 
 /* A fullscreen index / account takeover is `aria-modal`, so nothing outside
@@ -109,7 +171,10 @@
   padding: 8px 12px;
 
   @media (min-width: 1024px) {
-    padding: 10px 24px;
+    /* 8px, not 10px: the bar's own air and the pill's padding were adding up
+       to a 10px gap above a 14px gap below the logo, which is the uneven
+       vertical rhythm the two-row bar had. One 8px gutter, both sides. */
+    padding: 8px 24px;
   }
 }
 
@@ -127,12 +192,12 @@
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(0px);
   transition:
-    max-width 0.6s var(--morph-spring),
-    border-radius 0.55s var(--morph-spring),
-    padding 0.45s var(--morph-ease),
-    background-color 0.35s ease,
-    box-shadow 0.35s ease,
-    backdrop-filter 0.35s ease;
+    max-width calc(600ms * var(--motion-scale)) var(--morph-spring),
+    border-radius calc(550ms * var(--motion-scale)) var(--morph-spring),
+    padding calc(450ms * var(--motion-scale)) var(--morph-ease),
+    background-color calc(350ms * var(--motion-scale)) ease,
+    box-shadow calc(350ms * var(--motion-scale)) ease,
+    backdrop-filter calc(350ms * var(--motion-scale)) ease;
 }
 
 /* the single scrolled state: pill morphs to 880px / 999px / frosted */
@@ -141,9 +206,34 @@
   padding-block: 8px;
   border-radius: 999px;
   background-color: var(--morph-glass);
+  /* A NEUTRAL literal on purpose. The `--shadow-*` ramp is the store's TEXT ink
+     at a low alpha, and at night that ink is near-white — a bar painted with it
+     glows. The slab's shadow is a shadow in both modes (the audit separates
+     neutral shadows from hues for exactly this reason), so it is one value the
+     two scrolled rules share. */
   box-shadow: 0 14px 44px rgba(20, 20, 19, 0.14);
   backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.6);
   -webkit-backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.6);
+}
+
+/* ── the phone bar always owns a plane ──────────────────────────────────────
+   MEASURED (390px, light): on a phone the page's own background is what sits
+   behind the header — the hero starts BELOW the bar, it does not run under it
+   — so a transparent pill left six white discs floating on grey with no edge
+   anywhere. The result read as a 66px row followed by a 90px empty band, and
+   the band looked like part of the header because nothing marked where the
+   header ended.
+   Below 1025px the pill therefore carries its glass at the top as well. It is
+   the SAME capsule the scrolled state uses, so the scroll only ever changes
+   what it must (the frost and the shadow), never the shape. */
+@media (max-width: 1024px) {
+  .morph-header:not(.is-scrolled) .morph-pill {
+    border-radius: 999px;
+    background-color: var(--morph-glass);
+    box-shadow: 0 6px 20px -12px rgba(20, 20, 19, 0.35);
+    backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.4);
+    -webkit-backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.4);
+  }
 }
 
 /* ── the two shapes ───────────────────────────────────────────────────────
@@ -185,12 +275,16 @@
         'start brand end'
         'nav   nav   nav';
       align-items: center;
-      gap: 4px 20px;
+      /* 2px between the logo row and the menu row: at 4px the two rows read as
+         two separate bars stacked, which is exactly the "assembled" look the
+         refinement is meant to remove. The 12px/8px padding then owns the
+         outer air and the rows read as one composed block. */
+      gap: 2px 20px;
       max-width: 1920px;
       /* 24px of page gutter to the first disc, then the capsule's own 16px
          between discs — the same rhythm the capsule keeps, just measured from
          the disc's edge instead of a bare glyph. */
-      padding: 14px 24px 10px;
+      padding: 12px 24px 8px;
     }
 
     /* the capsule's lead is a flex box (burger + brand); the wide bar needs
@@ -209,8 +303,13 @@
       justify-self: center;
 
       img {
-        max-height: 54px;
-        max-width: 210px;
+        /* 46px, not 54: the logo was the tallest object in a 115px bar and it
+           set the height of the whole row. 46 keeps a 44px chip's optical
+           weight beside it (the logo reads as one more element on the row
+           rather than the ruler everything else is measured against) and takes
+           8px off the header height with it. */
+        max-height: 46px;
+        max-width: 180px;
       }
     }
 
@@ -279,18 +378,23 @@
     }
 
     /* scrolled: the bar detaches from the page edges and becomes a rounded
-       slab — the capsule's half-circle ends (999px clamps to half the height)
-       with a 20px gutter either side. The gutter rides the BAR's padding, so
-       the pill keeps its own geometry and the logo keeps the centre line; only
-       the available width changes, and that change animates. */
+       slab with a 20px gutter either side. The gutter rides the BAR's padding,
+       so the pill keeps its own geometry and the logo keeps the centre line;
+       only the available width changes, and that change animates. */
     &.is-scrolled .morph-bar {
       padding-inline: 20px;
     }
 
+    /* THE RADIUS IS THE STORE'S CARD RADIUS, not `999px`. Measured at 1920px:
+       a two-row slab with a half-height radius (999px clamps to 50px on a
+       100px bar) turns into a stadium whose curved ends eat the first and last
+       nav items — «تخفيضات» and «المزيد» sat inside the curve. The capsule
+       shape keeps its 999px (that IS a capsule); the wide bar is a slab, and a
+       slab takes the merchant's corner. */
     &.is-scrolled .morph-pill {
       max-width: 1920px;
-      padding-block: 8px 6px;
-      border-radius: 999px;
+      padding-block: 6px;
+      border-radius: var(--morph-panel-radius);
       background-color: var(--morph-glass);
       box-shadow: 0 10px 34px rgba(20, 20, 19, 0.12);
       backdrop-filter: blur(var(--morph-blur, 18px)) saturate(1.6);
@@ -298,12 +402,19 @@
     }
 
     &.is-scrolled .morph-brand img {
-      max-height: 38px;
+      max-height: 32px;
     }
 
     /* the nav steps down one notch so the compacted bar keeps two tight rows */
     &.is-scrolled .morph-pill__nav {
       --morph-nav-size: 13px;
+    }
+
+    /* and the hover pills give back 2px of their own padding, so the scrolled
+       slab is ~84px tall instead of the 114px it was: the scroll state has to
+       read as "the bar got out of the way", not as "the bar got a background" */
+    &.is-scrolled .morph-link {
+      padding-block: 5px;
     }
   }
 }
@@ -324,6 +435,22 @@
 
   html[data-morph-lift='1'] .morph-header:not(.is-scrolled) {
     --morph-fg: #ffffff;
+  }
+
+  /* DARK MODE ALWAYS GETS THE SCRIM. The lift flag is the merchant's opt-in
+     for "content runs under the header", but the night header is white text —
+     and white on the dev store's orange hero measured ~2.6:1, i.e. the menu
+     was unreadable at the top of the page even though the hero was not lifted.
+     On a dark page this gradient is invisible; over a bright hero it is the
+     difference between a header and a rumour. Light mode keeps the opt-in:
+     its ink is dark, and a scrim there would only dull a light page. */
+  html.dark .morph-header:not(.is-scrolled)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(9, 11, 20, 0.5) 0%, rgba(9, 11, 20, 0.2) 60%, transparent 100%);
   }
 }
 
@@ -352,8 +479,14 @@
   font-size: 20px;
   transition: background-color 0.25s ease;
 
-  &:hover {
-    background: rgba(20, 20, 19, 0.08);
+  @media (hover: hover) {
+    &:hover {
+      background: color-mix(in srgb, var(--morph-fg) 8%, transparent);
+    }
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 
   @media (max-width: 1024px) {
@@ -371,6 +504,23 @@
     max-height: 40px;
     max-width: 150px;
     object-fit: contain;
+  }
+
+  /* `header_logo_dark` — one logo box, two sources. Salla ships a single logo
+     and a dark wordmark vanishes on the night bar; a CSS filter would flatten a
+     coloured brand, so the merchant may supply a light variant. Both images are
+     in the same box and only one is ever displayed, so the swap cannot shift
+     the row. `:has()` keeps the day logo visible when no variant was uploaded. */
+  &__logo--night {
+    display: none;
+  }
+
+  html.dark &:has(&__logo--night) &__logo--day {
+    display: none;
+  }
+
+  html.dark & &__logo--night {
+    display: block;
   }
 }
 
@@ -418,19 +568,32 @@
     align-items: center;
   }
 
-  /* the chip recipe: a WHITE glass pill (the capture renders the 15% dark
-     wash over a light backdrop — over this theme's white header bar the
-     merchant wants it read plainly white) with GRAY glyphs — #7c8082, the
-     exact icon colour the capture's own cart svg ships inline. The TEXT
-     ink keeps the palette's dark; only the icons go gray. Hover speaks on
-     the icon alone: glyph colour shifts to the palette ink. In dark mode
-     the surface and hairline stay captured (the bar itself is dark) and
-     the glyph turns white. */
+  /* the chip recipe: a glass pill on the STORE's surface with the store's
+     muted ink for the glyph — #7c8082 was the capture's literal, and it is
+     what `--ink-3` ships, so the merchant's text tone now reaches it. The TEXT
+     ink stays the header's own (`--morph-fg`, override-able). Hover speaks on
+     the icon alone: the glyph shifts to the header ink.
+     `--morph-chip-bg` is a component token by §13.12 rule 2: it exists so the
+     night face can step up to `--surface-3` (a lifted chip on a dark bar)
+     without a second selector at every use site. */
   --morph-chip-ink: var(--morph-fg);
-  --morph-chip-glyph: #7c8082;
-  --morph-chip-bg: rgba(255, 255, 255, 0.92);
-  --morph-chip-line: rgba(20, 20, 30, 0.08);
-  --morph-chip-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --morph-chip-glyph: var(--ink-3, #7c8082);
+  /* 96%, not 92%: the chip used to lean on its own `backdrop-filter` for the
+     last 8% of opacity, and six blurred layers on a sticky bar is a real
+     repaint bill for a difference no eye resolves. The fill is now nearly
+     opaque and the blur is gone (see `.morph-icon-btn`), so the chip is one
+     flat composited layer instead of six filtered ones. */
+  --morph-chip-bg: color-mix(in srgb, var(--surface-1, #ffffff) 96%, transparent);
+  --morph-chip-line: var(--line-1, rgba(20, 20, 30, 0.1));
+  /* The shadow is DEPTH, not a halo. The old `0 4px 24px rgba(0,0,0,.2)` put a
+     24px grey cloud under every 44px disc — six of them read as six light
+     sources and the bar looked like it was hovering over a smudge. This is a
+     1px contact shadow plus a tight, negative-spread ambient one: the chip
+     reads as sitting ON the bar, and the hairline above does the edge. */
+  --morph-chip-shadow: 0 1px 2px rgba(20, 20, 19, 0.06), 0 8px 20px -12px rgba(20, 20, 19, 0.28);
+  /* the ring around the cart count, in the chip's own surface: a darker red
+     ring (what shipped) read as a red halo, not a cut-out */
+  --morph-chip-ring: var(--surface-1, #ffffff);
 
   salla-user-menu,
   salla-cart-summary {
@@ -463,21 +626,23 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      min-width: 20px;
-      height: 17px;
-      /* the spec's literal badge: 4px padding on all sides and a 20px
-         line-height inside the 17px border-box — flex centring does the
-         real work, the values keep it literal. */
-      padding: 4px;
-      /* the ring: red, one STEP-DARKER shade than the #dc2626 fill — the
-         merchant asked for a different red degree on the ring */
-      border: 2px solid var(--danger-hover);
+      /* MEASURED DEFECT: `min-width: 20px; height: 17px; padding: 4px` left a
+         9px content box for 10px digits, so the count was clipped to nothing
+         and the badge read as a bare red dot. 18px box, 5px side padding,
+         11px/1 digits, and the count finally has a line to sit on. */
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      /* the ring is the CHIP'S OWN SURFACE, not a second red: a `--danger-hover`
+         ring around a `--danger` fill is invisible against the fill and only
+         smears red onto the disc underneath */
+      border: 2px solid var(--morph-chip-ring, var(--surface-1, #fff));
       border-radius: 999px;
       background: var(--danger);
       text-align: center;
       vertical-align: middle;
-      line-height: 20px;
-      font-size: 10px;
+      line-height: 1;
+      font-size: 11px;
       font-weight: 700;
       font-variant-numeric: tabular-nums;
       color: #fff;
@@ -513,8 +678,6 @@
       background: var(--morph-chip-bg);
       border: 1px solid var(--morph-chip-line);
       box-shadow: var(--morph-chip-shadow);
-      backdrop-filter: blur(12px) saturate(1.8);
-      -webkit-backdrop-filter: blur(12px) saturate(1.8);
       font-variant-numeric: tabular-nums;
       white-space: nowrap;
       cursor: pointer;
@@ -568,8 +731,8 @@
         transition: color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
         svg {
-          width: 19px;
-          height: 19px;
+          width: 20px;
+          height: 20px;
           fill: none;
           stroke: currentColor;
         }
@@ -588,10 +751,13 @@
     color: var(--morph-fg);
     border-color: var(--morph-line);
     background: transparent;
-    transition: background-color 0.25s ease, color 0.25s ease;
+    transition: background-color calc(250ms * var(--motion-scale)) ease,
+    color calc(250ms * var(--motion-scale)) ease;
 
-    &:hover {
-      background: rgba(20, 20, 19, 0.08);
+    @media (hover: hover) {
+      &:hover {
+        background: color-mix(in srgb, var(--morph-fg) 8%, transparent);
+      }
     }
   }
 }
@@ -609,48 +775,84 @@
   background: var(--morph-chip-bg);
   border: 1px solid var(--morph-chip-line);
   box-shadow: var(--morph-chip-shadow);
-  backdrop-filter: blur(12px) saturate(1.8);
-  -webkit-backdrop-filter: blur(12px) saturate(1.8);
-  transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background-color calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+    color calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1);
 
-  &:hover {
-    /* the hover marks itself on the ICON, not the surface ("الهوفر يغير
-       لون الايقونات") — the dark html.dark rule keeps a bg veil there */
-    color: var(--morph-fg);
+  /* `better-ui` press recipe: the chip answers the pointer with a 4% squash,
+     not with a colour change — the colour is already the hover's job. */
+  &:active {
+    transform: scale(0.96);
+  }
+
+  /* a touch device has no hover state to leave; without this guard the last
+     tapped chip keeps its hover ink until something else is tapped */
+  @media (hover: hover) {
+    &:hover {
+      /* the hover marks itself on the ICON, not the surface ("الهوفر يغير
+         لون الايقونات") — the dark html.dark rule keeps a bg veil there */
+      color: var(--morph-fg);
+    }
   }
 }
 
-/* Platform-style glass action chips — the merchant handed over a literal
-   Builder capture of the stock header-actions as the spec: 44px discs,
-   translucent dark surface, 1px white hairline, blur+saturate 1.8, and the
-   two shadow layers. The SURFACE is the spec verbatim in both modes — the
-   chip tints its own corner of the pill exactly like the captured buttons
-   (a dark 15% wash that reads over any backdrop); only the INK stays
-   palette-aware, because always-white ink dies on the cream glass in light
-   mode. The tokens ride `.morph-pill__actions`, so every rule here can
-   stay unscoped. */
+/* The night face of the chip: one step UP the store's own surface ramp instead
+   of the literal 15% black wash the capture used. `--surface-1` at night is
+   nearly the bar itself, so the chip would disappear; `--surface-3` is the
+   lifted level the store already ships, and the merchant's palette still owns
+   its hue. Inks follow the store's night inks for the same reason. */
 html.dark .morph-pill__actions {
-  /* over the dark bar the captured wash lands exactly as the capture
-     shows it, and both inks go white */
-  --morph-chip-ink: #ffffff;
-  --morph-chip-glyph: #ffffff;
-  --morph-chip-bg: rgba(20, 20, 30, 0.15);
-  --morph-chip-line: rgba(255, 255, 255, 0.1);
+  --morph-chip-ink: var(--ink-1, #f2f3f5);
+  --morph-chip-glyph: var(--ink-3, #8d95a2);
+  /* 92% here, 96% in light: a night chip needs a touch more of its surface to
+     separate from a night bar, and it no longer has a blur to hide behind. */
+  --morph-chip-bg: color-mix(in srgb, var(--surface-3, #242b37) 92%, transparent);
+  --morph-chip-line: var(--line-1, rgba(255, 255, 255, 0.09));
+  --morph-chip-ring: var(--surface-3, #242b37);
+  --morph-chip-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 20px -12px rgba(0, 0, 0, 0.6);
 }
 
-/* the action glyphs ride 22px — the icon-to-target ratio the guides agree
-   on (Material keeps 24dp inside a 48dp button; 22px is ratio-true in our
-   44px chips, which already meet the WCAG 2.5.5 / Apple HIG 44px minimum)
-   with stroke 1.5. span.morph-ico's own svg rule ties any bare `svg`
-   selector and lands later in the output, so these are scoped
-   element+class on purpose. */
+/* ── ONE glyph size, ONE stroke ─────────────────────────────────────────────
+   MEASURED against the baseline (40 states): the chrome drew seven different
+   glyph sizes — 12 / 15.8 / 18 / 19 / 22px — and six different *rendered*
+   strokes (1.0 / 1.03 / 1.12 / 1.27 / 1.35 / 1.38px), because every SVG
+   scaled its own viewBox and the declared `stroke-width` was multiplied by
+   that scale. Two things a person can actually see came out of it: the theme
+   toggle's moon sat a third smaller than the search beside it, and the caret
+   declared `stroke-width: 2` but painted 1px, so it looked thinner than
+   everything around it.
+   The chrome now uses ONE optical size — 20px, the ratio-true glyph inside a
+   44px chip (Material keeps 24dp in 48dp; 20px is the same ratio at our
+   scale) — and ONE rendered stroke of 1.5px, enforced with
+   `vector-effect: non-scaling-stroke` so the number in the CSS is the number
+   on the screen whatever the viewBox happens to be. Scoped to the chrome on
+   purpose: the product artwork inside the curtain keeps its own weights. */
 button.morph-icon-btn svg,
-button.morph-search__toggle svg {
-  width: 22px;
-  height: 22px;
+button.morph-search__toggle svg,
+.morph-theme-btn__glyph svg,
+.morph-burger .morph-ico > svg {
+  width: 20px;
+  height: 20px;
   stroke-width: 1.5;
+}
+
+.morph-header
+  :is(
+    .morph-icon-btn,
+    .morph-search__toggle,
+    .morph-theme-btn,
+    .morph-burger,
+    .morph-link,
+    .morph-loco-btn,
+    .morph-cart-glyph,
+    .morph-overlay__close
+  )
+  svg
+  :is(path, line, polyline, polygon, rect, circle, ellipse) {
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
 }
 
 /* The language/currency trigger: the spec's glass chip anatomy — the language
@@ -672,17 +874,17 @@ button.morph-search__toggle svg {
   background: var(--morph-chip-bg);
   border: 1px solid var(--morph-chip-line);
   box-shadow: var(--morph-chip-shadow);
-  backdrop-filter: blur(12px) saturate(1.8);
-  -webkit-backdrop-filter: blur(12px) saturate(1.8);
   font-size: 14px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   line-height: 14px;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-    border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-    box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: background-color calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+    color calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1);
 
   i {
     font-size: 14px;
@@ -691,14 +893,14 @@ button.morph-search__toggle svg {
     transition: color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
-  /* the globe leads the trigger (merchant order: globe → العربية → riyal);
-     18px against the 14px text keeps the ~1.28 leading ratio the same one
-     the 22px glyphs hold inside the 44px discs (best-practice icon scale),
-     without turning the chip icon-only. span+class beats the
-     later-landing `.morph-ico > svg` em sizing (0,1,1) tie. */
+  /* the globe leads the trigger (merchant order: globe → العربية → riyal).
+     16px against the 14px text is the `1em–1.25em` ratio the icon guides ask
+     for beside a label; the old 18px was 1.28em and made the globe the
+     heaviest thing in a chip whose subject is the word «العربية». span+class
+     beats the later-landing `.morph-ico > svg` em sizing (0,1,1) tie. */
   span.morph-loco-btn__globe svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
   }
 
   span.morph-loco-btn__globe {
@@ -796,9 +998,24 @@ html.theme-transition {
   position: relative;
   flex: 1 1 auto;
   justify-content: center;
-  gap: 2px;
+  /* `header_nav_gap` — the fit algorithm reads this back off the element
+     (`getComputedStyle(nav).columnGap`), so a merchant gap is measured, never
+     guessed. It is the space BETWEEN two hover pills; the optical gap a
+     person sees is this plus the 14px of padding on each side, i.e. 30px. */
+  gap: var(--morph-nav-gap, 2px);
+  /* NO `max-width` / `margin-inline: auto` here, and this note is the reason:
+     an auto inline margin stops a grid item from stretching, so the nav
+     reports its own max-content as `clientWidth` — and the fit algorithm reads
+     that number back. Measured with the cap in place: every scrolled state
+     collapsed to a single visible link, because each removal shrank the
+     max-content, which shrank the measured width, which justified the next
+     removal. A one-link menu that only appears after scrolling is the kind of
+     bug a screenshot of the top of the page will never show.
+     The row does not need a cap anyway: `justify-content: center` already
+     centres the labels, so at 1920px the twelve items sit as one tight group
+     of ~1145px in the middle of the bar (measured) rather than spreading. */
   min-width: 0;
-  padding-block: 2px;
+  padding-block: 0;
 
   @media (min-width: 1025px) {
     display: flex;
@@ -828,7 +1045,7 @@ html.theme-transition {
   position: absolute;
   inset-inline-start: 0;
   display: flex;
-  gap: 2px;
+  gap: var(--morph-nav-gap, 2px);
   visibility: hidden;
   pointer-events: none;
 }
@@ -839,7 +1056,7 @@ html.theme-transition {
 
 .morph-nav__empty {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--ink-3, rgba(0, 0, 0, 0.4));
 }
 
 @keyframes morphSkel {
@@ -876,10 +1093,10 @@ html.theme-transition {
      can track the cursor without fighting the eased slide. */
   will-change: transform, width;
   transition:
-    transform 0.5s var(--morph-ease),
-    width 0.5s var(--morph-ease),
-    height 0.4s var(--morph-ease),
-    opacity 0.18s ease;
+    transform calc(500ms * var(--motion-scale)) var(--morph-ease),
+    width calc(500ms * var(--motion-scale)) var(--morph-ease),
+    height calc(400ms * var(--motion-scale)) var(--morph-ease),
+    opacity calc(180ms * var(--motion-scale)) ease;
 
   &.is-on {
     opacity: 1;
@@ -890,27 +1107,44 @@ html.theme-transition {
   position: relative;
   @apply inline-flex items-center;
   gap: 5px;
-  padding: 8px 16px;
+  /* 14px of padding, not 16: the hover pill should hug the label. With 16px
+     the pill's corners floated 2px past the first and last letterform and the
+     highlight read wider than the word it was highlighting. */
+  padding: 7px 14px;
   border-radius: 999px;
   font-size: var(--morph-nav-size, 14px);
   font-weight: var(--morph-nav-weight, 700);
-  line-height: 1.2;
+  /* 1.2 clipped the Arabic descenders (ج / ي / ن) against the pill's edge on
+     a 32px row; 1.35 gives them their 2px back and centres the label
+     optically inside the hover pill. */
+  line-height: 1.35;
+  /* Arabic is a joined script — tracking pulls the joins apart and makes the
+     word look broken. Latin labels take a hair of it to sit at the same
+     optical density. */
+  letter-spacing: 0;
   color: var(--morph-fg);
   white-space: nowrap;
   cursor: pointer;
   will-change: transform;
-  transition: color 0.22s ease, background-color 0.22s ease;
+  transition: color calc(220ms * var(--motion-scale)) ease,
+    background-color calc(220ms * var(--motion-scale)) ease;
 
-  &:hover {
-    background: rgba(20, 20, 19, 0.07);
+  /* an ink wash, not a black one: it follows the merchant's ink in both modes,
+     so a store with a warm or a blue palette gets a hover that belongs to it */
+  @media (hover: hover) {
+    &:hover {
+      background: color-mix(in srgb, var(--morph-fg) 8%, transparent);
+    }
   }
 
   &.is-on-blob {
     color: var(--morph-on-ink);
     background: transparent;
 
-    &:hover {
-      background: transparent;
+    @media (hover: hover) {
+      &:hover {
+        background: transparent;
+      }
     }
   }
 
@@ -918,12 +1152,25 @@ html.theme-transition {
     width: 12px;
     height: 12px;
     opacity: 0.55;
-    transition: transform 0.3s var(--morph-ease);
+    transition: transform 0.3s var(--morph-ease), opacity 0.2s ease;
   }
 
+  /* the caret answers the same state the panel does — it turns AND firms up,
+     so the open category is legible without reading the panel edge */
   &.is-open &__caret {
     transform: rotate(180deg);
+    opacity: 1;
   }
+}
+
+/* Latin labels only — see the tracking note above. `:lang()` is the honest
+   hook: the store's own locale attribute, not a class we invent. */
+.morph-header :lang(en) .morph-link {
+  letter-spacing: 0.01em;
+}
+
+.morph-header :lang(en) .morph-overlay__label {
+  letter-spacing: -0.02em;
 }
 
 /* ── icon slots ─────────────────────────────────────────────────────────── */
@@ -959,13 +1206,13 @@ html.theme-transition {
    sourceSlot icons ride the same scale so any state that reveals them
    matches the chips. */
 .morph-search__glyph.morph-ico > svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 
 .morph-account-ico.morph-ico > svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 }
 
 /* kept readable by assistive tech, invisible on screen — `.morph-sr-only`
@@ -1044,17 +1291,36 @@ html.theme-transition {
   /* The panel edge is one of the merchant's "الحدود"; a flat hex on a
      `#fff`-tinted frost all but disappeared, so it is a warm TRANSLUCENT ink
      that holds against the frost AND whatever page colour is blurred behind it. */
-  border: 1px solid var(--morph-hair);
-  border-radius: 26px;
-  /* Frosted: `backdrop-filter` blurs what is BEHIND the element, so an opaque
-     `#fff` would leave the columns blurring solid white. The surface must let
-     the page through for the glass read at all. */
-  background: color-mix(in srgb, #fff 58%, transparent);
+  border: 1px solid var(--line-1, var(--morph-hair));
+  border-radius: var(--morph-panel-radius);
+  /* Frosted, but only JUST: `backdrop-filter` blurs what is behind the element,
+     and at 58% white the panel let a saturated hero through as a PINK wash —
+     measured over the dev store's orange hero, where the mega menu read as a
+     tinted sheet rather than a surface. 94% keeps the glass read (the blur is
+     still doing the work at the edges) while the panel owns its colour, and
+     `--surface-1` gives it the store's own, day and night. */
+  background: color-mix(in srgb, var(--surface-1, #ffffff) 94%, transparent);
   -webkit-backdrop-filter: blur(26px) saturate(1.35);
   backdrop-filter: blur(26px) saturate(1.35);
   box-shadow: 0 30px 60px -24px rgba(30, 25, 18, 0.4);
-  animation: morphCurtainIn 0.3s var(--morph-ease) both;
+  animation: morphCurtainIn calc(300ms * var(--motion-scale)) var(--morph-ease) both;
 
+  /* ── the composition is a SETTING, not a decision ─────────────────────────
+     Two layouts ship and the merchant chooses in the theme editor:
+
+     · `classic` — the layout the store ALREADY had, and therefore the default:
+       two plates side by side inside the panel (categories 2fr, the merchant's
+       slot 1fr) with the product row as a third plate beneath them.
+     · `showcase` — one surface, three columns (nav | products | slot), the
+       categories as a scannable row list and the products as wide cards.
+
+     Everything below is written for `classic`. The showcase re-declares the
+     properties it changes under `.morph-header[data-morph-mega='showcase']` in
+     the "LAYOUT B" section further down. That direction is deliberate: a
+     property the showcase block forgets falls back to the classic value, so a
+     half-written rule can never damage the DEFAULT layout — only the opt-in
+     one. The panel is a plain block in classic (the plates inside it are the
+     surfaces); the showcase turns it into a grid. */
   @media (min-width: 640px) {
     padding: 20px 24px;
   }
@@ -1065,71 +1331,83 @@ html.theme-transition {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* LAYOUT A — `classic`: TWO tracks, and the count is a contract. The SPLIT is
+   the merchant's: two thirds to the subcategories, one third to the rest. The
+   products sit in a third plate BELOW them (`.morph-featured`), which is the
+   composition this store shipped with. */
 .morph-curtain__layers {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
 
   @media (min-width: 768px) {
-    /* TWO tracks, and the count is a contract. The SPLIT is the merchant's:
-       **two thirds to the subcategories, one third to the rest.** */
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     gap: 22px;
   }
 }
 
 .morph-layer {
   min-width: 0;
-
   /* A flex column so the slot layer's content can be centred in the space below
      its label with auto block margins. It is NOT what centres anything by
      itself; `justify-content: center` would drag the label down too. */
   display: flex;
   flex-direction: column;
-
-  /* Each column is its own glass plate over the panel's blur. The padding is
-     SYMMETRIC, and the tint stays translucent so the panel's already-blurred
-     surface reads through it (rule 14). */
+  /* Each column is its own plate over the panel's blur. The tint is the
+     store's SECOND surface, not a white wash: `--surface-2` is a step away
+     from `--surface-1` in the day palette and a step UP in the night one, so
+     the plate reads as depth in both modes without a hardcoded colour. */
+  padding-block: 12px 14px;
   padding-inline: 14px;
-  background: color-mix(in srgb, #fff 24%, transparent);
-  border-radius: 16px;
-
-  /* Every layer carries its OWN border, all the way round. The old `+ &`
-     divider is GONE rather than restyled: a heavier line on the touching side
-     only would make one edge of each plate darker than the other. The layers
-     must still be siblings — that is a grid requirement (rule 18), not a
-     separator one. */
-  border: 1px solid var(--morph-hair);
+  background: color-mix(in srgb, var(--surface-2, #f5f7f9) 80%, transparent);
+  border: 1px solid var(--line-1, var(--morph-hair-soft));
+  border-radius: var(--radius-lg, 16px);
 
   @media (min-width: 768px) {
     padding-inline: 20px;
   }
 
   &__label {
-    margin-bottom: 12px;
-    font-size: 10px;
+    /* the column heading is the CATEGORY's own name — the one word that tells
+       the visitor where they are. It used to be an 11px `--ink-2` caption,
+       i.e. quieter than every link under it. */
+    margin: 0 0 10px;
+    padding: 0;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 0.22em;
+    line-height: 1.4;
+    letter-spacing: 0;
+    color: var(--ink-1, var(--morph-fg));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :lang(en) &__label {
+    font-size: 11px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: rgba(0, 0, 0, 0.4);
   }
 
   &__empty {
+    margin-top: 8px;
     font-size: 12px;
     line-height: 1.7;
-    color: rgba(0, 0, 0, 0.35);
+    color: var(--ink-2, rgba(0, 0, 0, 0.55));
 
     /* the merchant-instruction paragraph under the honest empty states */
     &--hint {
       margin-top: 6px;
       font-size: 11px;
+      color: var(--ink-3, rgba(0, 0, 0, 0.4));
     }
   }
 
   /* The subcategory grid. The cell floor is the 88px disc plus the room its
      name needs (two words side by side), so a column never squeezes a circle
      out of shape; the row gap is the taller half because the name sits under
-     each disc. */
+     each disc. This is the `classic` composition — the discs the store's menu
+     was built on; the showcase turns the same nodes into rows. */
   &__grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
@@ -1145,29 +1423,22 @@ html.theme-transition {
     margin-block: auto;
   }
 
-  /* The subcategory column sizes to its discs. It used to be pinned to a fixed
-     420px so the panel "stayed stable" between categories — but that turned a
-     two-disc category into a 420px plate with one row of discs and 300px of
-     nothing, and it pushed the whole curtain past the fold (the merchant was
-     scrolling the mega menu to reach the featured row). The cap is still there
-     for a category with thirty children; the HEIGHT is not. */
+  /* The rail scrolls only when the category really has more children than the
+     panel can show; `0 1 auto` keeps it hugging its rows otherwise. */
   &:not([data-morph-dyn='slot']) {
-    max-height: min(420px, calc(70vh - 160px));
+    max-height: min(440px, calc(70vh - 140px));
     min-height: 0;
 
     .morph-layer__grid {
-      /* `0 1 auto`, not `1 1 auto`: the grid hugs its rows and only shrinks —
-         and scrolls — when the cap above actually bites. */
       flex: 0 1 auto;
       min-height: 0;
       max-height: 100%;
       overflow-y: auto;
       overflow-x: visible;
-      padding-inline-end: 8px;
-      padding-inline-start: 4px;
-      padding-block-start: 4px;
-      padding-block-end: 16px;
-      margin-inline: -4px;
+      margin-inline: -8px;
+      padding-inline: 8px;
+      padding-block: 2px 6px;
+      overscroll-behavior: contain;
       @include morph-hide-scrollbar;
     }
   }
@@ -1236,29 +1507,36 @@ html.theme-transition {
 
   &__name {
     font-size: 12px;
-    line-height: 1.3;
-    color: rgba(0, 0, 0, 0.55);
+    font-weight: 500;
+    line-height: 1.35;
+    /* `--ink-3` was 4.0:1 on the plate at 12px — under the 4.5:1 that body-size
+       text needs, and these are the merchant's category names, not a caption.
+       `--ink-2` clears 7:1 and still sits a step below the active state's ink,
+       so the hierarchy is weight + colour, not colour alone. */
+    color: var(--ink-2, rgba(0, 0, 0, 0.72));
     transition: color 0.2s ease;
   }
 
-  &:hover &__name {
-    color: var(--morph-ink);
+  @media (hover: hover) {
+    &:hover &__name {
+      color: var(--morph-ink);
+    }
   }
 
   &.is-active &__name {
     color: var(--morph-ink);
-    font-weight: 600;
+    font-weight: 700;
   }
 }
 
 /* The only discs left are subcategory discs. `.morph-node--1` is deliberately
    NOT left behind: a rule nothing can ever match is an invitation to build a
    second column against it and assume it still works. */
-/* The subcategory node is a CIRCLE holding the category's own picture, with the
-   name UNDER it (the merchant's ask). One size for every node, so a row reads
-   as a grid and not a ladder. The hover is the theme's existing language, not a
-   new one: the disc lifts and takes the ink ring, its picture pushes in, and
-   the name inks — one gesture across all three. */
+/* LAYOUT A (`classic`): the subcategory node is a CIRCLE holding the
+   category's own picture, with the name UNDER it. One size for every node, so
+   a row reads as a grid and not a ladder. The hover is the theme's existing
+   language, not a new one: the disc lifts and takes the ink ring, its picture
+   pushes in, and the name inks — one gesture across all three. */
 .morph-node--2 {
   gap: 9px;
   padding: 2px 0 0;
@@ -1282,7 +1560,7 @@ html.theme-transition {
     position: relative;
     overflow: hidden;
     /* a hairline ring instead of the tile's box: the circle IS the frame */
-    box-shadow: inset 0 0 0 1px var(--morph-hair-soft),
+    box-shadow: inset 0 0 0 1px var(--line-1, var(--morph-hair-soft)),
       0 6px 14px -12px rgba(30, 25, 18, 0.5);
     transform: none;
     transition: transform 0.28s var(--morph-ease), box-shadow 0.28s var(--morph-ease);
@@ -1322,7 +1600,7 @@ html.theme-transition {
     transform: scale(1.09);
   }
 
-  /* active = the node whose products the rectangle below is showing. A resting
+  /* active = the node whose products the plate below is showing. A resting
      ring only: `:not(:hover)` keeps the pointer's own lift in charge while it
      is still on the node, so nothing snaps back under the cursor. */
   &.is-active:not(:hover) .morph-node__disc {
@@ -1335,6 +1613,7 @@ html.theme-transition {
     max-width: 100%;
     padding: 0;
     font-size: 12px;
+    font-weight: 500;
     line-height: 1.35;
   }
 }
@@ -1352,13 +1631,14 @@ html.theme-transition {
      (and its hover zoom) to the rounded corners. */
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: var(--radius-lg, 16px);
   background: var(--morph-plate);
-  /* Smaller than its column: the merchant read the full-track 266×355 card
-     as "العبط" and asked for it smaller — the product slot already clamps at
-     180px, so the image slot clamps at the neighbour width and centres on
-     both axes the same way (A clamped block with auto margins is what
-     centres it; see the centring note under `.morph-layer`). */
+  /* LAYOUT A (`classic`): smaller than its column. The merchant read the
+     full-track 266×355 card as "العبط" and asked for it smaller — the product
+     slot already clamps at 210px, so the image slot clamps at the neighbour
+     width and centres on both axes the same way (a clamped block with auto
+     margins is what centres it; see the centring note under `.morph-layer`).
+     LAYOUT B fills the promo column instead. */
   max-width: 190px;
   margin-inline: auto;
 
@@ -1406,9 +1686,9 @@ html.theme-transition {
        the featured row keeps a 54px one over its grid (rule 23's slot half:
        the component still owns its internals; we only seat it). */
     aspect-ratio: auto;
-    max-width: 210px;
-    margin-block-start: 48px;
-    margin-inline: auto;
+    max-width: none;
+    margin-block: auto;
+    margin-inline: 0;
     overflow: visible;
     background: transparent;
     box-shadow: none;
@@ -1428,107 +1708,73 @@ html.theme-transition {
   margin-bottom: 0;
 }
 
-/* ── the featured PRODUCT slot's shine — the "حاجه سبشيل" the merchant asked
-   for. A light band painted INSIDE the card's own face: a background gradient
-   sweeping via `background-position` on a pause-and-repeat cycle, so nothing
-   ever escapes the card box (a transformed band would fly past it) and the
-   highlight never carries a label (rule 28). Scoped to the slot card only —
-   the four featured row cards stay untouched. */
-@keyframes morphSlotSheen {
-  /* RTL store: the band starts past the RIGHT edge and sweeps leftwards */
-  0%,
-  14% {
-    background-position: -40% 0;
-  }
-  46%,
-  100% {
-    background-position: 140% 0;
-  }
-}
-
-.morph-spotlight--product .morph-menu-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* the tile's own corner, whatever radius the merchant set */
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0) 36%,
-    var(--morph-shine) 46%,
-    rgba(255, 255, 255, 0.75) 50%,
-    var(--morph-shine) 54%,
-    rgba(255, 255, 255, 0) 64%,
-    transparent 100%
-  );
-  background-size: 280% 100%;
-  background-repeat: no-repeat;
-  background-position: -40% 0;
-  animation: morphSlotSheen 6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
-  animation-delay: 1.4s;
-}
-
-html.dark .morph-spotlight--product .morph-menu-card::after {
-  /* the night tile is `--surface-1` — the same sweep, a quieter alpha */
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0) 38%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0) 62%,
-    transparent 100%
-  );
-  background-size: 280% 100%;
-  background-repeat: no-repeat;
-  background-position: -40% 0;
-}
+/* The slot card's old sheen (a 6s gradient sweep across the tile) is GONE.
+   It was decoration that ran forever: a glowing band on a card the visitor is
+   meant to READ, plus a permanent compositing layer and a `prefers-reduced-
+   motion` branch to switch it off. The slot now earns attention by being the
+   only card in the promo column, which is a structural cue instead of a
+   blinking one. */
 
 @media (prefers-reduced-motion: reduce) {
   .morph-spotlight__img { transition: none; }
   .morph-spotlight:hover .morph-spotlight__img { transform: none; }
-  .morph-spotlight--product .morph-menu-card::after {
-    animation: none;
-    opacity: 0;
-  }
 }
 
 /* ── featured rectangle — follows the hovered node ───────────────────────── */
 .morph-featured {
+  /* LAYOUT A (`classic`): the product row is the THIRD plate in the panel —
+     under the two columns, sharing their edge and corner language. */
   margin-top: 12px;
   padding: 12px 14px;
-  /* Same ink as the panel edge and the two column plates — "الحدود واضحة"
-     means all of them (rule 22). */
-  border: 1px solid var(--morph-hair);
-  border-radius: 18px;
-  background: #faf7f0;
-  animation: morphCurtainIn 0.4s var(--morph-ease) both;
+  border: 1px solid var(--line-1, var(--morph-hair));
+  border-radius: var(--radius-lg, 16px);
+  background: var(--surface-2, #faf7f0);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  /* The panel already fades in as one block; a second entrance on a child of
+     it is the double-animation stutter the motion guides warn about — and it
+     was in here before this pass, which is why the row used to lag the panel
+     by 100ms. One entrance, the panel's. */
+  animation: none;
 
   &__head {
-    @apply flex items-end justify-between;
-    /* the plate now lives INSIDE the card (as in the store), so the row needs
-       no breakout band between the heading and the shelf — just a breath */
-    margin-bottom: 18px;
+    @apply flex items-baseline justify-between;
+    gap: 12px;
+    margin-bottom: 12px;
 
     p {
-      font-size: 10px;
+      margin: 0;
+      font-size: 13px;
       font-weight: 700;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: rgba(0, 0, 0, 0.4);
+      line-height: 1.4;
+      letter-spacing: 0;
+      color: var(--ink-1, var(--morph-fg));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     span {
+      flex: none;
       font-size: 11px;
-      color: rgba(0, 0, 0, 0.4);
+      font-variant-numeric: tabular-nums;
+      color: var(--ink-3, rgba(0, 0, 0, 0.45));
     }
   }
 
+  :lang(en) &__head p {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
   &__empty {
+    margin: 0;
+    padding: 28px 0;
     font-size: 12px;
     line-height: 1.7;
-    color: rgba(0, 0, 0, 0.35);
+    color: var(--ink-2, rgba(0, 0, 0, 0.55));
   }
 
   /* ONE row, four cards per view, everything else a swipe away (rule 23).
@@ -1575,11 +1821,34 @@ html.dark .morph-spotlight--product .morph-menu-card::after {
     }
 
     > * {
-      /* four tracks fit the visible width at every desktop breakpoint, and the
-         cap keeps a wide panel from stretching them into four posters */
+      /* LAYOUT A (`classic`): four cards per view, each on a deterministic
+         track — `(100% - 48px) / 4` is the row minus three 16px gaps, so the
+         four cards land on the plate's own edges whatever the panel width is.
+         The cap only bites on an ultra-wide panel, where it stops a card
+         ballooning (the store's rule 26: wider AND shorter) and lets the reel
+         centre instead. It used to be 210, which on a 1237px panel left a
+         150px sliver of the next card hanging off the edge — that reads as a
+         broken row, not as a peek. LAYOUT B sizes the card from the column. */
       flex: 0 0 calc((100% - 48px) / 4);
-      max-width: 210px;
+      max-width: 300px;
       scroll-snap-align: start;
+    }
+
+    /* The four-up reel is a DESKTOP rhythm. It is still four cards at 768+,
+       but four 46px cards in a 320px phone are not products — they are four
+       illegible strips. The composition (one horizontal reel, no wrap) does
+       not change, only how many cards share the viewport: two on a tablet,
+       one on a phone, the rest still a swipe away. */
+    @media (max-width: 767px) {
+      > * {
+        flex: 0 0 calc((100% - 16px) / 2);
+      }
+    }
+
+    @media (max-width: 480px) {
+      > * {
+        flex: 0 0 min(210px, 100%);
+      }
     }
   }
 
@@ -1646,50 +1915,62 @@ html.dark .morph-spotlight--product .morph-menu-card::after {
   margin-bottom: 0;
 }
 
+/* ── the loading ghosts wear the REAL card ────────────────────────────────
+   The featured row renders `MorphMenuCard` once the list arrives, and the
+   engine's `ProductsListSkeleton` — which draws `.s-product-card-vertical`
+   boxes — while it waits. Those ghosts used to carry their own private tile
+   (14px corners, pure white, a hardcoded square plate, `cover`), so the panel
+   visibly re-dressed itself the moment the products landed: sharp little white
+   tiles became the merchant's rounded ivory ones.
+
+   They now read the same `--pc-*` tokens as the card they stand in for, so the
+   skeleton is a placeholder for THIS card rather than a second design. */
 .morph-featured .s-product-card-vertical {
   width: 100%;
   /* the loading ghosts wear the same footprint as the real cards below */
-  max-width: 210px;
+  max-width: 300px;
   justify-self: center;
 
   .s-product-card-entry {
     flex-direction: column;
     height: 100%;
-    border-radius: 14px;
-    background: #fff;
-    border: 1px solid var(--morph-hair-soft);
+    border-radius: var(--pc-radius, 22px);
+    background: var(--bg-card, #fdfaf3);
+    border: 1px solid var(--pc-line, var(--morph-hair-soft));
     box-shadow: 0 8px 20px -18px rgba(43, 45, 52, 0.5);
     transition: transform 0.25s var(--morph-ease), box-shadow 0.25s var(--morph-ease),
       border-color 0.25s var(--morph-ease);
   }
 
   &:hover .s-product-card-entry {
-    transform: translateY(-3px);
+    transform: translateY(var(--pc-hover-lift, -4px));
     border-color: var(--morph-hair);
     box-shadow: 0 18px 34px -22px rgba(43, 45, 52, 0.55);
   }
 
-  /* Square, deterministic picture: row height no longer follows the panel
-     width, and `cover` gives every card the same crisp, matted look. */
+  /* The plate is the merchant's: the ratio from `product_card_img_ratio`, the
+     media corner from the store's media role, the well from the card's image
+     colour. A ghost that pins `1 / 1` is a ghost that lies about the layout. */
   .s-product-card-image {
     flex: none;
     width: 100%;
     height: auto;
-    aspect-ratio: 1 / 1;
-    border-radius: 0;
-    background: var(--morph-plate-soft);
+    aspect-ratio: var(--pc-ar-num, 1);
+    border-radius: var(--radius-media, calc(var(--pc-radius, 22px) - 9px));
+    background: var(--pc-image-bg, #f4ebdc);
     overflow: hidden;
   }
 
   .s-product-card-image img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: var(--pc-img-fit, cover);
+    object-position: var(--pc-img-pos, center);
     transition: transform 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 
   &:hover .s-product-card-image img {
-    transform: scale(1.05);
+    transform: scale(var(--pc-img-zoom, 1.045));
   }
 
   .s-product-card-content {
@@ -1702,10 +1983,10 @@ html.dark .morph-spotlight--product .morph-menu-card::after {
   }
 
   .s-product-card-content-title a {
-    font-size: 12.5px;
+    font-size: 15px;
     font-weight: 600;
     line-height: 1.45;
-    color: #2c2620;
+    color: var(--pc-ink, #2c2620);
     -webkit-line-clamp: 2;
   }
 
@@ -1715,14 +1996,14 @@ html.dark .morph-spotlight--product .morph-menu-card::after {
 
   .s-product-card-price,
   .s-product-card-sale-price h4 {
-    font-size: 13px;
+    font-size: 17px;
     font-weight: 700;
-    color: var(--color-primary);
+    color: var(--pc-ink, var(--color-primary));
   }
 
   .s-product-card-sale-price span {
-    font-size: 11px;
-    color: rgba(0, 0, 0, 0.35);
+    font-size: 12px;
+    color: var(--pc-muted, rgba(0, 0, 0, 0.35));
   }
 
   .s-product-card-content-subtitle {
@@ -1730,74 +2011,118 @@ html.dark .morph-spotlight--product .morph-menu-card::after {
   }
 }
 
-/* the mega menu's product card — the merchant's reference design, retiled.
-   The featured row AND the merchant's product slot (`.morph-spotlight--product`)
-   wear the same card; the slot adds its shine sweep below.
+/* the mega menu's product card — the store card's TWO OBJECTS, not a lookalike.
+   ────────────────────────────────────────────────────────────────────────────
+   The panel's card wears the same composition as `04-components/product-card.scss`:
 
-   It wears the STORE's card (`04-components/product-card.scss`) — the
-   merchant's "تصميم الكارت بتاع المنتج المربع الاصفر عايزه زي المربع الاصفر
-   الي فكارت المنتج الي فالمتجر ككل": the same cream tile, the same square photo
-   plate, hairline, corner, shadow and lift. The one thing that did NOT come
-   over is the circular picture that broke out over the card's top edge: the
-   store has no such shape, and it was what forced the featured row to carry a
-   52px clipping band.
+     · a PRINT — the photograph edge to edge, the card's own corner, a tab on
+       its inline edge and the action disc on its bottom inline corner;
+     · a LABEL — one paper block under a hairline: meta rail, name, short line,
+       and the price closing it at the floor.
 
-   The palette is not copied, it is INHERITED: `ThemeLayout` writes `--pc-*` on
-   `.app-inner` (inline, from the merchant's card settings) and the header lives
-   inside it, so a store that retints its cards retints this one too — no second
-   source of truth, and every fallback below is the store's own default. */
+   Everything is INHERITED, not copied: `ThemeLayout` writes `--pc-*` and
+   `data-pc-*` on `.app-inner` (inline, from the merchant's card settings) and
+   the header lives inside it, so a store that retints or reshapes its cards
+   reshapes this one too. The fallbacks below are the store's own defaults.
+
+   Two deliberate differences, both without a second design language:
+     · the media is an `aspect-ratio` box (the store card keeps the engine's
+       padding-bottom ratio block, because the engine's `<Image>` wrapper carries
+       an inline `aspect-ratio` that has to be beaten);
+     · the badge is COMPUTED from the two real prices (or the real availability
+       status) and the score only renders when the list actually sent one — no
+       extra product-detail request, no invented number.
+
+   The layout owns only the CARD WIDTH and the PHOTO RATIO: `classic` keeps the
+   compact 210px square tile; `showcase` grows it to a 4:3 column-wide card. */
 .morph-featured .morph-menu-card,
 .morph-spotlight--product .morph-menu-card {
   position: relative;
   display: flex;
   flex-direction: column;
+  /* how far the plate rises into the print — the store card's own variable, at
+     this surface's scale */
+  --pc-lift: 26px;
   width: 100%;
-  max-width: 210px;
+  max-width: 300px;
   height: auto;
   min-height: 0;
   justify-self: center;
-  padding: 10px;
+  /* the print is the card's top edge: no inset of the card's own, exactly as
+     the store card — a padding here would put a mat around the photograph */
+  padding: 0;
   border: 1px solid var(--pc-line, color-mix(in srgb, #2b2519 9%, transparent));
-  border-radius: var(--pc-radius, 22px);
-  /* the CARD level of the background chain, not `--pc-bg` directly: identical
-     today, but a section that wants its cards to pop can set `--bg-card` and
-     this card follows without a second rule */
+  /* THE CARD'S CORNER, as one value — the root paints it, and the print's top
+     edge and the label's floor clip themselves to it, because the root no
+     longer clips anything (the tag hangs over the card's top edge). */
+  --pc-corner: var(--pc-radius, 22px);
+  border-radius: var(--pc-corner);
+  /* the CARD level of the chain, as the token contract requires. The night
+     surface is re-pointed on the card below, so this reference resolves to the
+     merchant's paper by day and the theme's surface after dark. */
   background: var(--bg-card, #fdfaf3);
   color: var(--pc-ink, #2b2519);
   text-align: start;
-  /* the plate's corners are clipped by the tile, as in the store */
-  overflow: hidden;
-  box-shadow: var(--pc-shadow, 0 22px 44px -34px color-mix(in srgb, #2b2519 70%, transparent));
-  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
-    box-shadow 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), border-color 0.5s;
+  /* the tag straddles the card's top edge — a clipped card would cut it in
+     half, so the print and the label own their own corners instead */
+  overflow: visible;
+  box-shadow: none;
+  transition:
+    transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.5s;
 
-  /* the store card's lift: 4px, and only the edge brightens */
-  &:hover {
-    transform: translateY(-4px);
+  @media (hover: hover) {
+    &:hover {
+      transform: translateY(var(--pc-hover-lift, -4px));
+      border-color: color-mix(in srgb, var(--pc-ink, #2b2519) 16%, transparent);
+    }
+  }
+
+  &:focus-within {
     border-color: color-mix(in srgb, var(--pc-ink, #2b2519) 16%, transparent);
   }
 
-  /* the store card's photo plate: a SQUARE of the merchant's image colour,
-     one radius step inside the tile (`--pc-radius` − 9px, exactly what
-     `product-card.scss` computes), with the picture cropped into it. The
-     circular breakout that used to sit half outside the card is gone — it was
-     the one part of the card the store does not have. */
+  /* ── the print ─────────────────────────────────────────────────────────── */
   &__media {
+    position: relative;
     display: block;
+    flex: 0 0 auto;
     width: 100%;
-    aspect-ratio: 1;
-    margin: 0 0 6px;
-    border-radius: calc(var(--pc-radius, 22px) - 9px);
+    /* the merchant's global image shape, and `mega_card_ratio` re-declares it
+       on the curtain root to override it for this subtree only */
+    aspect-ratio: var(--pc-ar-num, 1);
+    margin: 0;
+    /* flush with the card: the corner comes from the card's own value, and the
+       print is the only thing at the card's top edge now that the root does
+       not clip — so it paints that corner itself, minus the 1px hairline */
+    border-start-start-radius: calc(var(--pc-corner, 22px) - 1px);
+    border-start-end-radius: calc(var(--pc-corner, 22px) - 1px);
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
     overflow: hidden;
-    /* the plate a cut-out product sits on, as in the store */
     background: var(--pc-image-bg, #f4ebdc);
+
+    &-link {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
 
     img {
       display: block;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+      /* THE image-presentation decision, inherited from the card settings
+         exactly as the store card reads it. This used to be a hardcoded
+         `contain` while the grid painted `cover`, so one product wore two
+         different crops in two places — the single largest drift in the
+         system, and invisible to every test that only looked at one surface. */
+      object-fit: var(--pc-img-fit, cover);
+      object-position: var(--pc-img-pos, center);
+      /* one speed, declared here and nowhere else: the photo answers the
+         pointer in under half a second, in step with the tile's own rise */
+      transition: transform 0.42s cubic-bezier(0.2, 0.7, 0.2, 1);
     }
 
     &-empty {
@@ -1807,69 +2132,206 @@ html.dark .morph-spotlight--product .morph-menu-card::after {
     }
   }
 
-  /* the store's own zoom on hover — 1.045, 0.9s, the same curve */
-  &:hover .morph-menu-card__media img {
-    transform: scale(1.045);
+  @media (hover: hover) {
+    &:hover .morph-menu-card__media img {
+      transform: scale(var(--pc-img-zoom, 1.045));
+    }
   }
 
+  /* The tag's SKIN and its PLACEMENT are the shared rules in
+     `product-card.scss` (`.pc-badge` + `[data-pc-badge-place]` on `.app-inner`)
+     — this surface contributes nothing but its own markup, which is what keeps
+     the menu tag from drifting into a second design. Only the stacking order is
+     local: the tag must sit over the photo and over the label's rising edge. */
+  &__badge {
+    z-index: 4;
+  }
+
+  /* ── the label ─────────────────────────────────────────────────────────── */
   &__body {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'meta'
+      'name'
+      'desc'
+      '.'
+      'price'
+      'cart';
+    /* the meta row is reserved even when a product has neither maker nor
+       score, so the names of the cards in a row sit on one baseline */
+    grid-template-rows: minmax(18px, auto) auto auto minmax(auto, 1fr) auto auto;
+    align-content: start;
+    align-items: start;
+    flex: 1 1 auto;
+    /* the plate rises into the print — the store card's own rule, at this
+       surface's scale */
+    margin-block-start: calc(-1 * var(--pc-lift, 26px));
+    border-start-start-radius: 16px;
+    border-start-end-radius: 16px;
+    /* the floor is the card's other corner — the root does not clip, so the
+       label rounds itself to the card's value (minus the hairline) */
+    border-end-start-radius: calc(var(--pc-corner, 22px) - 1px);
+    border-end-end-radius: calc(var(--pc-corner, 22px) - 1px);
+    box-shadow: 0 -12px 22px -16px color-mix(in srgb, var(--pc-ink, #2b2519) 55%, transparent);
+    border-block-start: 1px solid var(--pc-line, color-mix(in srgb, #2b2519 9%, transparent));
+    background: var(--bg-card, #fdfaf3);
+    padding: 11px var(--pc-inset, 12px) 12px;
+    text-align: start;
+  }
+
+  &__meta {
+    grid-area: meta;
     display: flex;
-    flex-direction: column;
-    flex: 1;
-    gap: 3px;
+    align-items: center;
+    gap: 4px;
     min-width: 0;
-    color: inherit;
-    text-decoration: none;
+    min-height: 13px;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+    color: var(--pc-ink, #2b2519);
+
+    /* the maker's mark is the same span the store card portals — same size,
+       same muted ink, same place at the rail's start */
+    .pc-brand {
+      margin: 0;
+      margin-inline-end: 2px;
+      max-width: 60%;
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--pc-muted, color-mix(in srgb, #2b2519 62%, transparent));
+    }
+  }
+
+  &__rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--pc-ink, #2b2519);
+
+    i {
+      font-size: 9.5px;
+      font-style: normal;
+      color: var(--pc-star, #c9a227);
+      transform: translateY(-0.5px);
+    }
+
+    &--empty {
+      font-weight: 400;
+      color: var(--pc-muted, color-mix(in srgb, #2b2519 62%, transparent));
+
+      i {
+        /* a shape, not a score of zero */
+        color: color-mix(in srgb, var(--pc-star, #c9a227) 38%, transparent);
+      }
+    }
   }
 
   &__name {
+    grid-area: name;
     margin: 0;
-    font-size: 12px;
-    font-weight: 800;
-    line-height: 1.3;
-    /* the tile's ink, inherited from the merchant's card settings — the same
-       value the store card's title takes */
+    /* the store card's 15.5/600/1.42 — Arabic needs the extra leading, and two
+       lines keep a long name from moving the price row */
+    font-size: 15.5px;
+    font-weight: 600;
+    line-height: 1.42;
+    letter-spacing: -0.005em;
     color: var(--pc-ink, #2b2519);
-    /* two lines, so a long name cannot make one card taller than its row */
+    overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    overflow: hidden;
+    overflow-wrap: anywhere;
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
   }
 
   &__desc {
-    margin: 0;
-    font-size: 10px;
-    line-height: 1.45;
-    color: var(--pc-muted, color-mix(in srgb, #2b2519 58%, transparent));
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    grid-area: desc;
+    margin: 4px 0 0;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--pc-muted, color-mix(in srgb, #2b2519 62%, transparent));
+    opacity: 1;
     overflow: hidden;
+    display: -webkit-box;
+    /* the merchant's own line count, not a hard-coded one */
+    -webkit-line-clamp: var(--pc-desc-lines, 1);
+    -webkit-box-orient: vertical;
   }
 
+  /* the price closes the label at its floor, at the inline START — the store
+     card's own position, so the two surfaces put the number in the same corner
+     and both terminate their reading column with it */
   &__price {
-    margin: 2px 0 0;
-    font-size: 13px;
-    font-weight: 800;
+    grid-area: price;
+    justify-self: start;
+    /* the three price shapes have different heights; ending them on the floor
+       is what keeps their FIGURES on one baseline across a row */
+    align-self: end;
+    min-width: 0;
+    margin-block-start: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 2px 7px;
+    text-align: start;
     color: var(--pc-ink, #2b2519);
   }
 
-  &__actions {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    margin-top: auto;
-    padding-top: 6px;
+  &__now {
+    font-size: 20px;
+    font-weight: 650;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
   }
 
-  /* the platform's add-to-cart, worn as the reference's compact black disc */
+  /* printed only when the API really sent a higher price */
+  &__was {
+    font-size: 11.5px;
+    font-weight: 500;
+    /* on the figure's baseline, so no extra leading — see `product-card.scss` */
+    line-height: 1;
+    color: var(--pc-muted, color-mix(in srgb, #2b2519 62%, transparent));
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, var(--pc-ink, #2b2519) 42%, transparent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── the action, on the print ──────────────────────────────────────────── */
+  /* `__actions` is a child of `__body` (the label), so `top: -44px` measures
+     from the label's top edge — which IS the print's bottom edge — and the disc
+     straddles the seam without any arithmetic on the photo's ratio. */
+  &__actions {
+    position: absolute;
+    /* half on the picture, half on the plate — the seam is the plate's top
+       edge, exactly as on the store card */
+    inset-block-start: -20px;
+    inset-inline-end: var(--pc-inset, 12px);
+    z-index: 3;
+    margin: 0;
+    /* the disc's footprint, so a shrink-to-fit box cannot grow toward the
+       label's start — the store card's identical rule, for the same reason */
+    width: 36px;
+  }
+
   &__add {
     display: block;
-    width: 28px;
-    height: 28px;
-    flex: none;
+    width: 36px;
+    height: 36px;
 
     salla-button {
       display: block;
@@ -1878,87 +2340,695 @@ html.dark .morph-spotlight--product .morph-menu-card::after {
     }
 
     .s-button-element {
-      display: grid;
-      place-items: center;
-      width: 28px;
-      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
       min-width: 0;
       padding: 0;
-      border: 0;
-      border-radius: 999px;
-      background: #14181f;
-      color: #fff;
-      box-shadow: 0 6px 10px -8px rgba(0, 0, 0, 0.7);
+      border: 1px solid color-mix(in srgb, var(--pc-ink, #2b2519) 14%, transparent);
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--pc-bg, #fdfaf3) 94%, transparent);
+      color: var(--pc-circle-ink, var(--pc-ink, #2b2519));
+      /* the store card's own disc shadow: the disc straddles the seam and lies
+         on the photograph, where a paper disc on a white packshot has no edge
+         of its own */
+      box-shadow: 0 2px 10px -3px rgb(0 0 0 / 30%);
+      transition: background 0.3s, color 0.3s, transform 0.3s;
 
-      &:hover {
-        background: #000;
-        color: #fff;
+      &::before {
+        content: '';
+        width: 16px;
+        height: 16px;
+        background: currentColor;
+        -webkit-mask: var(--pc-cart-icon) center / contain no-repeat;
+        mask: var(--pc-cart-icon) center / contain no-repeat;
+      }
+
+      @media (hover: hover) {
+        &:hover {
+          background: var(--pc-ink, #2b2519);
+          color: var(--pc-bg, #fdfaf3);
+        }
+      }
+
+      &:active {
+        transform: scale(0.94);
       }
     }
 
+    /* visually hidden, NOT removed: this is the button's accessible name */
     .s-button-text {
-      display: grid;
-      place-items: center;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
     }
   }
 
-  &__plus {
-    width: 13px;
-    height: 13px;
+  /* the heart sits on the print's top inline-END corner, as in the store card —
+     the same 30px disc, the same 8px inset, the same flat paper.
+     It is positioned on the WRAPPER, not on the button: `WishlistHeartButton`
+     puts the class on the inner `.s-button-element`, which is `position:
+     relative` — so an absolute `__fav` only nudged a button that was still in
+     normal flow AFTER the photo link, and `overflow: hidden` clipped it away.
+     Measured: the heart sat at the label's top edge, 8px below the print, and
+     the card showed no heart at all. */
+  &__media > .s-button-wrap {
+    position: absolute;
+    inset-block-start: 8px;
+    inset-inline-end: 8px;
+    z-index: 3;
+    margin: 0;
   }
 
-  /* the wishlist disc — light plate, outline heart, compact like the reference */
+  /* The button itself keeps `position: relative` — the 44px hit-area block
+     further down expands its `::after` from that box. Only the CORNER moved to
+     the wrapper. */
   &__fav {
-    display: grid;
-    place-items: center;
-    width: 28px !important;
-    height: 28px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
     min-width: 0;
+    margin: 0;
     padding: 0;
-    flex: none;
-    border: 0;
-    border-radius: 999px;
-    background: #f1f0ec;
-    color: #14181f;
+    border: 1px solid color-mix(in srgb, var(--pc-ink, #2b2519) 12%, transparent);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--pc-bg, #fdfaf3) 86%, transparent);
+    color: var(--pc-ink, #2b2519);
+    transition: background 0.3s, color 0.3s;
 
     i {
-      font-size: 13px;
+      font-size: 15px;
       line-height: 1;
     }
 
     &:hover {
-      background: #e8e6e0;
-      color: #14181f;
+      background: var(--pc-bg, #fdfaf3);
     }
 
     &.is-fav {
-      color: var(--danger-ink-on-soft);
-      background: var(--danger-soft);
+      color: var(--color-primary);
+
+      i {
+        color: inherit;
+      }
     }
   }
 }
 
-/* Night: the SAME three token overrides the store card makes, so the two cards
+/* The merchant's card switches, read from `.app-inner` — the SAME attributes
+   the store card reads, so toggling one changes both cards together. */
+[data-pc-shadow='soft'] .morph-menu-card {
+  box-shadow: var(--pc-shadow);
+}
+
+[data-pc-shadow='lift'] .morph-menu-card {
+  box-shadow:
+    0 2px 6px -4px color-mix(in srgb, var(--pc-ink, #2b2519) 40%, transparent),
+    0 26px 50px -30px color-mix(in srgb, var(--pc-ink, #2b2519) 60%, transparent);
+}
+
+[data-pc-desc='0'] .morph-menu-card__desc,
+[data-pc-rating='0'] .morph-menu-card__rating,
+[data-pc-rating-empty='0'] .morph-menu-card__rating--empty {
+  display: none;
+}
+
+[data-pc-rating-count='1'] .morph-menu-card__rating[data-count]::after {
+  content: '(' attr(data-count) ')';
+  margin-inline-start: 2px;
+  font-weight: 400;
+  color: var(--pc-muted, color-mix(in srgb, #2b2519 58%, transparent));
+}
+
+[data-pc-font='serif'] .morph-menu-card__name {
+  /* the store card's serif role, as a TOKEN — no family literal repeated here */
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* bar — a full-width action is a FOOTER, so it takes the label's last row
+   instead of the print's corner (the store card makes the same split) */
+[data-pc-cart='bar'] .morph-featured .morph-menu-card__actions,
+[data-pc-cart='bar'] .morph-spotlight--product .morph-menu-card__actions {
+  position: static;
+  inset: auto;
+  grid-area: cart;
+  margin-block-start: 10px;
+  width: 100%;
+}
+
+[data-pc-cart='bar'] .morph-featured .morph-menu-card__add,
+[data-pc-cart='bar'] .morph-spotlight--product .morph-menu-card__add {
+  width: 100%;
+}
+
+[data-pc-cart='bar'] .morph-menu-card__add .s-button-element {
+  width: 100%;
+  height: 40px;
+  padding-inline: 16px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-primary-reverse);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &::before {
+    display: none;
+  }
+}
+
+[data-pc-cart='bar'] .morph-menu-card__add .s-button-text {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+}
+
+/* ── component overrides («تخصيص كارت الميجا منيو») ──────────────────────
+   The curtain root can carry the SAME attributes `.app-inner` does, written by
+   `productCardOverrideAttrs()` for the properties the merchant overrode
+   locally. An attribute on a nearer ancestor does NOT beat a same-specificity
+   rule reading a farther one — cascade proximity is not selector specificity —
+   so each override gets its own rule scoped to `.morph-curtain[...]`, one class
+   up on the global form. A property left on «مثل المتجر» writes no attribute
+   here at all, and the global rules above apply untouched. */
+.morph-curtain[data-pc-shadow='soft'] .morph-menu-card {
+  box-shadow: var(--pc-shadow);
+}
+
+.morph-curtain[data-pc-shadow='lift'] .morph-menu-card {
+  box-shadow:
+    0 2px 6px -4px color-mix(in srgb, var(--pc-ink, #2b2519) 40%, transparent),
+    0 26px 50px -30px color-mix(in srgb, var(--pc-ink, #2b2519) 60%, transparent);
+}
+
+.morph-curtain[data-pc-shadow='none'] .morph-menu-card {
+  box-shadow: none;
+}
+
+.morph-curtain[data-pc-font='serif'] .morph-menu-card__name {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.morph-curtain[data-pc-font='main'] .morph-menu-card__name {
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+
+/* the cart styles, re-stated one class up so a local choice beats the store's
+   global one — the values are the card's own, copied from the circle/bar rules
+   above, never a second design */
+.morph-curtain[data-pc-cart='circle'] .morph-menu-card__add .s-button-element {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--pc-line, color-mix(in srgb, #2b2519 9%, transparent));
+  border-radius: 50%;
+  background: var(--pc-circle-bg, color-mix(in srgb, var(--pc-image-bg, #f4ebdc) 62%, #fff));
+  color: var(--pc-circle-ink, var(--pc-ink, #2b2519));
+  /* the store card's own disc shadow: a paper control on a white packshot needs
+     an edge of its own, or it disappears into the picture */
+  box-shadow: 0 2px 10px -3px rgb(0 0 0 / 30%);
+  /* the store card's own disc shadow: a paper control on a white packshot needs
+     an edge of its own, or it disappears into the picture */
+  box-shadow: 0 2px 10px -3px rgb(0 0 0 / 30%);
+
+  &::before {
+    display: block;
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      background: var(--pc-ink, #2b2519);
+      color: var(--pc-bg, #fdfaf3);
+    }
+  }
+}
+
+.morph-curtain[data-pc-cart='circle'] .morph-menu-card__add .s-button-text {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.morph-curtain[data-pc-cart='bar'] .morph-menu-card__add .s-button-element {
+  width: auto;
+  height: 40px;
+  padding-inline: 16px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-primary-reverse);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &::before {
+    display: none;
+  }
+}
+
+.morph-curtain[data-pc-cart='bar'] .morph-menu-card__add .s-button-text {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+}
+
+/* the phone sizes for a locally-chosen cart style, one class up like the rest —
+   a media query adds no specificity, so without these the scoped rules above
+   would keep the desktop sizes on a phone */
+@media (max-width: 767px) {
+  .morph-curtain[data-pc-cart='circle'] .morph-menu-card__add .s-button-element {
+    width: 36px;
+    height: 36px;
+  }
+
+  .morph-curtain[data-pc-cart='bar'] .morph-menu-card__add .s-button-element {
+    height: 36px;
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+}
+
+/* The store card shrinks its type and circle at the same breakpoint. */
+@media (max-width: 767px) {
+  .morph-menu-card {
+    /* NO tile inset and NO media radius, exactly as the store card: the print
+       reaches the card's edge at every width, and only the corner scales —
+       through the one value the print and the label both read */
+    --pc-corner: calc(var(--pc-radius, 22px) * 0.82);
+    border-radius: var(--pc-corner);
+  }
+
+  .morph-menu-card__media {
+    border-start-start-radius: calc(var(--pc-corner, 22px) - 1px);
+    border-start-end-radius: calc(var(--pc-corner, 22px) - 1px);
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .morph-menu-card__body {
+    padding: 9px var(--pc-pad, 10px) 10px;
+  }
+
+  .morph-menu-card__now {
+    font-size: 15px;
+  }
+
+  .morph-menu-card__name {
+    font-size: 13.5px;
+  }
+
+  .morph-menu-card__desc {
+    margin-top: 3px;
+    font-size: 11.5px;
+  }
+
+  .morph-menu-card__add .s-button-element {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* the store card's compact heart — a 30px disc is a quarter of a 107px
+     print, and it would sit on the product instead of on its corner */
+  .morph-menu-card__fav {
+    width: 22px;
+    height: 22px;
+
+    i {
+      font-size: 12px;
+    }
+  }
+
+  [data-pc-cart='bar'] .morph-menu-card__add .s-button-element {
+    height: 36px;
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+}
+
+/* Night: the SAME token overrides the store card makes, so the two cards
    cannot drift — the merchant's palette is a light palette, and the night
-   surfaces are the theme's. Everything below reads `--pc-*`, so there is no
+   surfaces are the theme's. Everything above reads `--pc-*`, so there is no
    second set of night rules to keep in sync. */
 html.dark .morph-featured .morph-menu-card,
 html.dark .morph-spotlight--product .morph-menu-card {
   --pc-bg: var(--surface-1);
-  --pc-image-bg: var(--surface-2);
+  /* the card's own background reads `--bg-card`, which is computed on
+     `.app-inner` — so the night surface has to be re-pointed HERE, on the card,
+     or the tile stays white with the night ink on top of it */
+  --bg-card: var(--surface-1);
+  /* the ROLE, not `--surface-2`: `global-settings.scss` already resolves the
+     night face per mode, exactly as `product-card.scss` does — and the exact
+     same expression, because a test compares the two token maps */
+  --pc-image-bg: var(--surface-media);
   --pc-ink: var(--ink-1);
   --pc-line: var(--line-1);
+  /* 60%, the store card's own figure — not a second guess at the same value */
   --pc-muted: color-mix(in srgb, var(--ink-1) 60%, transparent);
+  /* a dark pill, because the badge floats over the photo and a photo is light
+     far more often than not — the tint of `--ink-1` this used to be gave a
+     near-white pill with near-white ink and measured invisible on both cards.
+     `product.scss` still reads this pair for the horizontal and minimal
+     layouts, so it is declared in BOTH night blocks and the two must not
+     drift. */
+  --pc-badge-bg: var(--surface-3);
+  --pc-badge-ink: var(--ink-1);
+  --pc-circle-bg: color-mix(in srgb, var(--surface-1) 90%, transparent);
+  --pc-circle-ink: var(--ink-1);
   --pc-shadow: none;
+  /* the notch ring, re-pointed to the night card surface — the same line, the
+     same reason as `product-card.scss`, so the two surfaces cannot drift */
+  --pc-tag-ring-color: var(--bg-card);
+}
 
-  .morph-menu-card__add .s-button-element {
-    background: #eef1f5;
-    color: #14181f;
+/* The heart shares the photo with the badge, so night gives it the same solid
+   plate. A translucent tint of the night surface measured mid-grey over a white
+   product shot, with light ink on top of it — the weakest control on the card. */
+html.dark .morph-featured .morph-menu-card__fav,
+html.dark .morph-spotlight--product .morph-menu-card__fav {
+  background: var(--surface-3);
+}
+
+/* ══ LAYOUT B — `showcase` (opt-in, from the theme editor) ══════════════════
+   `header_mega_layout = showcase`. The merchant turns this on; nothing here
+   applies to a store that has not.
+
+   What it is, and why it exists as an OPTION rather than as the new default:
+   the panel becomes ONE surface with three columns — the categories as a
+   scannable rail, the products as wide cards in the middle, the merchant's
+   promo on the far edge — instead of three plates stacked inside one another.
+   Measured reason, not taste: in the classic layout the products — the thing a
+   shopper opened the menu for — were 210px cards in a 1350px row with ~500px
+   of empty panel beside them, and the 88px disc grid left ragged baselines
+   under 10px tracked-caps headings that break Arabic.
+
+   Every selector is prefixed with the header's own attribute, so this block
+   outranks the classic rules (specificity, and it comes later in the file) and
+   is inert without the setting. The DOM is untouched: `.morph-curtain__layers`
+   is `display: contents`, so its two children become the panel's own grid
+   items and the order (nav, slot, featured) is re-placed by area — no wrapper
+   is added, no node is moved. */
+.morph-header[data-morph-mega='showcase'] {
+  .morph-curtain__panel {
+    display: grid;
+    /* A phone gets ONE column: nav, then the products below it. The desktop
+       grid put a 190px rail beside a sliver of a products column and pushed
+       70px of card outside the panel. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'nav' 'products';
+    align-content: start;
+    gap: 18px;
+
+    @media (min-width: 768px) {
+      grid-template-columns: minmax(190px, 264px) minmax(0, 1fr);
+      grid-template-areas: 'nav products';
+      gap: 18px 24px;
+    }
+
+    @media (min-width: 1280px) {
+      grid-template-columns: minmax(210px, 272px) minmax(0, 1fr) minmax(0, 264px);
+      grid-template-areas: 'nav products slot';
+      gap: 20px 28px;
+    }
+
+    /* no merchant slot → the promo column does not exist and the products take
+       its width. The test is the slot's own rendered content (the same element
+       the column renders), so the grid and the column cannot disagree — and no
+       JS has to lift a boolean out of the child to keep them in step. */
+    &:not(:has(.morph-spotlight)) {
+      @media (min-width: 768px) {
+        grid-template-columns: minmax(190px, 264px) minmax(0, 1fr);
+      }
+
+      @media (min-width: 1280px) {
+        grid-template-columns: minmax(210px, 272px) minmax(0, 1fr);
+      }
+    }
   }
 
-  .morph-menu-card__fav {
-    background: rgba(255, 255, 255, 0.1);
-    color: #eef1f5;
+  /* the wrapper stops being a grid and becomes a pass-through */
+  .morph-curtain__layers {
+    display: contents;
+  }
+
+  .morph-layer {
+    /* a grid item, not a plate: the panel is the only surface in here */
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+
+    /* the category rail — the first column, separated by a hairline instead of
+       a second plate. A divider is structure; a nested box is decoration. */
+    &:not([data-morph-dyn='slot']) {
+      grid-area: nav;
+      padding-inline-end: 20px;
+      border-inline-end: 1px solid var(--line-1, var(--morph-hair-soft));
+
+      @media (max-width: 1279px) {
+        border-inline-end: 0;
+        padding-inline-end: 0;
+      }
+    }
+
+    /* the merchant's promo — the far edge, and only when it exists */
+    &[data-morph-dyn='slot'] {
+      grid-area: slot;
+      display: none;
+
+      @media (min-width: 1280px) {
+        display: flex;
+        padding-inline-start: 24px;
+        border-inline-start: 1px solid var(--line-1, var(--morph-hair-soft));
+      }
+
+      /* with no slot there is no column at all (the panel drops the track), so
+         the empty state has nothing to sit in and must not paint a stray line */
+      &:has(> .morph-layer__empty) {
+        display: none;
+      }
+    }
+
+    /* the categories as ONE column of rows: a 40px row list scans in one pass,
+       keeps every name on one baseline, and does not care how long a name is */
+    &__grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2px;
+      align-content: start;
+    }
+  }
+
+  /* ── the subcategory node as a ROW, not a disc with a caption ───────────── */
+  .morph-node--2 {
+    @apply flex items-center;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+    min-height: 38px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: none;
+    text-align: start;
+    overflow: visible;
+    color: var(--ink-1, var(--morph-fg));
+    transition: background-color 0.18s var(--morph-ease), color 0.18s var(--morph-ease);
+
+    /* the picture is a recognition chip beside the name, not the subject of
+       the row: 28px, the store's small-surface corner */
+    .morph-node__media {
+      flex: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .morph-node__disc {
+      width: 28px;
+      height: 28px;
+      aspect-ratio: 1;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px var(--line-1, var(--morph-hair-soft));
+      transform: none;
+      transition: none;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+
+      &::after {
+        display: none;
+      }
+    }
+
+    /* the disc's lift is the classic gesture; a chip in a row must not move —
+       the ROW answers the pointer instead */
+    &:hover .morph-node__disc,
+    &:focus-visible .morph-node__disc {
+      transform: none;
+      box-shadow: inset 0 0 0 1px var(--line-1, var(--morph-hair-soft));
+    }
+
+    &:hover .morph-node__img,
+    &:focus-visible .morph-node__img {
+      transform: none;
+    }
+
+    .morph-node__img {
+      display: block !important;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      position: relative;
+      z-index: 1;
+      opacity: 1 !important;
+    }
+
+    /* A category with no picture shows no chip — a gradient dot next to half
+       the names would read as a loading state. `:has()` sees the empty span
+       the component renders when `menuNodeImage` found nothing. */
+    &:not(:has(.morph-node__img img)) .morph-node__media {
+      display: none;
+    }
+
+    .morph-node__name {
+      flex: 1 1 auto;
+      min-width: 0;
+      max-width: 100%;
+      padding: 0;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+      color: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* the direction cue, drawn rather than fetched: a 6px chevron that mirrors
+       with the document direction and only appears on hover/focus/active */
+    &::after {
+      content: '';
+      flex: none;
+      width: 6px;
+      height: 6px;
+      border-block-start: 1.5px solid currentColor;
+      border-inline-end: 1.5px solid currentColor;
+      transform: rotate(45deg);
+      opacity: 0;
+      transition: opacity 0.18s var(--morph-ease), transform 0.18s var(--morph-ease);
+    }
+
+    html[dir='rtl'] &::after {
+      transform: rotate(-135deg);
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        background: color-mix(in srgb, var(--morph-ink) 7%, transparent);
+
+        &::after {
+          opacity: 0.5;
+        }
+      }
+    }
+
+    &:focus-visible {
+      background: color-mix(in srgb, var(--morph-ink) 7%, transparent);
+
+      &::after {
+        opacity: 0.5;
+      }
+    }
+
+    /* active = the subcategory whose products the middle column is showing. A
+       filled row, not a ring on a circle: the state has to survive at 13px. */
+    &.is-active {
+      background: color-mix(in srgb, var(--morph-ink) 9%, transparent);
+
+      .morph-node__name {
+        font-weight: 700;
+      }
+
+      &::after {
+        opacity: 0.7;
+      }
+    }
+  }
+
+  /* the promo slot fills its column instead of sitting as a 190px island */
+  .morph-spotlight {
+    max-width: none;
+    margin-inline: 0;
+  }
+
+  /* the products column: the widest area, and the only one with no plate of
+     its own — the panel is the surface, the cards are the content */
+  .morph-featured {
+    grid-area: products;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+
+    /* The card width is the COLUMN's, not a fixed 210px. A card takes a third
+       of the column (a quarter on a wide panel), grows to fill what is left,
+       and never exceeds 320px — three cards at 1440 read as a showcase, not as
+       thumbnails. */
+    .morph-featured__list > * {
+      flex: 1 0 clamp(190px, 29%, 320px);
+      max-width: 320px;
+    }
+
+    /* the loading ghosts wear the same footprint as the real cards, or the
+       row jumps when the products arrive */
+    .s-product-card-vertical {
+      max-width: none;
+    }
+  }
+
+  /* The card is the STORE card in both layouts — same rows, type, prices,
+     badge, heart and cart. Only its WIDTH changes here: a column-wide card
+     reads as a showcase, not as a row of thumbnails. The photo ratio now
+     inherits the store's `--pc-ar-num` like every other card property; the
+     4:3 this layout used to hard-code survives only as the fallback, which an
+     override (`mega_card_ratio`) replaces for this subtree alone. */
+  .morph-featured .morph-menu-card,
+  .morph-spotlight--product .morph-menu-card {
+    max-width: none;
+    justify-self: stretch;
+
+    &__media {
+      aspect-ratio: var(--pc-ar-num, 4 / 3);
+    }
   }
 }
 
@@ -1971,7 +3041,7 @@ html.dark .morph-spotlight--product .morph-menu-card {
   flex-direction: column;
   background: rgba(9, 9, 10, 0.975);
   color: #fff;
-  animation: morphFade 0.3s ease both;
+  animation: morphFade calc(300ms * var(--motion-scale)) ease both;
 
   /* React renders state as a class; `hidden` is the Twig parity signal */
   &[hidden],
@@ -2001,21 +3071,30 @@ html.dark .morph-spotlight--product .morph-menu-card {
     padding: 8px 16px;
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
+    /* Arabic first: no tracking, no uppercase — «إغلاق» tracked at .14em comes
+       apart into four disconnected letters. The Latin label keeps the caps. */
+    letter-spacing: 0;
     color: #fff;
     transition: background-color 0.25s ease, color 0.25s ease;
 
-    &:hover {
-      background: #fff;
-      color: #000;
+    @media (hover: hover) {
+      &:hover {
+        background: #fff;
+        color: #000;
+      }
     }
 
     .morph-ico {
       font-size: 13px;
     }
+  }
+
+  :lang(en) &__close {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
   /* masked rows: each row clips its own label which pushes up with a skew.
@@ -2029,6 +3108,10 @@ html.dark .morph-spotlight--product .morph-menu-card {
     align-items: stretch;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     overflow-y: auto;
+    /* the index is a scroll container inside a page that scrolls: without this
+       a flick at the end of the list hands the gesture to the page BEHIND the
+       fullscreen dialog, and the visitor scrolls the store blind */
+    overscroll-behavior: contain;
     @include morph-hide-scrollbar;
   }
 
@@ -2068,8 +3151,10 @@ html.dark .morph-spotlight--product .morph-menu-card {
   &__index {
     width: 28px;
     font-family: var(--font-mono);
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.35);
+    font-size: 11px;
+    /* .35 measured ~3.4:1 on the scrim — below the floor for text, and these
+       are the only thing separating 23 rows into a countable list */
+    color: rgba(255, 255, 255, 0.45);
   }
 
   &__label {
@@ -2077,7 +3162,9 @@ html.dark .morph-spotlight--product .morph-menu-card {
     font-size: var(--morph-screen-row);
     font-weight: 800;
     line-height: 1.06;
-    letter-spacing: -0.02em;
+    /* negative tracking is a Latin display trick; on a joined script it closes
+       the joins until letters touch. Arabic takes 0, Latin keeps the −.02em. */
+    letter-spacing: 0;
     color: rgba(255, 255, 255, 0.9);
     transition: color 0.3s ease, transform 0.3s ease;
   }
@@ -2140,17 +3227,25 @@ html.dark .morph-spotlight--product .morph-menu-card {
     gap: 12px;
     padding-block: 20px;
     font-size: 11px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.4);
+    /* Arabic again: no tracking, no uppercase. The Latin foot keeps the
+       tracked-caps line it was designed with. */
+    letter-spacing: 0;
+    color: rgba(255, 255, 255, 0.55);
 
     a {
       color: inherit;
 
-      &:hover {
-        color: #fff;
+      @media (hover: hover) {
+        &:hover {
+          color: #fff;
+        }
       }
     }
+  }
+
+  :lang(en) &__foot {
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
   }
 
   &__social {
@@ -2237,6 +3332,16 @@ html.dark .morph-spotlight--product .morph-menu-card {
        sits inside it. */
     opacity: 0;
     pointer-events: none;
+    /* Collapsed, the field is clipped to a 44px window while its child keeps
+       `min-width: 340px` (so the growth never reflows the input). The box
+       therefore still measures 340px — 193px of it off-canvas in RTL — and
+       `opacity: 0` does not remove it from the accessibility tree: measured
+       at 320–1024px, a screen reader met a search field that is not on the
+       screen. `visibility: hidden` takes the whole subtree out of the a11y
+       tree and out of hit-testing; the 400ms delay lets the collapse finish
+       before it disappears, and `.is-open` below cancels the delay so the
+       field is visible from the first frame of the growth. */
+    visibility: hidden;
     display: flex;
     align-items: center;
     background: transparent;
@@ -2247,22 +3352,25 @@ html.dark .morph-spotlight--product .morph-menu-card {
     > * {
       min-width: 340px;
     }
-    transition: width 0.4s var(--morph-spring), opacity 0.25s ease,
-      background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
-      box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: width calc(400ms * var(--motion-scale)) var(--morph-spring),
+      opacity calc(250ms * var(--motion-scale)) ease,
+      background-color calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-color calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow calc(300ms * var(--motion-scale)) cubic-bezier(0.2, 0.8, 0.2, 1),
+      visibility 0s linear calc(400ms * var(--motion-scale));
   }
 
   &.is-open &__field {
     width: 340px;
     opacity: 1;
     pointer-events: auto;
+    /* no delay on the way in — the field must paint from frame one */
+    visibility: visible;
+    transition-delay: 0s, 0s, 0s, 0s, 0s, 0s;
     color: var(--morph-chip-ink);
     background: var(--morph-chip-bg);
     border-color: var(--morph-chip-line);
     box-shadow: var(--morph-chip-shadow);
-    backdrop-filter: blur(12px) saturate(1.8);
-    -webkit-backdrop-filter: blur(12px) saturate(1.8);
 
     @media (max-width: 560px) {
       width: 170px;
@@ -2292,7 +3400,11 @@ html.dark .morph-spotlight--product .morph-menu-card {
     font-family: inherit;
 
     &::placeholder {
-      color: color-mix(in srgb, var(--morph-chip-glyph) 75%, transparent);
+      /* the placeholder IS the field's only visible label on screen, so it
+         takes the full muted ink instead of 75% of it: at 75% the hint sat at
+         ~2.4:1 on the chip surface, which is decoration, not a label. */
+      color: var(--morph-chip-glyph);
+      opacity: 1;
     }
 
     /* the pill's own disc-button is the cancel affordance; the native ✕
@@ -2313,23 +3425,22 @@ html.dark .morph-spotlight--product .morph-menu-card {
     min-width: 320px;
     max-height: 380px;
     overflow: auto;
+    /* same reason as the index: the results list is its own scroller, and a
+       wheel past its last result must stop there instead of scrolling the
+       store underneath an open panel */
+    overscroll-behavior: contain;
     z-index: 70;
     padding: 8px;
-    border-radius: 20px;
-    /* an OPAQUE surface: this panel is text-heavy and floats over the page,
-       the chips' translucent glass would fight the content underneath */
-    background: #ffffff;
-    color: var(--morph-fg);
-    border: 1px solid rgba(20, 20, 30, 0.08);
+    /* the store's card corner and the store's TOP surface. It used to be a
+       literal `#fff` with a hand-written `html.dark &` twin — two palettes to
+       keep in step, and neither of them the merchant's. `--surface-1` carries
+       its own night face in the bridge, so the panel flips with the page. */
+    border-radius: var(--morph-panel-radius);
+    background: var(--surface-1, #ffffff);
+    color: var(--ink-1, #0f172a);
+    border: 1px solid var(--line-1, rgba(20, 20, 30, 0.08));
     box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.12);
-    animation: morphFade 0.22s ease;
-
-    html.dark & {
-      background: #16181d;
-      color: #f2f3f5;
-      border-color: rgba(255, 255, 255, 0.09);
-      box-shadow: 0 24px 60px -18px rgba(0, 0, 0, 0.7);
-    }
+    animation: morphFade calc(220ms * var(--motion-scale)) ease;
   }
 
   &__note {
@@ -2351,7 +3462,7 @@ html.dark .morph-spotlight--product .morph-menu-card {
     @apply flex items-center;
     gap: 10px;
     padding: 7px 10px;
-    border-radius: 14px;
+    border-radius: var(--radius-md, 12px);
     color: var(--morph-fg);
     text-decoration: none;
     transition: background-color 0.2s ease;
@@ -2364,7 +3475,7 @@ html.dark .morph-spotlight--product .morph-menu-card {
   &__thumb {
     width: 40px;
     height: 40px;
-    border-radius: 10px;
+    border-radius: var(--radius-media, 10px);
     object-fit: cover;
     flex-shrink: 0;
     /* placeholder tint while a product ships without an image */
@@ -2464,34 +3575,60 @@ html.dark .morph-spotlight--product .morph-menu-card {
     background: var(--morph-chip-bg);
     border: 1px solid var(--morph-chip-line);
     box-shadow: var(--morph-chip-shadow);
-    backdrop-filter: blur(12px) saturate(1.8);
-    -webkit-backdrop-filter: blur(12px) saturate(1.8);
     border-radius: 999px;
     transition: background-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
       border-color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.8, 0.2, 1),
       box-shadow 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
 
-    &:hover {
-      /* the hover marks itself on the ICON, the surface stays put; the
+    /* both glyphs occupy the SAME cell, so the swap can cross-fade */
+    > .morph-ico {
+      grid-area: 1 / 1;
+      transition: opacity calc(260ms * var(--motion-scale)) var(--morph-ease),
+        transform calc(260ms * var(--motion-scale)) var(--morph-ease),
+        filter calc(260ms * var(--motion-scale)) var(--morph-ease);
+    }
+
+    @media (hover: hover) {
+      &:hover {
+        /* the hover marks itself on the ICON, the surface stays put; the
          dark html.dark rule keeps a bg veil there */
-      color: var(--morph-fg);
-      border-radius: 999px;
+        color: var(--morph-fg);
+      }
     }
   }
 
-
+  /* The open/close swap CROSS-FADES. It used to be `display: none` / `block`,
+     which is a one-frame pop — on a 20px glyph the eye reads that as a
+     flicker, and the guides' icon recipe is explicit: 300ms, scale 0.25 → 1,
+     blur 4px → 0, opacity 0 → 1. Both glyphs are always mounted, so nothing
+     re-mounts and nothing can go stale. */
   &__glyph--close {
-    display: none;
+    opacity: 0;
+    transform: scale(0.25);
+    filter: blur(4px);
   }
 
   &.is-open {
     .morph-search__glyph--open {
-      display: none;
+      opacity: 0;
+      transform: scale(0.25);
+      filter: blur(4px);
     }
 
     .morph-search__glyph--close {
-      display: block;
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(0);
     }
+  }
+
+  /* Open, the FIELD is the surface and the ✕ is a glyph inside it. Two discs
+     of different widths stacked on the same edge painted two hairlines and two
+     shadows 0px apart, which read as a seam inside one pill. */
+  &.is-open &__toggle {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
   }
 }
 
@@ -3053,27 +4190,29 @@ html.dark .morph-spotlight--product .morph-menu-card {
 /* ==========================================================================
    Dark-mode overrides for the MorphPill header
    --------------------------------------------------------------------------
-   The header does not read a Tailwind palette: its colours are hardcoded
-   `--morph-*` and three of them arrive INLINE from the settings, so a plain
-   rule loses to the `style` attribute and needs `!important`. The takeovers
-   (index + account) are already ink-dark in both themes, so they stay alone.
+   THE HEADER'S INK AND GLASS ARE NO LONGER OVERRIDDEN HERE.
+   `--morph-fg`, `--morph-glass-color` and `--morph-line` resolve from
+   `--ink-1` / `--surface-1` / `--line-1`, which the palette bridge already
+   flips per mode — so night mode needs no rule for them at all, and this block
+   no longer fights the merchant's inline override with `!important`. That
+   `!important` pair was a real bug, not a style choice: a merchant who picked
+   a header colour watched it die after sunset, and the "inherit" case never
+   inherited anything either.
+   What is left here is the header's own INK RAMP (`--morph-ink`, the hover
+   pill's fill) and the hero scrim's white ink — values with no store-wide
+   counterpart, because the pill is a solid object, not a surface level.
    ========================================================================== */
 html.dark .morph-header {
-  /* inline (from the header settings) — `!important` is the only way past the
-     `style` attribute on `<header>` */
-  --morph-fg: #e8eaf0 !important;
-  --morph-glass-color: #1a1f28 !important;
-  /* not inline, but part of the same contract */
-  --morph-line: rgba(255, 255, 255, 0.14);
-  --morph-ink: #f2f3f5;
-  --morph-on-ink: #14161b;
+  --morph-ink: var(--ink-1, #f2f3f5);
+  --morph-on-ink: var(--surface-3, #14161b);
 }
 
-/* The hero scrim keeps white text over the picture in BOTH themes, so it
-   out-specifies the rule above, which turns `--morph-fg` light-grey. */
+/* The hero scrim keeps white text over the picture in BOTH themes: at the top
+   of the home page the header sits on the merchant's image, not on the page,
+   so neither the store ink nor the header override is the right answer there. */
 @media (min-width: 1025px) {
   html.dark[data-morph-lift='1'] .morph-header:not(.is-scrolled) {
-    --morph-fg: #ffffff !important;
+    --morph-fg: #ffffff;
   }
 }
 
@@ -3095,20 +4234,9 @@ html.dark .morph-pill salla-user-menu .s-user-menu-trigger-slot:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
-html.dark .morph-nav__empty {
-  color: rgba(255, 255, 255, 0.5);
-}
-
 /* ── the curtain in dark mode ────────────────────────────────────────────── */
-html.dark .morph-nav__empty,
-html.dark .morph-layer__label,
-html.dark .morph-layer__empty,
-html.dark .morph-featured__head p,
-html.dark .morph-featured__head span,
-html.dark .morph-featured__empty,
-html.dark .morph-node__name {
-  color: rgba(255, 255, 255, 0.5);
-}
+/* the curtain's captions read `--ink-3` in both modes (see the rules above),
+   so they need no night copy here */
 
 /* the disc has no surface of its own now (the picture is the surface), so on
    the dark panel the hairline ring is what keeps an unlit photo from bleeding
@@ -3118,31 +4246,25 @@ html.dark .morph-node--2:not(:hover):not(.is-active) .morph-node__disc {
     0 8px 18px -14px rgba(0, 0, 0, 0.8);
 }
 
+/* The panel and its plates need no night rule any more: `--surface-1` and
+   `--surface-2` each carry their own night face in the palette bridge, so the
+   two literals that used to live here were a second palette to keep in step.
+   Only the panel's shadow stays mode-specific (a night panel casts deeper). */
 html.dark .morph-curtain__panel {
-  border-color: rgba(255, 255, 255, 0.14);
-  background: color-mix(in srgb, #14181f 92%, transparent);
   box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.75);
 }
 
-html.dark .morph-layer {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: color-mix(in srgb, #ffffff 5%, transparent);
-}
-
-html.dark .morph-featured {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: #191e26;
-}
-
 html.dark .morph-featured__nav {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: #20262f;
-  color: #eef1f5;
+  border-color: var(--line-1, rgba(255, 255, 255, 0.16));
+  /* the night face of the store's third surface, not a literal: a merchant who
+     recoloured their dark palette got two different blacks in one card */
+  background: var(--surface-3, #242b37);
+  color: var(--ink-1, #eef1f5);
 
   &:hover:not(:disabled) {
-    background: #eef1f5;
-    border-color: #eef1f5;
-    color: #14181f;
+    background: var(--ink-1, #eef1f5);
+    border-color: var(--ink-1, #eef1f5);
+    color: var(--surface-3, #242b37);
   }
 }
 
@@ -3154,23 +4276,27 @@ html.dark .morph-spotlight--product {
 
 html.dark .morph-featured .s-product-card-vertical {
   .s-product-card-entry {
-    background: #20262f;
-    border-color: rgba(255, 255, 255, 0.1);
+    /* the surface is NOT re-decided here any more: `--bg-card` already
+       resolves to the night `--surface-1` (the value the real card's night
+       rule writes into `--pc-bg`), and pinning `--surface-3` made the ghost a
+       lighter tile than the card it stands in for. */
+    border-color: var(--line-1, rgba(255, 255, 255, 0.1));
   }
 
   &:hover .s-product-card-entry {
-    border-color: rgba(255, 255, 255, 0.22);
+    border-color: var(--line-2, rgba(255, 255, 255, 0.22));
   }
 
   .s-product-card-content-title a {
-    color: #e9ebef;
+    color: var(--ink-1, #e9ebef);
   }
 
   /* The struck-through old price was authored as 35% black for the light card
-     (#fff). On this dark card (#20262f) that lands at roughly #0b0d10 on
-     #20262f — invisible. Keep the same visual weight with white ink. */
+     (#fff). On this dark card that lands at roughly #0b0d10 — invisible. The
+     same visual weight in the store's own ink, so a merchant who tints their
+     night ink still reads it. */
   .s-product-card-sale-price span {
-    color: rgba(255, 255, 255, 0.45);
+    color: color-mix(in srgb, var(--ink-1, #e9ebef) 45%, transparent);
   }
 }
 
@@ -3413,6 +4539,32 @@ html.dark .morph-featured .s-product-card-vertical {
        level is (0,1,1) and loses the tie whatever the source order */
     span.morph-loco-btn__currency {
       display: none;
+    }
+  }
+}
+
+/* ==========================================================================
+   the menu card's photo motion
+   ==========================================================================
+
+   What stays here is the reduced-motion answer only. The transition itself is
+   declared ONCE, in the card's composition block above, because the two
+   surfaces are one design, not a design and its compressed copy — and this
+   spot used to hold a second copy at a different speed (0.42s here against
+   0.9s there), which meant the number a reader found first was never the one
+   the browser used.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .morph-featured .morph-menu-card__media img,
+  .morph-spotlight--product .morph-menu-card__media img {
+    transition-duration: 1ms;
+  }
+
+  @media (hover: hover) {
+    .morph-featured .morph-menu-card:hover .morph-menu-card__media img,
+    .morph-spotlight--product .morph-menu-card:hover .morph-menu-card__media img {
+      transform: none;
     }
   }
 }

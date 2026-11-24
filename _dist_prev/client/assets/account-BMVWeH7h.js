@@ -1,0 +1,1 @@
+import{vr as e}from"./shared-home-CY2hce1J.js";import{c as t,s as n}from"./vendor-router-CQ_p757_.js";import{I as r}from"./hydrate-BKHI15OB.js";var i=e();function a(){let e=n().reduceRight((e,t)=>e??(t.loaderData?.page?t.loaderData.page:null),null);return(0,i.jsx)(r,{page:e,children:(0,i.jsx)(t,{})})}export{a as component};

@@ -37,6 +37,55 @@ function declarations(root: Root, selector: string): Record<string, string> {
   return decls;
 }
 
+/** Declarations from the unconditionally-applied rule only (no @media copy). */
+function baseDeclarations(root: Root, selector: string): Record<string, string> {
+  const decls: Record<string, string> = {};
+  root.walkRules((rule) => {
+    if (rule.parent?.type === 'atrule' || !rule.selectors.includes(selector)) return;
+    rule.walkDecls((decl) => {
+      decls[decl.prop] = decl.value;
+    });
+  });
+  return decls;
+}
+
+/** Declarations inside a named `@media` block (PostCSS keeps the at-rule as
+ *  a parent, so the media params are not part of `rule.selector`). */
+function mediaDeclarations(
+  root: Root,
+  params: string,
+  selector: string
+): Record<string, string> {
+  const decls: Record<string, string> = {};
+  root.walkAtRules('media', (atRule) => {
+    if (atRule.params !== params) return;
+    atRule.walkRules((rule) => {
+      if (rule.selectors.includes(selector)) {
+        rule.walkDecls((decl) => {
+          decls[decl.prop] = decl.value;
+        });
+      }
+    });
+  });
+  return decls;
+}
+
+/** The same, for the OPT-IN layout: only rules gated by `data-morph-mega`.
+ *  Exact selector match, so an unqualified classic rule can never answer a
+ *  showcase assertion (the two layouts must be verified independently). */
+function showcaseDeclarations(root: Root, selector: string): Record<string, string> {
+  const qualified = `.morph-header[data-morph-mega=showcase] ${selector}`;
+  const decls: Record<string, string> = {};
+  root.walkRules((rule) => {
+    if (rule.selectors.includes(qualified)) {
+      rule.walkDecls((decl) => {
+        decls[decl.prop] = decl.value;
+      });
+    }
+  });
+  return decls;
+}
+
 describe('morph-header.scss invariants (ported from the Twig theme)', () => {
   /* The single Sass + Tailwind compile takes ~0.9s alone and several seconds
      when the whole suite runs in parallel — and whichever `it` runs first pays
@@ -66,7 +115,10 @@ describe('morph-header.scss invariants (ported from the Twig theme)', () => {
     // `translate` is written per-frame by the component; sliding it would
     // fight the eased transform (old morph-header.js rule 25)
     expect(blob['transition']).not.toMatch(/(^|,)\s*translate[\s,]/);
-    expect(blob['transition']).toContain('transform 0.5s var(--morph-ease)');
+    /* the slide is still the house curve, now scaled by the store's motion
+       speed so `global_motion_speed = off` really stops it (measured: the
+       header's chrome kept its own seconds while every other surface obeyed) */
+    expect(blob['transition']).toContain('transform calc(500ms * var(--motion-scale)) var(--morph-ease)');
   });
 
   it('keeps the hero scrim gated on data-morph-lift, desktop only', async () => {
@@ -79,6 +131,66 @@ describe('morph-header.scss invariants (ported from the Twig theme)', () => {
     expect(scrim.background).toContain('linear-gradient');
   });
 
+  it('declares a visible focus ring (reset.scss kills the browser default)', async () => {
+    const root = await css();
+
+    /* MEASURED FAILURE: `02-generic/reset.scss` ships `a:focus { outline: none }`,
+       so every link in this header reported `outline-style: none` while focused.
+       The ring is the merchant's accent when there is one, else Salla's primary,
+       else the element's own ink — never a hardcoded hue. */
+    const ring = declarations(root, '.morph-header :is(a, button, [tabindex]):focus-visible');
+    expect(ring.outline).toContain('2px solid');
+    expect(ring.outline).toContain('var(--gs-accent');
+
+    /* the search field clips its own box, so its ring lives on the field */
+    const field = declarations(root, '.morph-search__field:focus-within');
+    expect(field.outline).toContain('2px solid');
+  });
+
+  it('swaps to the night logo without moving the row', async () => {
+    const root = await css();
+
+    /* MEASURED FAILURE: Salla ships one logo, and the demo store's navy wordmark
+       sat on the night bar (#131820) at ~1.8:1 — legible on paper, unreadable on
+       screen. A CSS filter would flatten a coloured brand, so the merchant may
+       upload a light variant; the swap must be display-only, or the logo box
+       would jump when the mode changes. */
+    expect(declarations(root, '.morph-brand__logo--night').display).toBe('none');
+    expect(
+      declarations(root, 'html.dark .morph-brand .morph-brand__logo--night').display
+    ).toBe('block');
+    /* the day logo is hidden ONLY when a night variant exists — `:has()` is what
+       keeps a store without the setting on its single logo */
+    expect(
+      declarations(
+        root,
+        'html.dark .morph-brand:has(.morph-brand__logo--night) .morph-brand__logo--day'
+      ).display
+    ).toBe('none');
+    expect(
+      declarations(root, 'html.dark .morph-brand .morph-brand__logo--day')
+    ).toEqual({});
+  });
+
+  it('takes the collapsed search field out of the accessibility tree', async () => {
+    const root = await css();
+
+    /* MEASURED FAILURE: at 320–1024px the closed field measured 340px wide with
+       193px of it off-canvas in RTL. `opacity: 0` hides it from the eye but not
+       from a screen reader, so assistive tech met a search field that is nowhere
+       on the screen. `visibility: hidden` removes the subtree from the a11y tree
+       and from hit-testing; the delay keeps the collapse animation visible. */
+    const closed = declarations(root, '.morph-search__field');
+    expect(closed.visibility).toBe('hidden');
+    expect(closed.transition).toContain('visibility 0s linear');
+
+    /* and the open face must cancel the delay, or the field would stay invisible
+       for the whole 400ms growth */
+    const open = declarations(root, '.morph-search.is-open .morph-search__field');
+    expect(open.visibility).toBe('visible');
+    expect(open['transition-delay']).toBe('0s, 0s, 0s, 0s, 0s, 0s');
+  });
+
   it('drops the pill blur while the account takeover is open', async () => {
     const root = await css();
 
@@ -89,13 +201,24 @@ describe('morph-header.scss invariants (ported from the Twig theme)', () => {
     expect(open['backdrop-filter']).toBe('none');
   });
 
-  it('the dark overrides keep the scrim text white on both sides', async () => {
+  it('night mode inherits the store ink instead of overriding the merchant', async () => {
     const root = await css();
 
+    /* The old contract forced `--morph-fg: #e8eaf0 !important` and
+       `--morph-glass-color: #1a1f28 !important` at night, which silently threw
+       away a merchant's header colours after sunset and made "inherit" a lie
+       in both modes. The ink and the glass now resolve from the palette bridge
+       (`--ink-1`, `--surface-1`), so this rule must NOT declare them. */
     const dark = declarations(root, 'html.dark .morph-header');
-    expect(dark['--morph-fg']).toBe('#e8eaf0');
-    expect(dark['--morph-glass-color']).toBe('#1a1f28');
+    expect(dark['--morph-fg']).toBeUndefined();
+    expect(dark['--morph-glass-color']).toBeUndefined();
 
+    const header = declarations(root, '.morph-header');
+    expect(header['--morph-fg']).toBe('var(--ink-1, #0f172a)');
+    expect(header['--morph-glass-color']).toBe('var(--surface-1, #ffffff)');
+
+    /* the hero scrim keeps white ink over the merchant's picture in BOTH modes
+       — there neither the store ink nor the header override is right */
     const scrim = declarations(
       root,
       'html.dark[data-morph-lift="1"] .morph-header:not(.is-scrolled)'
@@ -167,15 +290,23 @@ describe('the two header shapes (`header_shape`)', () => {
     const scrolled = declarations(root, `${wide}.is-scrolled .morph-pill`);
     // still the full-bleed max-width (not the capsule's 880px)…
     expect(scrolled['max-width']).toBe('1920px');
-    // …but the ends round off to half-circles, like the capsule's
-    expect(scrolled['border-radius']).toBe('999px');
+    /* The radius is the store's card corner, NOT `999px`. Measured at 1920px:
+       a two-row slab with a half-height radius becomes a stadium whose curved
+       ends eat the first and last nav item. The capsule keeps its 999px — that
+       is what a capsule is. */
+    expect(scrolled['border-radius']).toBe('var(--morph-panel-radius)');
     // the frost is the same promise as the capsule's
     expect(scrolled['background-color']).toContain('var(--morph-glass)');
     expect(scrolled['backdrop-filter']).toContain('blur(var(--morph-blur');
     // the gutter that makes it read as a slab rather than a full-bleed band
     expect(declarations(root, `${wide}.is-scrolled .morph-bar`)['padding-inline']).toBe('20px');
     // …and it keeps two tight rows by stepping the logo and the nav down
-    expect(declarations(root, `${wide}.is-scrolled .morph-brand img`)['max-height']).toBe('38px');
+    /* 32px, not 38px: the scrolled slab is meant to read as "the bar got out
+       of the way". Measured at the 1440 baseline it was 113.6px tall — a
+       21px compaction on a 134.8px bar, which is a state change nobody can
+       see. With the logo at 32 and the nav's hover pills giving back 2px, the
+       scrolled slab lands at ~84px, a 30% drop that is legible as a state. */
+    expect(declarations(root, `${wide}.is-scrolled .morph-brand img`)['max-height']).toBe('32px');
     expect(declarations(root, `${wide}.is-scrolled .morph-pill__nav`)['--morph-nav-size']).toBe('13px');
   });
 
@@ -184,8 +315,14 @@ describe('the two header shapes (`header_shape`)', () => {
 
     /* The discs are the capsule's own, so the spacing has to be the capsule's
        too: a 24px page gutter to the first disc, then its 16px chip gap. If
-       either drifts, the wide bar stops reading as the same design. */
-    expect(declarations(root, `${wide} .morph-pill`).padding).toBe('14px 24px 10px');
+       either drifts, the wide bar stops reading as the same design.
+       The 12/8 vertical pair replaced 14/10 for a measured reason: the bar's
+       own 10px gutter plus the pill's 14px top padding gave the logo row 24px
+       of air above it against 10px below the menu row, so the two rows sat in
+       the bar unevenly and the header measured 134.8px. 8px bar + 12px pill
+       on top and 8px under the menu row is one rhythm, and the header is
+       ~115px. The horizontal 24px is untouched — it is the page gutter. */
+    expect(declarations(root, `${wide} .morph-pill`).padding).toBe('12px 24px 8px');
     // the base `.morph-actions` gap is only a fallback — both clusters pin it
     // (and the phone breakpoint re-gaps the capsule at 8px, so the wide block
     // is the only place this 16px is stated for the desktop row)
@@ -314,22 +451,55 @@ describe('curtain mega menu invariants (ported from the Twig theme)', () => {
        the fold, so the whole mega menu had to scroll. */
     const column = declarations(root, '.morph-layer:not([data-morph-dyn=slot])');
     expect(column['height']).toBeUndefined();
-    expect(column['max-height']).toBe('min(420px, 70vh - 160px)');
+    /* 440/140 now: the rail is a 38px-row list, so it holds two more rows than
+       the 88px-disc grid did before the same cap bites. The cap's JOB is
+       unchanged — the column hugs its rows and only scrolls when the category
+       really has more children than the panel can show. */
+    expect(column['max-height']).toBe('min(440px, 70vh - 140px)');
     // the grid hugs its rows and only shrinks when the cap bites
     expect(
       declarations(root, '.morph-layer:not([data-morph-dyn=slot]) .morph-layer__grid')['flex']
     ).toBe('0 1 auto');
   });
 
-  it('the layer split is the merchant contract: two thirds subcategories, one third everything else', async () => {
+  it('the composition is a setting: classic stays the DEFAULT, showcase is opt-in', async () => {
     const root = await css();
 
-    // last-wins collect across base + min-width rules
-    expect(declarations(root, '.morph-curtain__layers')['grid-template-columns']).toBe('2fr 1fr');
-    // the discs grid keeps a cell floor that fits the 88px disc + its name
-    expect(declarations(root, '.morph-layer__grid')['grid-template-columns']).toBe(
-      'repeat(auto-fill, minmax(108px, 1fr))'
+    /* The store keeps the layout it shipped with. The three-column composition
+       is a SECOND option behind `header_mega_layout = showcase`, not a
+       replacement: a merchant who never opens the editor sees the same menu as
+       before. The base rules are therefore classic; every showcase rule below
+       is qualified by the header's own attribute. */
+    const classicLayers = declarations(root, '.morph-curtain__layers');
+    expect(classicLayers['display']).toBe('grid');
+    expect(classicLayers['grid-template-columns']).toBe('minmax(0, 2fr) minmax(0, 1fr)');
+    expect(classicLayers['gap']).toBe('22px');
+    expect(declarations(root, '.morph-layer')['background']).toContain('var(--surface-2');
+    expect(declarations(root, '.morph-layer')['border']).toContain('var(--line-1');
+    expect(declarations(root, '.morph-layer__grid')['grid-template-columns']).toContain(
+      'minmax(108px, 1fr)'
     );
+    // the product row is a THIRD plate, under the two columns
+    expect(declarations(root, '.morph-featured')['background']).toBe('var(--surface-2, #faf7f0)');
+    expect(declarations(root, '.morph-curtain__panel')['display']).toBeUndefined();
+
+    /* Opt-in: ONE surface, three columns — nav | products | slot. The wrapper
+       becomes `display: contents` so its two children are the panel's own grid
+       items and the AREAS place them in reading order without moving a node. */
+    expect(showcaseDeclarations(root, '.morph-curtain__layers')['display']).toBe('contents');
+    const panel = showcaseDeclarations(root, '.morph-curtain__panel');
+    expect(panel['display']).toBe('grid');
+    expect(panel['grid-template-areas']).toBe('"nav products slot"');
+    expect(
+      showcaseDeclarations(root, '.morph-layer:not([data-morph-dyn=slot])')['grid-area']
+    ).toBe('nav');
+    expect(showcaseDeclarations(root, '.morph-layer[data-morph-dyn=slot]')['grid-area']).toBe('slot');
+    expect(showcaseDeclarations(root, '.morph-featured')['grid-area']).toBe('products');
+    // the categories are a LIST of rows now, not a grid of discs
+    expect(showcaseDeclarations(root, '.morph-layer__grid')['grid-template-columns']).toBe(
+      'minmax(0, 1fr)'
+    );
+    expect(showcaseDeclarations(root, '.morph-featured')['background']).toBe('transparent');
   });
 
   it('the slot layer alone centres its content (attribute-scoped, label never moves)', async () => {
@@ -342,25 +512,42 @@ describe('curtain mega menu invariants (ported from the Twig theme)', () => {
     expect(centre['margin-block']).toBe('auto');
   });
 
-  it('subcategory nodes are ONE circle size holding the picture, name beneath', async () => {
+  it('subcategory nodes: classic keeps its 88px disc; showcase uses a 28px chip row', async () => {
     const root = await css();
 
-    // the merchant asked for a circle with the category picture inside and the
-    // name under it — same size for every node, no per-level ladder
-    const disc = declarations(root, '.morph-node--2 .morph-node__disc');
-    expect(disc['width']).toBe('88px');
-    expect(disc['height']).toBe('88px');
-    expect(disc['aspect-ratio']).toBe('1');
-    // the round clip lives on the shared __disc rule (sass flattens the parent)
-    expect(declarations(root, '.morph-node__disc')['border-radius']).toBe('999px');
-    // the name sits UNDER the disc: no tile foot padding, its own line box
-    const name = declarations(root, '.morph-node--2 .morph-node__name');
-    expect(name['font-size']).toBe('12px');
-    expect(name['padding']).toBe('0');
-    // hover = lift + ink ring + name ink, one gesture for the three
-    const hover = declarations(root, '.morph-node--2:hover .morph-node__disc');
-    expect(hover['transform']).toContain('scale(1.04)');
-    expect(hover['box-shadow']).toContain('var(--morph-ink)');
+    /* The DEFAULT is the merchant's disc grid — measured reasons for changing
+       it (ragged baselines, 10px tracked caps breaking Arabic) justify an
+       option, not a silent replacement of the layout they already have. */
+    const classicDisc = declarations(root, '.morph-node--2 .morph-node__disc');
+    expect(classicDisc['width']).toBe('88px');
+    expect(classicDisc['height']).toBe('88px');
+    expect(classicDisc['border-radius']).toBe('999px');
+    expect(declarations(root, '.morph-node--2 .morph-node__name')['font-size']).toBe('12px');
+
+    /* Opt-in: a row puts every name on one baseline, keeps the column scannable
+       and survives a long Arabic name (ellipsis, not a third line). */
+    const node = showcaseDeclarations(root, '.morph-node--2');
+    expect(node['flex-direction']).toBe('row');
+    expect(node['min-height']).toBe('38px');
+    const disc = showcaseDeclarations(root, '.morph-node--2 .morph-node__disc');
+    expect(disc['width']).toBe('28px');
+    expect(disc['height']).toBe('28px');
+    expect(disc['border-radius']).toBe('8px');
+    /* the name is the row's subject now: 13px at weight 500 (12px at 400 read
+       as a caption beside a picture that no longer exists) */
+    const name = showcaseDeclarations(root, '.morph-node--2 .morph-node__name');
+    expect(name['font-size']).toBe('13px');
+    expect(name['font-weight']).toBe('500');
+    expect(name['white-space']).toBe('nowrap');
+    // hover = one ink wash on the row; the chevron is what moves, not the row
+    const hover = showcaseDeclarations(root, '.morph-node--2:hover');
+    expect(hover['background']).toContain('var(--morph-ink)');
+    // the disc must NOT keep the classic lift when it becomes a chip
+    const hoveredDisc = declarations(root, '.morph-node--2:hover .morph-node__disc');
+    expect(hoveredDisc['transform']).toContain('scale(1.04)');
+    expect(
+      showcaseDeclarations(root, '.morph-node--2:hover .morph-node__disc')['transform']
+    ).toBe('none');
   });
 
   it('the featured row is a ONE-ROW reel — four tracks per view, no wrap', async () => {
@@ -381,11 +568,21 @@ describe('curtain mega menu invariants (ported from the Twig theme)', () => {
     expect(list['padding-block']).toBe('12px 14px');
     expect(list['margin-block']).toBe('-12px -14px');
 
-    // four tracks per view, capped so a wide panel cannot stretch them
-    const track = declarations(root, '.morph-featured .morph-featured__list > *');
-    expect(track['flex']).toBe('0 0 calc((100% - 48px) / 4)');
-    expect(track['max-width']).toBe('210px');
-    expect(track['scroll-snap-align']).toBe('start');
+    /* DEFAULT: four deterministic tracks — `(100% - 48px) / 4` is the row less
+       three 16px gaps — with the store's 300px card ceiling. The ceiling used
+       to be 210px, which on a 1080px panel left a ~190px sliver of the fifth
+       card hanging off the edge: that reads as a broken row, not as a peek. */
+    const classicTrack = baseDeclarations(root, '.morph-featured .morph-featured__list > *');
+    expect(classicTrack['flex']).toBe('0 0 calc((100% - 48px) / 4)');
+    expect(classicTrack['max-width']).toBe('300px');
+    expect(classicTrack['scroll-snap-align']).toBe('start');
+
+    /* Opt-in: the card is sized by the column instead, growing to fill what is
+       left and never exceeding 320px. The old 210px cap left ~500px of a
+       1350px row empty, with the smallest picture in the biggest frame. */
+    const track = showcaseDeclarations(root, '.morph-featured .morph-featured__list > *');
+    expect(track['flex']).toBe('1 0 clamp(190px, 29%, 320px)');
+    expect(track['max-width']).toBe('320px');
 
     // centring is the FIT state only: centred overflow puts the first card
     // out of reach (the flexbox trap), so the measured state decides
@@ -395,40 +592,221 @@ describe('curtain mega menu invariants (ported from the Twig theme)', () => {
       ]
     ).toBe('center');
 
-    // the card fills its track, so the row is actually 4×210 wide
-    expect(declarations(root, '.morph-featured .morph-menu-card')['max-width']).toBe('210px');
+    // each layout sizes the card from its OWN track
+    expect(declarations(root, '.morph-featured .morph-menu-card')['max-width']).toBe('300px');
+    expect(showcaseDeclarations(root, '.morph-featured .morph-menu-card')['max-width']).toBe('none');
+    // the loading ghost follows the card in both layouts, or the row jumps
+    expect(showcaseDeclarations(root, '.morph-featured .s-product-card-vertical')['max-width']).toBe(
+      'none'
+    );
   });
 
-  it("the card wears the STORE's tile and its square photo plate", async () => {
+  it('the reel reflows on a phone instead of shrinking cards into strips', async () => {
+    const root = await css();
+    /* The desktop four-up rhythm is the classic composition and stays. What
+       does not survive a 320px phone is four 46px cards: two per view on a
+       tablet, one on a phone, the rest still reachable by swiping. */
+    const tablet = mediaDeclarations(
+      root,
+      '(max-width: 767px)',
+      '.morph-featured .morph-featured__list > *'
+    );
+    expect(tablet['flex']).toBe('0 0 calc((100% - 16px) / 2)');
+    const phone = mediaDeclarations(
+      root,
+      '(max-width: 480px)',
+      '.morph-featured .morph-featured__list > *'
+    );
+    expect(phone['flex']).toBe('0 0 min(210px, 100%)');
+
+    /* Opt-in layout: a phone must not keep a 190px rail beside a 70px product
+       sliver — both areas stack and the reel scrolls inside its own column. */
+    let mobileAreas = '';
+    let mobileCols = '';
+    root.walkRules((rule) => {
+      if (
+        !rule.selectors.includes(
+          '.morph-header[data-morph-mega=showcase] .morph-curtain__panel'
+        ) ||
+        rule.parent?.type === 'atrule'
+      ) return;
+      rule.walkDecls((decl) => {
+        if (decl.prop === 'grid-template-areas') mobileAreas = decl.value;
+        if (decl.prop === 'grid-template-columns') mobileCols = decl.value;
+      });
+    });
+    expect(mobileAreas).toBe('"nav" "products"');
+    expect(mobileCols).toBe('minmax(0, 1fr)');
+  });
+
+  it('the card IS the store card: a print, then a label with the same rows', async () => {
     const root = await css();
 
-    /* The merchant's "المربع الأصفر عايزه زي المربع الأصفر اللي فكارت المنتج في
-       المتجر": the tile is `product-card.scss`'s, read from the SAME `--pc-*`
-       tokens, so retinting the store's card retints this one too. */
-    const tile = declarations(root, '.morph-featured .morph-menu-card');
-    // the CARD level of the background chain (store → section → card) — it
-    // resolves the merchant's card colour today, and a section that sets
-    // `--bg-card` reaches this card without a second rule
+    /* The menu card is not a lookalike of the store card — it is the same TWO
+       OBJECTS: a full-bleed print on the card's top edge (tag on its inline
+       edge, disc on its bottom inline corner) and a paper label under a
+       hairline with one column of rows. Every number below is
+       `product-card.scss`'s own. */
+    const tile = baseDeclarations(root, '.morph-featured .morph-menu-card');
     expect(tile['background']).toBe('var(--bg-card, #fdfaf3)');
-    expect(tile['border-radius']).toBe('var(--pc-radius, 22px)');
-    expect(tile['border']).toBe(
+    /* ONE corner value for the tile, its print and its label — the root stopped
+       clipping so the tag could hang over the card's top edge, so the two
+       children that own a corner paint it themselves */
+    expect(tile['--pc-corner']).toBe('var(--pc-radius, 22px)');
+    expect(tile['border-radius']).toBe('var(--pc-corner)');
+    /* No inset on the tile: the photograph is the card's top edge, exactly as
+       in the grid. `--pc-pad` moved inward to the label's own edges. */
+    expect(tile['padding']).toBe('0');
+    /* the tag straddles the card's TOP EDGE — a clipped card would saw it in
+       half, so nothing clips here any more */
+    expect(tile['overflow']).toBe('visible');
+    expect(tile['box-shadow']).toBe('none'); // the merchant's switch turns it on
+    expect(tile['transition']).toContain('0.5s cubic-bezier(0.2, 0.7, 0.2, 1)');
+    /* the tile is a flex COLUMN — print, then plate. The grid lives in the
+       plate, so the disc's offset measures from the plate's top edge. */
+    expect(tile['display']).toBe('flex');
+    expect(tile['flex-direction']).toBe('column');
+
+    /* THE LABEL: one column, meta first, price closing it. `cart` is the last
+       row and normally empty — the disc leaves the grid. */
+    const body = baseDeclarations(root, '.morph-featured .morph-menu-card__body');
+    expect(body['display']).toBe('grid');
+    expect(body['grid-template-rows']).toBe(
+      'minmax(18px, auto) auto auto minmax(auto, 1fr) auto auto'
+    );
+    expect(body['grid-template-areas']).toContain('"meta"');
+    expect(body['grid-template-areas']?.indexOf('meta')).toBeLessThan(
+      body['grid-template-areas']?.indexOf('name') ?? 0
+    );
+    expect(body['grid-template-areas']?.indexOf('price')).toBeGreaterThan(
+      body['grid-template-areas']?.indexOf('name') ?? 0
+    );
+    /* the seam, and the density inset the merchant's `global_density` moves */
+    expect(body['border-block-start']).toBe(
       '1px solid var(--pc-line, color-mix(in srgb, #2b2519 9%, transparent))'
     );
-    // the store's own numbers: 10px inset, and the plate clipped by the tile
-    expect(tile['padding']).toBe('10px');
-    expect(tile['overflow']).toBe('hidden');
-    expect(tile['transition']).toContain('0.5s cubic-bezier(0.2, 0.7, 0.2, 1)');
+    expect(body['padding']).toBe('11px var(--pc-inset, 12px) 12px');
+    /* and the plate rises into the print, exactly as on the store card — the
+       overlap, the two rounded top corners, the shadow that makes it an object
+       lying on a photograph */
+    expect(body['margin-block-start']).toBe('calc(-1 * var(--pc-lift, 26px))');
+    expect(body['border-start-start-radius']).toBe('16px');
+    expect(body['border-start-end-radius']).toBe('16px');
+    expect(body['box-shadow']).toContain('var(--pc-ink');
 
-    const plate = declarations(root, '.morph-featured .morph-menu-card__media');
-    // SQUARE, in the merchant's image colour, one radius step inside the tile
-    expect(plate['aspect-ratio']).toBe('1');
-    expect(plate['background']).toBe('var(--pc-image-bg, #f4ebdc)');
-    expect(plate['border-radius']).toBe('calc(var(--pc-radius, 22px) - 9px)');
-    // the circular breakout is gone — that was the one shape the store lacks,
-    // and what the featured row's 52px clipping band existed for
-    expect(plate['margin']).toBe('0 0 6px');
-    expect(plate['box-shadow']).toBeUndefined();
-    expect(plate['border']).toBeUndefined();
+    /* the reserved meta rail: the maker's mark and the score on ONE 10.5px
+       line, at the label's start — not spread to its two ends */
+    const meta = baseDeclarations(root, '.morph-featured .morph-menu-card__meta');
+    expect(meta['grid-area']).toBe('meta');
+    expect(meta['min-height']).toBe('13px');
+    expect(meta['font-size']).toBe('10.5px');
+
+    expect(baseDeclarations(root, '.morph-featured .morph-menu-card__name')['font-size']).toBe(
+      '15.5px'
+    );
+    expect(baseDeclarations(root, '.morph-featured .morph-menu-card__desc')['font-size']).toBe(
+      '12.5px'
+    );
+    expect(
+      baseDeclarations(root, '.morph-featured .morph-menu-card__desc')['-webkit-line-clamp']
+    ).toBe('var(--pc-desc-lines, 1)');
+    expect(baseDeclarations(root, '.morph-featured .morph-menu-card__now')['font-size']).toBe(
+      '20px'
+    );
+    expect(baseDeclarations(root, '.morph-featured .morph-menu-card__was')['font-size']).toBe(
+      '11.5px'
+    );
+    expect(baseDeclarations(root, '.morph-featured .morph-menu-card__was')['text-decoration']).toBe(
+      'line-through'
+    );
+
+    /* the disc straddles the seam — 20px up from the plate's top edge on a
+       36px disc, so half of it is on the picture and half on the plate */
+    const actions = baseDeclarations(root, '.morph-featured .morph-menu-card__actions');
+    expect(actions['position']).toBe('absolute');
+    expect(actions['inset-block-start']).toBe('-20px');
+    expect(actions['inset-inline-end']).toBe('var(--pc-inset, 12px)');
+    const add = baseDeclarations(
+      root,
+      '.morph-featured .morph-menu-card__add .s-button-element'
+    );
+    expect(add['width']).toBe('36px');
+    expect(add['border-radius']).toBe('50%');
+    const glyph = baseDeclarations(
+      root,
+      '.morph-featured .morph-menu-card__add .s-button-element::before'
+    );
+    expect(glyph['-webkit-mask']).toContain('var(--pc-cart-icon)');
+    const fav = baseDeclarations(root, '.morph-featured .morph-menu-card__fav');
+    /* the store card's 30px disc: one blurred 32px disc here was the last
+       `backdrop-filter` in a system that removed it from the grid for cost */
+    expect(fav['width']).toBe('30px');
+    /* and it is positioned on the WRAPPER: the class lands on the inner
+       `.s-button-element`, which the hit-area block keeps `position: relative`
+       — so an absolute rule there only nudged a button that was still in flow
+       AFTER the photo link, and `overflow: hidden` clipped it out of sight. */
+    const favWrap = baseDeclarations(root, '.morph-featured .morph-menu-card__media > .s-button-wrap');
+    expect(favWrap['position']).toBe('absolute');
+    expect(favWrap['inset-block-start']).toBe('8px');
+    expect(favWrap['inset-inline-end']).toBe('8px');
+    /* the corner is the wrapper's, so the button must NOT carry an absolute
+       position of its own — that is what broke it */
+    expect(fav['position']).not.toBe('absolute');
+
+    /* Only the card width is the layout's — the picture RATIO is a card
+       property now, inherited from the merchant's `product_card_img_ratio`
+       through `--pc-ar-num` (re-pointable per component by `mega_card_ratio`),
+       instead of the private square this plate used to hard-code. */
+    const classicPlate = baseDeclarations(root, '.morph-featured .morph-menu-card__media');
+    expect(classicPlate['aspect-ratio']).toBe('var(--pc-ar-num, 1)');
+    /* Full-bleed: the photo's corner IS the card's corner, and since the card
+       root stopped clipping (the tag straddles its top edge) the PRINT is what
+       paints that corner — the card's value minus its hairline, and nothing on
+       its floor. A second inner radius would draw a mat. */
+    expect(classicPlate['border-start-start-radius']).toBe('calc(var(--pc-corner, 22px) - 1px)');
+    expect(classicPlate['border-start-end-radius']).toBe('calc(var(--pc-corner, 22px) - 1px)');
+    expect(classicPlate['border-end-start-radius']).toBe('0');
+    expect(classicPlate['border-end-end-radius']).toBe('0');
+    expect(classicPlate['background']).toBe('var(--pc-image-bg, #f4ebdc)');
+    /* The photo's PRESENTATION is the store card's, read from the same two
+       variables. This plate used to hardcode `contain` while the grid painted
+       `cover`, so the same product wore two different crops — the largest
+       drift in the card system, and invisible to a test that only looked at
+       one surface. */
+    const plateImg = baseDeclarations(root, '.morph-featured .morph-menu-card__media img');
+    expect(plateImg['object-fit']).toBe('var(--pc-img-fit, cover)');
+    expect(plateImg['object-position']).toBe('var(--pc-img-pos, center)');
+    const showcasePlate = showcaseDeclarations(root, '.morph-featured .morph-menu-card__media');
+    /* the opt-in layout inherits the same variable; its old 4:3 survives only
+       as the fallback for a context that declares no ratio at all */
+    expect(showcasePlate['aspect-ratio']).toBe('var(--pc-ar-num, 4/3)');
+    expect(showcaseDeclarations(root, '.morph-featured .morph-menu-card')['max-width']).toBe('none');
+    // no second type scale in the opt-in layout — it is the store card too
+    expect(showcaseDeclarations(root, '.morph-featured .morph-menu-card__name')['font-size']).toBeUndefined();
+  });
+
+  it('the menu card obeys the SAME merchant switches as the store card', async () => {
+    const root = await css();
+    expect(
+      declarations(root, '[data-pc-shadow=soft] .morph-menu-card')['box-shadow']
+    ).toBe('var(--pc-shadow)');
+    expect(declarations(root, '[data-pc-desc="0"] .morph-menu-card__desc')['display']).toBe('none');
+    expect(declarations(root, '[data-pc-rating="0"] .morph-menu-card__rating')['display']).toBe('none');
+    expect(
+      declarations(root, '[data-pc-cart=bar] .morph-menu-card__add .s-button-element')[
+        'border-radius'
+      ]
+    ).toBe('999px');
+    const phone = mediaDeclarations(root, '(max-width: 767px)', '.morph-menu-card__name');
+    expect(phone['font-size']).toBe('13.5px');
+    /* the compact disc is 32px, one step under the full card's 36 — never
+       larger, which is what an earlier copy did */
+    const phoneAdd = mediaDeclarations(
+      root,
+      '(max-width: 767px)',
+      '.morph-menu-card__add .s-button-element'
+    );
+    expect(phoneAdd['width']).toBe('32px');
   });
 
   it('the reel arrows bracket the track — they never float over a card', async () => {
@@ -470,29 +848,58 @@ describe('curtain mega menu invariants (ported from the Twig theme)', () => {
     const card = declarations(root, '.morph-featured .s-product-card-vertical');
     // the loading ghosts wear the real card's footprint, or the row jumps
     // size when the products land
-    expect(card['max-width']).toBe('210px');
+    expect(card['max-width']).toBe('300px');
     expect(card['justify-self']).toBe('center');
 
     const image = declarations(root, '.morph-featured .s-product-card-vertical .s-product-card-image');
-    expect(image['aspect-ratio']).toBe('1/1');
-    expect(image['border-radius']).toBe('0');
+    /* A deterministic plate, but no longer a PRIVATE one: the height comes from
+       the merchant's `product_card_img_ratio` (`--pc-ar-num`), the corner from
+       the store's media role and the well from the card's image colour. A ghost
+       pinned to `1 / 1` and `0` re-dressed the panel the moment the products
+       arrived — the same drift the card system exists to prevent. */
+    expect(image['aspect-ratio']).toBe('var(--pc-ar-num, 1)');
+    expect(image['border-radius']).toBe(
+      'var(--radius-media, calc(var(--pc-radius, 22px) - 9px))'
+    );
+    expect(image['background']).toBe('var(--pc-image-bg, #f4ebdc)');
   });
 
   it('the dark curtain keeps its own surfaces', async () => {
     const root = await css();
 
+    /* The panel's night face is the store's, not a literal pair: the light
+       rule reads `--surface-1` / `--line-1`, both of which the palette bridge
+       re-points at night, so the dark rule carries the shadow and nothing
+       else (a second palette here is what drifted before). */
+    const light = declarations(root, '.morph-curtain__panel');
+    expect(light['background']).toContain('var(--surface-1');
+    expect(light['border']).toContain('var(--line-1');
+
     const panel = declarations(root, 'html.dark .morph-curtain__panel');
-    expect(panel['border-color']).toBe('rgba(255, 255, 255, 0.14)');
-    expect(panel['background']).toContain('#14181f');
+    expect(panel['background']).toBeUndefined();
+    expect(panel['box-shadow']).toBeTruthy();
 
-    const featured = declarations(root, 'html.dark .morph-featured');
-    expect(featured['background']).toBe('#191e26');
+    /* The DEFAULT featured row is the third plate, and it takes `--surface-2`
+       (day and night) — no dark literal of its own. In the opt-in showcase the
+       panel is the only surface and the products column has no plate at all. */
+    const featured = declarations(root, '.morph-featured');
+    expect(featured['background']).toBe('var(--surface-2, #faf7f0)');
+    expect(declarations(root, 'html.dark .morph-featured')['background']).toBeUndefined();
+    expect(showcaseDeclarations(root, '.morph-featured')['background']).toBe('transparent');
 
+    /* the platform card inside the featured plate is the last night literal in
+       this file: `#20262f` was a second dark palette that ignored the merchant's
+       own night surface. It no longer decides a surface AT ALL — the light rule
+       reads `--bg-card`, which resolves to the night `--surface-1` (exactly the
+       value the real card's night rule writes into `--pc-bg`). Pinning
+       `--surface-3` here made the loading ghost a lighter tile than the card it
+       stands in for, so the panel still re-dressed itself on load. */
     const entry = declarations(
       root,
       'html.dark .morph-featured .s-product-card-vertical .s-product-card-entry'
     );
-    expect(entry['background']).toBe('#20262f');
+    expect(entry['background']).toBeUndefined();
+    expect(entry['border-color']).toContain('var(--line-1');
   });
 });
 
@@ -514,7 +921,7 @@ describe('one-line nav fit invariants («المزيد» keeps links off the bran
     expect(nav['flex']).toContain('1 1 auto');
     expect(nav['min-width']).toBe('0');
     expect(nav['justify-content']).toBe('center');
-    expect(nav['gap']).toBe('2px');
+    expect(nav['gap']).toBe('var(--morph-nav-gap, 2px)');
   });
 });
 
@@ -621,7 +1028,9 @@ describe('phone screens + account takeover invariants', () => {
     expect(scope['--morph-plate-soft']).toContain('#efe9df');
     expect(scope['--morph-scrim']).toContain('rgba(22, 16, 9, 0.72)');
     expect(scope['--morph-lime']).toBe('#c6ff4a');
-    expect(scope['--morph-shine']).toBe('rgba(255, 224, 160, 0.35)');
+    /* the sheen token is gone with the 6s gradient sweep it fed — a
+       decorative glow on a card the visitor is meant to read */
+    expect(scope['--morph-shine']).toBeUndefined();
     // the header does NOT own a red: `danger` is a store-wide status role, so
     // restyling it once reaches the drawer, the account sheet and the header
     expect(scope['--morph-danger']).toBeUndefined();

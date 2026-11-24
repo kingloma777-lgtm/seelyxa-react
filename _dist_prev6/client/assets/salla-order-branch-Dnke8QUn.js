@@ -1,0 +1,1 @@
+import{i as e}from"./rolldown-runtime-COiEfhsA.js";import{Ji as t,Jn as n}from"./shared-home-DEIFcKkt.js";var r=e(t()),i=n({tagName:`salla-order-branch`,elementClass:class extends (typeof HTMLElement<`u`?HTMLElement:class{}){get stackCards(){return!0}},react:r.default,events:{},defineCustomElement:()=>{}});export{i as t};

@@ -1,0 +1,1 @@
+import{vr as e}from"./shared-home-CY2hce1J.js";import{t}from"./skeleton-5HTTML2C.js";import{N as n}from"./hydrate-BKHI15OB.js";var r=e();function i(){let e=n.useLoaderData();return(0,r.jsx)(t.Component,{...e})}export{i as component};

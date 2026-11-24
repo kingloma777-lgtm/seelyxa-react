@@ -1,0 +1,1 @@
+export{Vt as WidgetHead}from"./shared-home-DLOM6_CA.js";

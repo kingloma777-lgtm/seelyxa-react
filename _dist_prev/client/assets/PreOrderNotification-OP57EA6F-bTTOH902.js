@@ -1,0 +1,1 @@
+import{Wn as e,vr as t}from"./shared-home-CY2hce1J.js";var n=t();function r(){let{t}=e();return(0,n.jsx)(`salla-alert`,{className:`mb-5`,message:t(`pages.cart.pre_order_shipping`,`Your order will be shipped when the pre-order product becomes available in the store.`),variant:`info`})}export{r as PreOrderNotification};

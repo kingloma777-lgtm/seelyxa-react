@@ -1,0 +1,1 @@
+import{yr as e}from"./shared-home-BldjTPfC.js";import{l as t,u as n}from"./hydrate-DQinstiO.js";var r=e();function i(){let e=t.useLoaderData();return(0,r.jsx)(n.Component,{...e})}export{i as component};

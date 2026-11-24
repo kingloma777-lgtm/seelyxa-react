@@ -22,7 +22,11 @@
 }
 
 .selia-picks--grid {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  /* `auto-FIT`, not `auto-fill`: a section with four products on a 1440 page
+     was laying five tracks and leaving the empty fifth as a hole at the end of
+     the row (measured 284px of nothing). `auto-fit` collapses the empty track,
+     so the cards the merchant actually has fill the row and grow to it. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
 }
 
 /* The strip is plain overflow with snap points: touch, trackpad, wheel and
@@ -30,7 +34,10 @@
    page — `overflow-x: auto` only claims the axis it needs. */
 .selia-picks--slider {
   grid-auto-flow: column;
-  grid-auto-columns: minmax(200px, 1fr);
+  /* 220, not 200: the rail card is the same product card as the grid, and at
+     200 it read a size below it. The card now fills the track (it used to
+     shrink to its content inside it), so this number IS the card's width. */
+  grid-auto-columns: minmax(220px, 1fr);
   grid-template-columns: none;
   overflow-x: auto;
   scroll-snap-type: x mandatory;

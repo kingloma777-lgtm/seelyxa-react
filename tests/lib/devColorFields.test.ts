@@ -278,10 +278,13 @@ describe('the real manifest', () => {
       }
     }
 
-    // 53 = 52 before «إعدادات المتجر العامة» added `global_accent_color`. The
-    // number is pinned on purpose: a colour the panel cannot reach is a colour
-    // the merchant cannot change, so adding one must be a deliberate edit here.
-    expect(declared.size).toBe(53);
+    // 58 = 53 before «كارت المنتج في الميجا منيو» added the three card-colour
+    // OVERRIDES (`mega_card_bg` / `mega_card_image_bg` / `mega_card_ink`) and
+    // «إعدادات كارت المنتج» added the badge's own two faces
+    // (`product_card_badge_bg` / `product_card_badge_ink`). The number is pinned
+    // on purpose: a colour the panel cannot reach is a colour the merchant
+    // cannot change, so adding one must be a deliberate edit here.
+    expect(declared.size).toBe(58);
     expect([...rowless]).toEqual(['ticker_rows.background', 'ticker_rows.color']);
     for (const id of declared) expect(collected.has(id)).toBe(!rowless.has(id));
     for (const id of collected) expect(declared.has(id)).toBe(true);

@@ -1,0 +1,1 @@
+import{P as e}from"./hydrate-BKHI15OB.js";var t=e;export{t as component};

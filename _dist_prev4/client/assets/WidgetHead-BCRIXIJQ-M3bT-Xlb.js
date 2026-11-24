@@ -1,0 +1,1 @@
+export{Vt as WidgetHead}from"./shared-home-vpN2Sibc.js";

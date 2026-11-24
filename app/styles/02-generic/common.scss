@@ -32,6 +32,31 @@ body {
   background-color: var(--bg-store, #fff);
 }
 
+/* ── the page-content layer, and why the header can trust it ────────────────
+   `<main id="main-content">` is ONE painting island, and the header (sticky,
+   `z-index: 40`, `isolation: isolate`) is a layer above it. A block's internal
+   numbers are internal: `figurines` keeps a grain at z-50 and captions at
+   z-60, `stats-orbit` and every `selia-*` block isolate themselves. Before
+   this rule a block that forgot its own `isolation` promoted those layers
+   into the ROOT stacking context, where z-60 beats the header's z-40 — and
+   the mega menu, being a child of the header, lost to page text that printed
+   over the panel (measured 2026-11-24 with `elementFromPoint`).
+
+   `isolation` and NOT a `z-index` on `<main>`: it traps the block's layers
+   without inventing a level that the mobile bottom bar (220), the cart drawer
+   (260) and the modals (300) would then have to out-bid. It also cannot clip
+   or move anything — `isolation` changes paint order only: no containing
+   block for `position: fixed` descendants, no effect on sticky children, no
+   overflow behaviour.
+
+   Nothing legitimate paints above the header from inside `<main>`: every
+   fixed overlay in this theme and in the engine (cart drawer, bottom sheets,
+   login / offer / mini-checkout modals, dev tools) is mounted outside it —
+   audited on home, category, product, offers and cart with 0 found. */
+#main-content {
+  isolation: isolate;
+}
+
 body {
   [type='text'],
   [type='email'],

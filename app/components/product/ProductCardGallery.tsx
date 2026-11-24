@@ -15,8 +15,13 @@ import type { ProductImage } from '@salla.sa/twilight-theme-engine/types';
  *   picture clickable — a sibling track would leave a dead rectangle where the
  *   product photo is. The engine's own `<img>` is hidden (not removed) so the
  *   same photo is not decoded and announced twice.
- * - the **dots** go into `.s-product-card-content`, which the stylesheet lays
- *   out as a grid with a `dots` row above the name.
+ * - the **dots** go into the card's image plate, on top of the photo's bottom
+ *   edge. They used to own a row in the content grid, which cost 11px of every
+ *   card and pushed the name below the picture's own edge. They cannot go
+ *   inside the track's anchor: buttons nested in a link are invalid, and the
+ *   anchor swallows the drag. The plate is a plain `<div>`, so they are safe
+ *   there. `content` stays as the fallback host for any other card that has no
+ *   plate of its own.
  *
  * Swipe is native: `overflow-x: auto` + `scroll-snap-type: x mandatory` gives
  * touch dragging, momentum and snapping without a line of JavaScript. The only
@@ -29,16 +34,28 @@ export interface ProductCardGalleryProps {
   name: string;
   /** The engine's image anchor — becomes the track's host. */
   anchor: HTMLElement;
-  /** The engine's content column — becomes the dots' host. */
+  /** The engine's content column — the dots' fallback host. */
   content: HTMLElement | null;
+  /** The card's image plate — the dots' preferred host, over the photo. */
+  dotsHost?: HTMLElement | null;
 }
 
-export function ProductCardGallery({ images, name, anchor, content }: ProductCardGalleryProps) {
+export function ProductCardGallery({
+  images,
+  name,
+  anchor,
+  content,
+  dotsHost,
+}: ProductCardGalleryProps) {
   const { t } = useTranslation();
   const trackRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const count = images.length;
+  /* The dots live on the photo now; `content` is only the fallback for a card
+     that has no plate host to portal into. Resolved once, so the portal call
+     receives a non-null target (TypeScript cannot narrow `a ?? b` twice). */
+  const dotsTarget = dotsHost ?? content;
 
   /* The engine's single picture sits under the track; hide it so the browser
      does not decode two copies and a screen reader does not announce the same
@@ -157,7 +174,7 @@ export function ProductCardGallery({ images, name, anchor, content }: ProductCar
       )}
 
       {count > 1 &&
-        content &&
+        dotsTarget &&
         createPortal(
           <div className="pc-dots" role="group" aria-label={name} ref={dotsRef} onKeyDown={onKeyDown}>
             {images.map((image, position) => (
@@ -172,7 +189,7 @@ export function ProductCardGallery({ images, name, anchor, content }: ProductCar
               />
             ))}
           </div>,
-          content
+          dotsTarget
         )}
     </>
   );

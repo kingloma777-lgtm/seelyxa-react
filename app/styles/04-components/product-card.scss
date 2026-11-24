@@ -1,50 +1,99 @@
 /* ==========================================================================
-   Product card — the store-wide design.
+   Product card — "The Print and Its Label"
+   ==========================================================================
 
-   The card is the engine's `product:card` slot, so this file styles the
-   engine's own markup (`.s-product-card-vertical`) and adds nothing to it
-   except what `ProductCard.tsx` feeds: the short line as the engine's own
-   subtitle, and the review count as `data-count` on the rating row.
+   The card is two objects, not five stacked rows:
 
-   Two sources of truth, on purpose:
+     · a PRINT — the photograph, edge to edge, with the card's own corner and a
+       single hairline where it ends. Nothing frames it, so the product is the
+       largest thing in the grid and a white packshot has an edge to sit on.
+     · a LABEL — one paper block under the print, with its own inner margin and
+       a fixed reading order: the maker's mark and the score, the name, the
+       short line, then the price closing the card at its floor.
 
-   - **Colour, radius, type and the cart shape** come from the merchant's
-     settings as custom properties on `.app-inner` (`ThemeLayout` writes them
-     inline, so they are in the server-rendered HTML). Every default lives
-     here, on `.app-inner` — never on the card, because a variable declared on
-     the card would shadow the one it inherits and the merchant's choice would
-     stop arriving.
-   - **Which elements exist** comes from `data-pc-*` attributes on the same
-     element. They only hide nodes the engine renders, so toggling a switch
-     never re-renders a list.
+   Three moves carry the identity, and each one is a decision rather than a
+   restyle:
 
-   Layout: the engine nests title/subtitle in `-content-main`, price/rating in
-   `-content-sub`, and the add button in `-content-footer` — three wrappers that
-   make "price on one side, cart on the other" impossible with normal flow. So
-   the three wrappers become `display: contents` and their children are placed
-   on one grid, which is also what keeps every card's rows aligned across a
+   1. **The tag is notched into the frame.** The promotion / availability label
+      is clamped over the print's top edge — nine pixels on the page, sixteen on
+      the photograph — and a 3px ring of the card's own paper cuts it into the
+      card's outline, so it reads as a tab printed on the frame rather than a
+      pill dropped on top of a photo. Same treatment for a discount, a
+      promotion and «نفدت الكمية»: one tag, three states.
+
+   2. **The action closes the label's floor.** The add-to-cart disc ends the
+      label at its inline end, on the figure's own baseline — the composition
+      the card shipped with. It is the card's last element, not a control
+      floating on the photograph: the print stays the product's, and the floor
+      reads as one line — what it costs, then what to do about it.
+
+   3. **The meta is a rail, not a row.** Maker and score share one 10.5px line
+      above the name — maker at the start, score at the end, and whichever of
+      the two is missing closes the gap instead of leaving a hole. A product
+      with no rating prints no "no ratings" row: the row simply is not there.
+
+   Everything still reads the merchant's `--pc-*` channel written inline on
+   `.app-inner` by `ThemeLayout`: no new token, no literal colour, no second
+   design system. The switches arrive as `data-pc-*` attributes on the same
+   element, so toggling one never re-renders a list.
+
+   Layout note: the engine nests title/subtitle in `-content-main`, price and
+   rating in `-content-sub`, the add button in `-content-footer`. The three
+   wrappers become `display: contents` and their children are placed on ONE
+   grid, which is also what keeps every card's price on the same floor across a
    row of cards regardless of how long the name is.
    ========================================================================== */
 
 .app-inner {
-  /* reference palette — the panel a cut-out product sits on, and the pill that
-     floats on it. `--pc-*` base values are overwritten by the settings. */
+  /* reference palette — the paper the label is printed on, and the well the
+     product sits in. `--pc-*` base values are overwritten by the settings. */
   --pc-radius: 22px;
   --pc-bg: #fdfaf3;
   --pc-image-bg: #f4ebdc;
   --pc-ink: #2b2519;
-  --pc-desc-lines: 2;
+  --pc-desc-lines: 1;
+
+  /* IMAGE PRESENTATION — one declaration per property, read by every card
+     surface (this file and the mega menu's card in `morph-header.scss`).
+     They live here rather than in each stylesheet because the whole point of
+     the system is that the store card and the menu card cannot answer "how
+     does the photo fill its plate" differently: the grid used `cover` and the
+     menu hardcoded `contain`, so the same dress was cropped in one place and
+     letterboxed in the other. `ThemeLayout` overwrites all four inline. */
+  --pc-img-fit: cover;
+  --pc-img-pos: center;
+  --pc-hover-lift: -4px;
+  --pc-img-zoom: 1.045;
+
+  /* LABEL SPACING — derived from the store's density role instead of a literal,
+     so `global_density` reaches the largest surface on the page. It used to
+     move every `--space-*` in the theme except the card's own inset. */
+  --pc-pad: calc(10px * var(--density, 1));
 
   /* derived — declared here, not on the card, so they resolve against the
      merchant's values rather than a copy of the defaults */
-  --pc-muted: color-mix(in srgb, var(--pc-ink) 58%, transparent);
+  --pc-muted: color-mix(in srgb, var(--pc-ink) 62%, transparent);
   --pc-line: color-mix(in srgb, var(--pc-ink) 9%, transparent);
-  --pc-badge-bg: color-mix(in srgb, var(--pc-image-bg) 86%, #000 5%);
-  --pc-badge-ink: color-mix(in srgb, var(--pc-ink) 82%, #6a5a42);
   --pc-star: #c9a227;
   --pc-circle-bg: color-mix(in srgb, var(--pc-image-bg) 62%, #fff);
   --pc-circle-ink: var(--pc-ink);
   --pc-shadow: 0 22px 44px -34px color-mix(in srgb, var(--pc-ink) 70%, transparent);
+  /* the label's inset, one step up from the store's density inset: the meta
+     rail and the name need more air than a 10px grid gutter */
+  --pc-inset: calc(var(--pc-pad, 10px) + 2px);
+
+  /* THE TAG'S SHARED FACE — roles, not colours: a palette change reaches the
+     badge with everything else on the card. The three tones and the merchant's
+     custom pair re-point these two. */
+  --pc-tag-bg: var(--pc-ink);
+  --pc-tag-ink: var(--pc-bg);
+
+  /* THE RING THAT CUTS THE TAG INTO THE CARD. White in daylight — the paper
+     the card is printed on — so the notch reads as a notch and not as a dark
+     label sitting on a dark frame. Night re-points it to the night card
+     surface (`html.dark .app-inner` below): a white ring on a night card is a
+     glow, not a cut. */
+  --pc-tag-ring-color: #fff;
 
   /* The CARD level of the background chain (store → section → card, see
      `01-settings/tokens.scss`). It is declared HERE, not on `:root`, because
@@ -56,25 +105,63 @@
      A section that wants its cards to pop sets `--bg-card` on its own
      selector; everything inside it follows without knowing the store. */
   --bg-card: var(--pc-bg);
+
+  /* the add-to-cart glyph, as a mask so it inherits `currentColor` in every
+     cart style */
+  --pc-cart-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.55L20.5 8H6'/%3E%3Ccircle cx='10' cy='19.5' r='1.4'/%3E%3Ccircle cx='17.5' cy='19.5' r='1.4'/%3E%3C/svg%3E");
 }
 
-/* ---------- the tile ---------- */
+/* ---------- the card ---------- */
 
 .s-product-card-vertical {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  /* HOW FAR THE PLATE RISES INTO THE PICTURE. One number, three readers: the
+     plate's negative margin, the gallery dots (which must clear the plate's
+     edge or the plate buries them), and anything else that has to know where
+     the seam is. The compact block overrides it once, at 22px. */
+  --pc-lift: 32px;
+  /* THE CARD'S CORNER, as one value. The root paints it, and the two children
+     that own a corner (the print's top edge, the label's floor) clip
+     themselves to it — because the root no longer clips anything. */
+  --pc-corner: var(--pc-radius);
+  /* HOW MUCH OF THE TOP EDGE THE ACTION RAIL OWNS. The tag's max-width rules
+     subtract this, so a long promotion title can never run under the four
+     discs in the card's inline-end corner. 30px disc + its 8px inset; the
+     compact block re-declares it for the 2×2 cluster (`product-actions.scss`).
+     It is one number because the rail and the tag are the two things
+     competing for that edge. */
+  --pc-actions-w: 38px;
+  /* A DEFINITE width, and not for the grid: the card is `container-type:
+     inline-size` (see the compact block), which applies inline-size
+     containment — the card's own inline size is then computed without looking
+     at its contents. In a grid track that is harmless (the track decides), but
+     in a flex track — a home-block rail, `.selia-picks__item` — `width: auto`
+     plus containment collapsed the card to its padding (measured 22px inside a
+     150px track). `100%` gives containment a box to fill in both layouts. */
+  width: 100%;
+  min-width: 0;
+  /* the PRINT is the card's top edge, so the card carries no inset of its own:
+     a padding here would put a mat around the photograph. The density role
+     moves to the label below, where the type is. */
+  padding: 0;
   background: var(--pc-bg);
   border: 1px solid var(--pc-line);
-  border-radius: var(--pc-radius);
+  border-radius: var(--pc-corner);
   color: var(--pc-ink);
-  /* the panel's corners are the tile's, minus its own padding */
-  overflow: hidden;
+  /* THE CARD NO LONGER CLIPS. The tag is clamped over the card's TOP EDGE —
+     half of it on the page, half on the photograph, with a ring of the card's
+     own paper cutting it in — and a clipped card would saw it in half. Nothing
+     is lost: the two surfaces that own a corner clip themselves (the print
+     carries the card's top radius, the label its floor), which is also what
+     keeps the photograph's hover zoom inside its plate. */
+  overflow: visible;
+  container-type: inline-size;
   transition:
-    transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
-    box-shadow 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
-    border-color 0.5s;
+    box-shadow 0.52s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.52s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.26s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 [data-pc-shadow='soft'] .s-product-card-vertical {
@@ -93,53 +180,322 @@
 
 @media (hover: hover) {
   .s-product-card-vertical:hover {
-    transform: translateY(-4px);
+    transform: translateY(var(--pc-hover-lift, -4px));
     border-color: color-mix(in srgb, var(--pc-ink) 16%, transparent);
   }
 }
 
-/* ---------- image panel ---------- */
+/* ---------- the print ---------- */
 
 .s-product-card-vertical .s-product-card-image {
   position: relative;
   flex: 0 0 auto;
-  /* The merchant's media radius when they chose one; otherwise the card's own
-     inner corner, which is what this panel has always painted. Reading the
-     role here — rather than giving it a shipped default in `tokens.scss` — is
-     what keeps `product_card_radius` and `global_media_radius` from fighting:
-     unset, the card setting still drives the image, exactly as before. */
-  border-radius: var(--radius-media, calc(var(--pc-radius) - 9px));
+  margin: 0;
+  /* flush with the card: the silhouette comes from the card's own corner, so
+     the photograph and the paper share it. `--radius-media` is satisfied by the
+     card's radius here — a merchant who rounds their media gets a rounded card,
+     not a rounded photo inside a square one.
+     The TOP corners are the print's job now: the card root stopped clipping so
+     the tag could hang over its edge, and the print is the only child at the
+     card's top edge. Minus the card's 1px hairline, so the photo sits inside
+     the border instead of over it. */
+  border-start-start-radius: calc(var(--pc-corner) - 1px);
+  border-start-end-radius: calc(var(--pc-corner) - 1px);
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
   background: var(--pc-image-bg);
   overflow: hidden;
 }
 
 .s-product-card-vertical .s-product-card-image img {
-  transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  /* THE image-presentation decision, read from the card settings — never a
+     literal here, or the grid and the menu drift apart again. */
+  object-fit: var(--pc-img-fit, cover);
+  object-position: var(--pc-img-pos, center);
+  transition: transform 0.52s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 @media (hover: hover) {
   .s-product-card-vertical:hover .s-product-card-image img {
-    transform: scale(1.045);
+    transform: scale(var(--pc-img-zoom, 1.045));
   }
 }
 
-/* badge — the merchant's promotion title / pre-order label. The pill's skin is
-   in `product.scss` (shared with the horizontal card); here it only moves to
-   the panel's corner, inside the tile's padding. */
-[data-pc-badge='0'] .s-product-card-promotion-title {
+/* a product with no photograph is still a product: the well keeps the print's
+   shape and the name's first letter is set in it as a watermark, so the card
+   is a deliberate plate instead of a blank white rectangle. */
+.pc-monogram {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display, var(--font-main));
+  font-size: 30cqw;
+  font-weight: 500;
+  line-height: 1;
+  color: color-mix(in srgb, var(--pc-ink) 16%, transparent);
+  user-select: none;
+  pointer-events: none;
+}
+
+.s-product-card-image:has(.pc-monogram) img {
+  /* the engine still renders an <img> with an empty / broken src */
+  opacity: 0;
+}
+
+/* ---------- the tag ---------- */
+
+/* THE BADGE IS A SYSTEM, NOT A SHAPE.
+
+   The tag is the one part of the card that is about the STATE rather than the
+   product, so it is the one part a store art-directs. It is built here as four
+   independent decisions, each with its own merchant setting, and every
+   combination is legal:
+
+     · PLACEMENT — the RELATIONSHIP to the card, which is what makes a tag look
+       integrated instead of dropped on a photograph:
+         `edge`     clamped over the card's top edge — 9px on the page, 16px on
+                    the picture, cut in by a 3px white ring so the card's own
+                    outline stops at the tag and resumes after it;
+         `frame`    inside the card's top corner, flush with the frame and
+                    wearing the card's own corner, so it is part of the
+                    silhouette;
+         `attached` hanging off the card's inline edge, square where it meets
+                    it, so the card's edge is what shapes it;
+         `free`     an independent tag inside the picture, with its own shadow.
+     · SILHOUETTE — `sharp` / `soft` / `pill` / `ticket`. Shapes, not colours.
+     · FACE — one shared surface (`ink` / `paper` / `soft` / custom colours)
+       plus a per-type TONE, so availability can stay quieter than a discount.
+     · TYPE & DETAIL — size, weight, padding, border, and one optional
+       decoration (a dot, or a keyline inside the tag).
+
+   WHY THE TAG LIVES ON THE CARD ROOT
+   The print clips — it owns the photo's corner and the hover zoom — so a tag
+   inside it could never hang over the card's edge. The card root therefore
+   stopped clipping and the two surfaces that own a corner clip themselves,
+   which is exactly what lets `edge` and `frame` be one element in two places.
+
+   Every declaration below is a FALLBACK: `lib/productBadgeStyle` writes only
+   the values the merchant changed, so each placement keeps the default it was
+   designed with until they touch that property. */
+
+/* the four silhouettes — one radius each (the ticket's square corner is below) */
+[data-pc-badge-shape='sharp'] {
+  --pc-tag-radius: 0px;
+}
+
+[data-pc-badge-shape='soft'] {
+  --pc-tag-radius: 6px;
+}
+
+[data-pc-badge-shape='pill'] {
+  --pc-tag-radius: 999px;
+}
+
+[data-pc-badge-shape='ticket'] {
+  --pc-tag-radius: 8px;
+}
+
+/* the shared face */
+[data-pc-badge-surface='ink'] {
+  --pc-tag-bg: var(--pc-ink);
+  --pc-tag-ink: var(--pc-bg);
+}
+
+[data-pc-badge-surface='paper'] {
+  --pc-tag-bg: var(--pc-bg);
+  --pc-tag-ink: var(--pc-ink);
+}
+
+/* the quiet plate: the store's ink at two thirds, and OPAQUE — `--pc-muted` is
+   ink with `transparent` in it, which let the photograph through the tag */
+[data-pc-badge-surface='soft'] {
+  --pc-tag-bg: color-mix(in srgb, var(--pc-ink) 68%, var(--pc-bg));
+  --pc-tag-ink: var(--pc-bg);
+}
+
+/* `custom` writes `--pc-tag-bg` / `--pc-tag-ink` INLINE on `.app-inner`, and an
+   inline declaration out-ranks every rule here — so switching back to a preset
+   restores the preset with no leftover colour to clean up. */
+
+.pc-badge {
+  position: absolute;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: var(--pc-tag-pad-y, 6px) var(--pc-tag-pad-x, 10px);
+  /* the border is always the TEXT's colour: one control for the style, one
+     for the thickness, and the colour can never disagree with the words */
+  border: var(--pc-tag-bw, 0) var(--pc-tag-bs, solid) currentColor;
+  border-radius: var(--pc-tag-radius, 0px);
+  background: var(--pc-tag-bg);
+  color: var(--pc-tag-ink);
+  font-size: var(--pc-tag-fs, 10px);
+  font-weight: var(--pc-tag-fw, 700);
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  /* a label, not a control: the photo's link keeps the whole plate */
+  pointer-events: none;
+  /* no `text-transform` and no `letter-spacing`, deliberately: the tag prints
+     Arabic as often as «-60%», and letter spacing breaks the joins */
+}
+
+/* the words, in their own box: the tag is a flex row (it may carry a dot), so
+   the ellipsis has to live on the text rather than on the plate */
+.pc-badge__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* the ticket's one square corner — the one nearest the card's edge */
+[data-pc-badge-shape='ticket'] .pc-badge {
+  border-start-start-radius: 0;
+  border-start-end-radius: var(--pc-tag-radius, 8px);
+  border-end-end-radius: var(--pc-tag-radius, 8px);
+  border-end-start-radius: var(--pc-tag-radius, 8px);
+}
+
+/* ── placement ───────────────────────────────────────────────────────────── */
+
+/* CLAMPED OVER THE EDGE. Nine pixels of a 25px label sit on the page and the
+   other sixteen on the photograph, so the tag reads as pinned to the card
+   rather than dropped on the picture. The ring is the whole trick: 3px of
+   white — the paper the card is printed on — so the card's own hairline stops
+   at the tag and resumes after it, and the label reads as a notch cut into the
+   frame.
+
+   WHY -10 AND NOT -9: the anchor is measured from the card's PADDING box, and
+   the card carries a 1px hairline — so -10px of padding box is 9px above the
+   card's painted outer edge, and the 25px label leaves 16px inside it. The
+   compact block moves the same seam to 7px above (-8px here). Both numbers are
+   pinned by `tests/styles/product-card-system.test.ts`. */
+[data-pc-badge-place='edge'] .pc-badge {
+  inset-block-start: calc(var(--pc-tag-edge-y, -10px) + var(--pc-tag-dy, 0px));
+  inset-inline-start: calc(var(--pc-tag-edge-x, var(--pc-inset, 12px)) + var(--pc-tag-dx, 0px));
+  /* the heart owns the other end of the same edge: 30px disc + its 8px inset +
+     8px of air, so the tag never runs underneath it */
+  max-width: calc(100% - var(--pc-inset, 12px) - var(--pc-actions-w, 46px));
+  box-shadow: 0 0 0 var(--pc-tag-ring, 3px) var(--pc-tag-ring-color, #fff);
+}
+
+/* INSIDE THE FRAME. Flush with the card's top corner and wearing the card's own
+   corner on that side, so the tag is a piece of the frame instead of a sticker
+   on the picture. No ring by default: there is nothing to cut through. */
+[data-pc-badge-place='frame'] .pc-badge {
+  inset-block-start: calc(0px + var(--pc-tag-dy, 0px));
+  inset-inline-start: calc(0px + var(--pc-tag-dx, 0px));
+  max-width: calc(100% - var(--pc-actions-w, 46px));
+  border-start-start-radius: calc(var(--pc-corner) - 1px);
+  box-shadow: 0 0 0 var(--pc-tag-ring, 0px) var(--pc-tag-ring-color, #fff);
+}
+
+/* ATTACHED TO THE SIDE. Square where it meets the card's inline edge, so the
+   card's own silhouette is what shapes it. */
+[data-pc-badge-place='attached'] .pc-badge {
+  inset-block-start: calc(12px + var(--pc-tag-dy, 0px));
+  inset-inline-start: calc(0px + var(--pc-tag-dx, 0px));
+  max-width: calc(100% - var(--pc-actions-w, 46px));
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  box-shadow: 0 0 0 var(--pc-tag-ring, 0px) var(--pc-tag-ring-color, #fff);
+}
+
+/* FREE. An independent tag: it floats inside the picture and carries a real
+   shadow, because nothing else is holding it there. */
+[data-pc-badge-place='free'] .pc-badge {
+  inset-block-start: calc(10px + var(--pc-tag-dy, 0px));
+  inset-inline-start: calc(10px + var(--pc-tag-dx, 0px));
+  max-width: calc(100% - var(--pc-actions-w, 46px) - 10px);
+  box-shadow:
+    0 0 0 var(--pc-tag-ring, 0px) var(--pc-tag-ring-color, #fff),
+    0 6px 16px -8px rgb(0 0 0 / 45%);
+}
+
+/* a STRIP: the tag spans the card instead of hugging its own text, and it sits
+   FLUSH at the top — a full-width band with 10px of photograph above it reads as
+   a floating bar, not as a placement */
+[data-pc-badge-stretch='1'] .pc-badge {
+  inset-inline: 0;
+  inset-block-start: calc(0px + var(--pc-tag-dy, 0px));
+  width: 100%;
+  max-width: none;
+  justify-content: center;
+}
+
+/* a strip INSIDE THE FRAME spans the card's whole top edge, so BOTH of its top
+   corners are the card's corner — otherwise the far corner would be square and
+   poke out of the card's silhouette */
+[data-pc-badge-stretch='1'][data-pc-badge-place='frame'] .pc-badge,
+[data-pc-badge-stretch='1'][data-pc-badge-place='attached'] .pc-badge {
+  border-start-start-radius: calc(var(--pc-corner) - 1px);
+  border-start-end-radius: calc(var(--pc-corner) - 1px);
+}
+
+/* ── the two types ───────────────────────────────────────────────────────── */
+
+/* Availability is an absence and a discount is an offer, so the two may wear
+   different TONES of the same tag — same shape, same place, different weight.
+   `inherit` is "the shared face", which is what the discount wears by default
+   and what a store that never opens the panel gets. */
+[data-pc-badge-out='ink'] .pc-badge--out,
+[data-pc-badge-sale='ink'] .pc-badge:not(.pc-badge--out) {
+  background: var(--pc-ink);
+  color: var(--pc-bg);
+}
+
+[data-pc-badge-out='paper'] .pc-badge--out,
+[data-pc-badge-sale='paper'] .pc-badge:not(.pc-badge--out) {
+  background: var(--pc-bg);
+  color: var(--pc-ink);
+}
+
+[data-pc-badge-out='quiet'] .pc-badge--out,
+[data-pc-badge-sale='quiet'] .pc-badge:not(.pc-badge--out) {
+  background: color-mix(in srgb, var(--pc-ink) 68%, var(--pc-bg));
+  color: var(--pc-bg);
+}
+
+/* ── the optional details ────────────────────────────────────────────────── */
+
+/* a dot before the words — a printed bullet, not an icon */
+[data-pc-badge-detail='dot'] .pc-badge::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+/* a keyline inside the tag — the cheapest way to make a filled plate read as
+   printed rather than poured */
+[data-pc-badge-detail='keyline'] .pc-badge::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid color-mix(in srgb, currentColor 42%, transparent);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+[data-pc-badge='0'] .s-product-card-promotion-title,
+[data-pc-badge='0'] .pc-badge {
   display: none;
 }
 
+/* The engine prints its own tag INSIDE the print, where the photo's corner
+   clips it and where it can never reach the card's edge. The theme prints the
+   same words — `lib/productBadge` reads the pre-order label, the promotion
+   title, availability and the two prices — as `.pc-badge` on the card root, so
+   this layout prints the engine's node exactly zero times. */
 .s-product-card-vertical .s-product-card-promotion-title {
-  position: absolute;
-  inset-block-start: 10px;
-  inset-inline-start: 10px;
-  z-index: 2;
-  max-width: calc(100% - 60px);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  box-shadow: none;
+  display: none;
 }
 
 /* wishlist — the engine already puts it on the image corner for vertical
@@ -161,20 +517,27 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   min-width: 0;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--pc-line);
+  border: 1px solid color-mix(in srgb, var(--pc-ink) 12%, transparent);
   border-radius: 50%;
-  background: color-mix(in srgb, var(--pc-bg) 78%, transparent);
+  /* a flat translucent disc instead of a blurred glass one: `backdrop-filter`
+     on every card in a grid is a real cost, and the blur read as a trend
+     rather than as part of the card */
+  background: color-mix(in srgb, var(--pc-bg) 86%, transparent);
   color: var(--pc-ink);
-  backdrop-filter: blur(6px);
-  transition: background 0.3s, color 0.3s;
+  /* the same reason as the disc: on a white packshot a paper control needs an
+     edge of its own */
+  box-shadow: 0 2px 10px -3px rgb(0 0 0 / 26%);
+  transition:
+    background 0.3s,
+    color 0.3s;
 
   i {
-    font-size: 15px;
+    font-size: 14px;
     line-height: 1;
   }
 
@@ -191,49 +554,196 @@
   }
 }
 
-/* ---------- content ---------- */
+/* ---------- the label ---------- */
 
 .s-product-card-vertical .s-product-card-content {
+  position: relative;
+  z-index: 2;
   display: grid;
+  /* TWO columns on the last row and one everywhere else: the figure opens the
+     floor at the label's START and the cart disc closes it at the END — the
+     composition the card shipped with, and the one the merchant's shoppers
+     already know. The disc is IN the grid, not floating on the photograph. */
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas:
-    'dots   dots'
+    'meta   meta'
     'main   main'
     'desc   desc'
-    'rating rating'
+    '.      .'
     'price  cart';
-  /* the last row takes the slack, so a card with no description does not lift
-     its price above the price of the card beside it — the row of prices has to
-     read as one line across the grid. `minmax(auto, 1fr)`, not `1fr`: a bare
-     `1fr` collapses to zero when there is no slack and the price row then
+  /* the slack lives ABOVE the price: a card that is taller than its content
+     (every card in a stretched grid row) grows the air under the short line,
+     never between the name and what it is. `minmax(auto, 1fr)`, not `1fr`: a
+     bare `1fr` collapses to zero when there is no slack and the price row then
      overflows the tile (which `overflow: hidden` clips mid-glyph). */
-  grid-template-rows: auto auto auto auto minmax(auto, 1fr);
-  align-items: center;
-  column-gap: 10px;
-  padding: 14px 6px 4px;
-  flex: 1 1 auto;
+  grid-template-rows: minmax(18px, auto) auto auto minmax(auto, 1fr) auto;
   align-content: start;
+  align-items: start;
+  /* the floor's two ends never touch: the figure's longest money string and a
+     36px disc still read as two objects */
+  column-gap: 10px;
+  /* THE PLATE RISES INTO THE PRINT. The label is not a block stacked under the
+     photograph — it is a plate laid ON it, its top edge 32px up inside the
+     picture, its two top corners rounded, a soft shadow cast up onto the photo.
+     That is what makes the card two objects instead of one column. */
+  margin-block-start: calc(-1 * var(--pc-lift));
+  border-start-start-radius: 20px;
+  border-start-end-radius: 20px;
+  /* THE FLOOR is the card's other corner: the root stopped clipping, so the
+     label — the last thing in the card — rounds itself to the card's own corner
+     (minus its 1px hairline). It follows `--pc-corner`, so the compact card's
+     corner reaches it without a second declaration. */
+  border-end-start-radius: calc(var(--pc-corner) - 1px);
+  border-end-end-radius: calc(var(--pc-corner) - 1px);
+  box-shadow: 0 -14px 26px -18px color-mix(in srgb, var(--pc-ink) 55%, transparent);
+  /* THE SEAM: the plate's own top edge. A hairline, not a gradient dissolve —
+     the dissolve turned a white packshot's floor into a grey smear in night
+     mode. It now reads as the edge of the plate lying on the picture. */
+  border-block-start: 1px solid var(--pc-line);
+  background: var(--pc-bg);
+  padding: 11px var(--pc-inset) 12px;
+  text-align: start;
+  flex: 1 1 auto;
 }
 
 /* the three engine wrappers stop boxing their children, so one grid can place
-   the name, the line, the stars, the price and the cart in four rows */
+   the meta, the name, the line, the price and the action */
 .s-product-card-vertical .s-product-card-content-main,
 .s-product-card-vertical .s-product-card-content-sub,
 .s-product-card-vertical .s-product-card-content-footer {
   display: contents;
 }
 
+/* ---------- the meta rail ---------- */
+
+/* The engine's rating row IS the rail: it is in the server-rendered HTML, so
+   the score is present before hydration, and the maker's mark is portaled into
+   it (see `ProductCard.tsx`). Both sit as ONE cluster at the label's start —
+   not spread to its two ends — because a row of cards whose scores jump
+   between the start and the end depending on whether a brand exists reads as
+   four different designs. The maker comes first, the score follows it. */
+.s-product-card-vertical .s-product-card-rating,
+.pc-rating {
+  grid-area: meta;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 5px;
+  min-width: 0;
+  /* The row is RESERVED even when a product has neither a maker nor a score.
+     That is not an empty element on show — nothing is printed — it is the
+     label's first line kept at one height, so the names of four cards in a row
+     sit on one baseline. Without it a card with a brand starts its name 18px
+     lower than its neighbour and the grid reads as a staircase. */
+  min-height: 13px;
+  /* the air under the rail is the ROW's, not the element's margin: a reserved
+     row and a filled one must be the same height, or the reservation only
+     moves the staircase */
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+  color: var(--pc-ink);
+
+  i {
+    font-size: 9.5px;
+    color: var(--pc-star);
+    transform: translateY(-0.5px);
+  }
+}
+
+/* `4.8 (120)` — the count is an attribute `ProductCard.tsx` puts on the row,
+   so the average stays the engine's own text */
+[data-pc-rating-count='1'] .s-product-card-rating[data-count]::after {
+  content: '(' attr(data-count) ')';
+  margin-inline-start: 1px;
+  font-weight: 400;
+  color: var(--pc-muted);
+}
+
+/* the maker's mark — a portaled span, in the rail when there is a score and on
+   its own line when there is not */
+.pc-brand {
+  grid-area: meta;
+  display: block;
+  min-width: 0;
+  margin: 0 0 5px;
+  overflow: hidden;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0;
+  color: var(--pc-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-product-card-rating .pc-brand,
+.pc-rating .pc-brand {
+  /* inside the rail: it must not re-apply the standalone row's margins.
+     `order: -1` because a portal APPENDS — the brand is the last child in the
+     DOM but the first thing the eye should meet, so flex order puts it at the
+     rail's start in both directions. */
+  order: -1;
+  display: inline-block;
+  margin: 0;
+  margin-inline-end: 2px;
+  max-width: 60%;
+}
+
+/* ---------- no reviews ---------- */
+
+/* The engine renders no rating row at all for a product without stars. The
+   theme fills it only when the merchant asked for it (`rating_empty`), and it
+   is deliberately the QUIETEST thing on the label: a muted word at the rail's
+   own size, not a row of its own with a star and a gap under the name. A store
+   whose catalogue has no reviews then reads as calm rather than as forty
+   cards announcing the same absence. */
+.pc-rating {
+  font-weight: 400;
+  color: var(--pc-muted);
+
+  i {
+    /* the star is there for shape, not for a score — half the weight of a real
+       one so it never reads as "zero out of five" */
+    color: color-mix(in srgb, var(--pc-star) 38%, transparent);
+  }
+}
+
+[data-pc-rating='0'] .s-product-card-rating,
+[data-pc-rating='0'] .pc-rating,
+[data-pc-rating-empty='0'] .pc-rating {
+  display: none;
+}
+
+/* The maker's mark is not part of the rating: turning the score off must not
+   take the brand with it. Only the COPY that lives inside the score's row goes
+   with the row — a standalone brand is its own line and stays. */
+[data-pc-rating='0'] .s-product-card-rating .pc-brand,
+[data-pc-rating='0'] .pc-rating .pc-brand {
+  display: none;
+}
+
+/* ---------- the name ---------- */
+
 .s-product-card-vertical .s-product-card-content-title {
   grid-area: main;
   margin: 0;
-  font-size: 15px;
+  /* 15.5/1.42, not 15/1.45: Arabic sits smaller than Latin at the same size and
+     its marks need the extra leading, so the name gets a little more body and
+     the block below it tightens to compensate */
+  font-size: 15.5px;
   font-weight: 600;
-  line-height: 1.45;
+  line-height: 1.42;
+  letter-spacing: -0.005em;
   color: var(--pc-ink);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  /* a long Latin run (a SKU, a URL) has no word boundary to break at */
+  overflow-wrap: anywhere;
 
   a {
     color: inherit;
@@ -245,10 +755,12 @@
   /* Playfair has no Arabic, so an Arabic name falls through to the store's own
      face — the Latin name gets the reference's serif, the Arabic one stays
      legible instead of rendering as tofu. */
-  font-family: 'Playfair Display', var(--font-main), Georgia, serif;
+  font-family: var(--font-display, 'Playfair Display'), var(--font-main), Georgia, serif;
   font-weight: 500;
   letter-spacing: 0.01em;
 }
+
+/* ---------- the short line ---------- */
 
 [data-pc-desc='0'] .s-product-card-content-subtitle {
   display: none;
@@ -257,84 +769,45 @@
 .s-product-card-vertical .s-product-card-content-subtitle {
   grid-area: desc;
   margin: 4px 0 0;
+  /* 12.5/1.65: the line is a caption, one step under the name in size and two
+     steps under it in weight — it must never compete with the figure below */
   font-size: 12.5px;
-  line-height: 1.55;
+  line-height: 1.65;
   color: var(--pc-muted);
   opacity: 1;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: var(--pc-desc-lines, 2);
+  -webkit-line-clamp: var(--pc-desc-lines, 1);
   -webkit-box-orient: vertical;
 }
 
-/* stars */
-[data-pc-rating='0'] .s-product-card-rating {
-  display: none;
-}
+/* ---------- the price ---------- */
 
-.s-product-card-vertical .s-product-card-rating {
-  grid-area: rating;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 8px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--pc-ink);
-
-  i {
-    font-size: 13px;
-    color: var(--pc-star);
-  }
-}
-
-/* `4.8 (120)` — the count is an attribute `ProductCard.tsx` puts on the row,
-   so the average stays the engine's own text */
-[data-pc-rating-count='1'] .s-product-card-rating[data-count]::after {
-  content: '(' attr(data-count) ')';
-  margin-inline-start: 2px;
-  font-weight: 400;
-  color: var(--pc-muted);
-}
-
-/* ---------- no reviews ---------- */
-
-/* The engine renders no rating row at all for a product without stars, so the
-   card fills it with this. Same box as the real row, so the two line up in a
-   grid that mixes reviewed and unreviewed products. */
-.pc-rating {
-  grid-area: rating;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1;
-  font-weight: 400;
-  color: var(--pc-muted);
-
-  i {
-    font-size: 13px;
-    /* the star is there for shape, not for a score — half the weight of a real
-       one so it never reads as "zero out of five" */
-    color: color-mix(in srgb, var(--pc-star) 42%, transparent);
-  }
-}
-
-[data-pc-rating='0'] .pc-rating,
-[data-pc-rating-empty='0'] .pc-rating {
-  display: none;
-}
-
-/* price */
 .s-product-card-vertical .s-product-card-price,
 .s-product-card-vertical .s-product-card-sale-price,
 .s-product-card-vertical .s-product-card-starting-price {
   grid-area: price;
-  align-self: end;
+  /* The price terminates the READING COLUMN, at the label's start — not at its
+     far end. On a 238px card an end-aligned figure sat 300px from the name it
+     belongs to, in the same corner the short line's ellipsis lands in, and the
+     two read as one broken block. At the start the column closes on its own
+     number, the empty corner is the one the thumb rests in, and the disc on
+     the print opposite it gives the card a diagonal instead of stacking two
+     objects on one axis. The compact card already worked this way. */
+  justify-self: start;
   min-width: 0;
-  margin-top: 10px;
+  /* `end`, not the grid's default `start`: the three price shapes have
+     different heights (a plain figure, a figure plus a struck one, a figure
+     under «يبدأ من»), and start-aligning them put their FIGURES on three
+     different baselines inside one row of cards — measured 3px apart on a
+     1440 grid and 11px on a 133px card. Ending them on the floor is what makes
+     the floor mean something. */
+  align-self: end;
+  /* the air between the label's last line and the figure. The flexible row
+     above already provides the slack on a stretched card; this is the floor
+     case, where the card is exactly as tall as its content. */
+  margin-block-start: 10px;
+  text-align: start;
 }
 
 .s-product-card-vertical .s-product-card-price,
@@ -343,24 +816,65 @@
   /* `product.scss` paints every sale price red with `!important`; the card
      wants the merchant's ink, so the override has to be as loud as the rule. */
   color: var(--pc-ink) !important;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
+/* the currency is an icon glyph inside the figure (`sicon-sar` and friends),
+   not a span: without this it renders at the figure's own weight and the money
+   string reads as two numbers of equal importance. The struck price's glyph
+   needs its own floor — `0.58em` of 11.5px is 6.7px, which prints as a smudge
+   rather than as a currency. */
+.s-product-card-vertical .s-product-card-price i,
+.s-product-card-vertical .s-product-card-sale-price h4 i,
+.s-product-card-vertical .s-product-card-starting-price h4 i,
+.s-product-card-vertical .s-product-card-sale-price span i {
+  margin-inline-start: 2px;
+  font-size: 0.58em;
+  font-weight: 500;
+  color: var(--pc-muted);
+  vertical-align: baseline;
+}
+
+.s-product-card-vertical .s-product-card-sale-price span i {
+  font-size: 0.72em;
+}
+
+/* The old price sits BESIDE the new one on the same baseline, not under it:
+   three stacked levels ("from", the figure, the struck figure) turned the
+   corner of the card into a column of numbers with no reading order. One line
+   with one hierarchy reads in a glance. */
 .s-product-card-vertical .s-product-card-sale-price {
-  /* the old price goes UNDER the new one: side by side they fight for a
-     ~120px column and the row wraps into two ragged lines anyway */
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  flex-direction: row;
+  align-items: baseline;
+  /* `flex-start` because the box now shrinks to its content at the label's
+     start — the new price leads and the struck one follows it, in both
+     directions */
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 2px 7px;
 
   span {
-    font-size: 12px;
+    font-size: 11.5px;
+    font-weight: 500;
+    /* `1`, not 1.3: the struck price sits ON the figure's baseline, and extra
+       leading there hangs ~3px of empty line box below it — which inflated the
+       flex container and lifted the whole price 3px off the floor of every
+       discounted card. Measured, not guessed. */
+    line-height: 1;
     color: var(--pc-muted);
+    /* `product.scss` halves the whole span with `opacity-50`; the muted token
+       already carries the intended weight, and stacking both left the old
+       price at ~33% alpha — measured as a ghost, not as a price. */
+    opacity: 1;
     text-decoration: line-through;
     text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, var(--pc-ink) 42%, transparent);
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -368,23 +882,64 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 1px;
 
   p {
     margin: 0;
-    font-size: 11px;
+    font-size: 9.5px;
+    font-weight: 400;
+    line-height: 1.2;
     color: var(--pc-muted);
   }
 }
 
-/* ---------- cart ---------- */
+/* ---------- the action ---------- */
 
-.s-product-card-vertical .s-product-card-content-footer > div {
+/* The card's controls were carrying the browser's default ring — a 1px
+   near-white outline on an ivory card, which is no ring at all. Same rule as
+   the header's: the merchant's accent, else Salla's primary, else the element's
+   own ink. Never a hardcoded hue. */
+.s-product-card-vertical :is(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--gs-accent, var(--color-primary, currentColor));
+  outline-offset: 2px;
+}
+
+/* the photo link fills a plate that clips its own box, so its ring is drawn
+   INSIDE the picture instead of being cut off by `overflow: hidden` */
+.s-product-card-vertical .s-product-card-image a:focus-visible {
+  outline-offset: -4px;
+}
+
+/* A card is ONE target, so it also rings as one: the picture's inner ring was
+   eaten by the plate's own clip on three sides (measured in the browser — only
+   the top edge survived), which left keyboard users with a single dark line and
+   no silhouette. The ring is on the CARD, outside its corner, and it is
+   `:has(:focus-visible)` rather than `:focus-within` so a mouse click on the
+   cart does not leave a ring behind. */
+.s-product-card-vertical:has(:focus-visible) {
+  outline: 2px solid var(--gs-accent, var(--color-primary, currentColor));
+  outline-offset: 2px;
+}
+
+/* circle — the disc closes the label's floor, opposite the figure. It is the
+   card's last element and it sits on the price's own baseline: the original
+   position, and the one the seam below it is a seam FOR. */
+[data-pc-cart='circle'] .s-product-card-vertical .s-product-card-content-footer > div {
   grid-area: cart;
   justify-self: end;
   align-self: end;
   width: auto;
-  margin-bottom: 2px;
+  /* The disc's own footprint. `width: auto` is not enough on its own: while the
+     button is still a skeleton the engine writes `style="width:100%"` on this
+     very node, and an inline style outranks every sheet rule — so the
+     placeholder grew to the label's width and was clipped 13px by
+     `overflow: hidden` (measured at 1280/1440/1920). `max-width` is the one
+     property the engine does not set inline, so it survives the load and the
+     disc never exceeds its disc. */
+  max-width: 36px;
+  /* 2px, the figure's own optical floor: the disc's circle reads a hair lower
+     than the price's baseline, so the two end on the same line to the eye */
+  margin: 0 0 2px;
 }
 
 .s-product-card-vertical salla-add-product-button {
@@ -397,25 +952,32 @@
   justify-content: center;
   min-width: 0;
   transition:
-    background 0.3s,
-    color 0.3s,
-    transform 0.3s;
+    background 0.26s cubic-bezier(0.2, 0.7, 0.2, 1),
+    color 0.26s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.26s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.26s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* circle — the reference's compact card: the label becomes a cart glyph */
+/* circle — the compact action: a paper disc that survives any photograph */
 [data-pc-cart='circle'] .s-product-card-vertical salla-add-product-button .s-button-element {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border: 1px solid var(--pc-line);
+  border: 1px solid color-mix(in srgb, var(--pc-ink) 14%, transparent);
   border-radius: 50%;
-  background: var(--pc-circle-bg);
-  color: var(--pc-circle-ink);
+  /* a solid paper disc, not a tint: it lies on a photograph, and a 62% tint of
+     the media colour disappeared on a white packshot */
+  background: color-mix(in srgb, var(--pc-bg) 94%, transparent);
+  color: var(--pc-ink);
+  /* the disc has to sit ON the picture, and a paper disc on a white packshot is
+     the same colour as the picture. The shadow is what gives it an edge — it is
+     legibility, not decoration. */
+  box-shadow: 0 2px 10px -3px rgb(0 0 0 / 30%);
 
   &::before {
     content: '';
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     background: currentColor;
     -webkit-mask: var(--pc-cart-icon) center / contain no-repeat;
     mask: var(--pc-cart-icon) center / contain no-repeat;
@@ -423,7 +985,20 @@
 
   &:hover {
     background: var(--pc-ink);
+    border-color: var(--pc-ink);
     color: var(--pc-bg);
+  }
+
+  &:active {
+    transform: scale(0.93);
+  }
+
+  &:disabled,
+  &[disabled] {
+    background: color-mix(in srgb, var(--pc-bg) 82%, transparent);
+    border-style: dashed;
+    color: color-mix(in srgb, var(--pc-ink) 38%, transparent);
+    cursor: not-allowed;
   }
 }
 
@@ -442,8 +1017,43 @@
   border: 0;
 }
 
-/* bar — the reference's "Add to Cart" card, in the store's own brand colour */
+/* the action's host: whichever skin it wears, it lives in the `cart` area */
+.s-product-card-vertical .s-product-card-content-footer > div {
+  grid-area: cart;
+  width: 100%;
+  margin: 0;
+}
+
+/* bar — the full-width action, in the store's own brand colour. It owns a row
+   of the label instead of the floor's end, because a bar is a footer: beside
+   the figure it would be a sliver. The figure keeps the row above. */
+[data-pc-cart='bar'] .s-product-card-vertical .s-product-card-content {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'meta'
+    'main'
+    'desc'
+    '.'
+    'price'
+    'cart';
+  grid-template-rows: minmax(18px, auto) auto auto minmax(auto, 1fr) auto auto;
+}
+
+[data-pc-cart='bar'] .s-product-card-vertical .s-product-card-content-footer > div {
+  position: static;
+  inset: auto;
+  margin-block-start: 10px;
+  /* `stretch`, and not the default: the disc ends on the floor's inline end, and
+     a bar that inherits that alignment collapses to the width of its own label
+     — a bar has to span the label, not sit in a corner */
+  justify-self: stretch;
+  width: 100%;
+  /* releases the disc's cap: a bar spans the label at every stage of loading */
+  max-width: none;
+}
+
 [data-pc-cart='bar'] .s-product-card-vertical salla-add-product-button .s-button-element {
+  width: 100%;
   height: 40px;
   padding-inline: 16px;
   border-radius: 999px;
@@ -453,14 +1063,30 @@
   font-weight: 600;
   white-space: nowrap;
 
+  /* The circle skin is keyed on `[data-pc-cart='circle']`, which is still true
+     on `.app-inner` when a COMPONENT overrides the cart to `bar` for its own
+     subtree — so both blocks match and the bar inherits the circle's masked
+     glyph and its clipped label. A bar is a labelled button: it prints its
+     text and draws no icon. Undoing the circle skin here is what makes the two
+     states exclusive whichever ancestor declared them. */
+  &::before {
+    content: none;
+  }
+
   &:hover {
     background: var(--color-primary-d);
   }
 }
 
-/* the glyph, as a mask so it inherits `currentColor` in both cart styles */
-.app-inner {
-  --pc-cart-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4h2l2.2 10.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.55L20.5 8H6'/%3E%3Ccircle cx='10' cy='19.5' r='1.4'/%3E%3Ccircle cx='17.5' cy='19.5' r='1.4'/%3E%3C/svg%3E");
+[data-pc-cart='bar'] .s-product-card-vertical salla-add-product-button .s-button-text {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: nowrap;
 }
 
 /* the quantity pie (`layout="special"`) must not join the grid — it is a
@@ -468,6 +1094,27 @@
 .s-product-card-vertical .s-product-card-content-pie {
   position: absolute;
   z-index: 3;
+}
+
+/* ---------- states ---------- */
+
+/* unavailable: the photograph steps back, the composition does not move */
+.s-product-card-out-of-stock .s-product-card-image img,
+.s-product-card-vertical.is-out .s-product-card-image img {
+  filter: saturate(0.3) contrast(0.95);
+  opacity: 0.72;
+}
+
+/* an unavailable product's figure is a fact, not an offer: it steps back to
+   the muted ink instead of shouting at the same weight as a buyable price */
+.s-product-card-out-of-stock .s-product-card-price,
+.s-product-card-out-of-stock .s-product-card-sale-price h4,
+.s-product-card-out-of-stock .s-product-card-starting-price h4 {
+  color: var(--pc-muted) !important;
+}
+
+.s-product-card-vertical:active {
+  transform: scale(0.995);
 }
 
 /* ---------- night ---------- */
@@ -490,14 +1137,33 @@ html.dark .s-product-card-vertical {
   --pc-ink: var(--ink-1);
   --pc-line: var(--line-1);
   --pc-muted: color-mix(in srgb, var(--ink-1) 60%, transparent);
-  --pc-badge-bg: color-mix(in srgb, var(--ink-1) 14%, transparent);
-  --pc-badge-ink: var(--ink-1);
-  --pc-circle-bg: color-mix(in srgb, var(--ink-1) 9%, transparent);
+  --pc-circle-bg: color-mix(in srgb, var(--surface-1) 90%, transparent);
   --pc-circle-ink: var(--ink-1);
   --pc-shadow: none;
+  /* The tag's notch ring is white in daylight because the card is paper. At
+     night the card is the night surface, so the ring is that surface — a white
+     ring here would read as a glow around the label instead of a cut in the
+     frame. The mega card carries the identical line (see `morph-header.scss`). */
+  --pc-tag-ring-color: var(--pc-bg);
+  /* The vertical card wears `.pc-badge` (ink plate, no token), but
+     `product.scss` still paints the horizontal and minimal layouts from this
+     pair — so night re-points it here too, with the mega card's identical
+     value. Two surfaces, one answer. */
+  --pc-badge-bg: var(--surface-3);
+  --pc-badge-ink: var(--ink-1);
 
   background: var(--pc-bg);
   color: var(--pc-ink);
+}
+
+/* The heart and the action sit on the same photo as the tab, so they need the
+   same answer to the same problem: a solid night plate. A translucent tint of
+   the night surface measured mid-grey over a white product shot — light ink on
+   grey, the weakest control on the card. */
+html.dark .s-product-card-vertical .s-product-card-image .s-product-card-wishlist-btn,
+html.dark [data-pc-cart='circle'] .s-product-card-vertical salla-add-product-button .s-button-element {
+  background: var(--surface-3);
+  border-color: color-mix(in srgb, var(--ink-1) 16%, transparent);
 }
 
 /* ---------- gallery ---------- */
@@ -540,96 +1206,309 @@ html.dark .s-product-card-vertical {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    /* the gallery's slides follow the same presentation as the single photo —
+       a store that chose `contain` must not get cropped slides on swipe */
+    object-fit: var(--pc-img-fit, cover);
+    object-position: var(--pc-img-pos, center);
     /* the drag must not lift the photo into the browser's own image drag */
     -webkit-user-drag: none;
     user-select: none;
   }
 }
 
-/* dots — the reference's row between the picture and the name */
+/* dots — a printed progress rule, not a row of confetti.
+ *
+ * The gallery used to print one 4px dot per photo, centred under the picture,
+ * so a product with ten photos wore a ten-dot necklace beside the action disc.
+ * Ten marks is a data problem, not a styling one: the indicator now reads as a
+ * single hairline rule of 5×2px segments at the print's bottom START corner —
+ * the disc owns the end corner — so the bottom edge has two deliberate objects
+ * instead of two crowds. The segments are still one button per photo (that is
+ * the keyboard path through the gallery); only their shape changed.
+ *
+ * They sit on the PHOTO, so they must not follow the card's ink: in night mode
+ * `--pc-ink` is near-white and a tint of it vanished on the store's
+ * white-background product shots. A fixed neutral scrim with a light ring reads
+ * on a light photo and on a dark one, in either mode, because the ring — not
+ * the fill — carries the shape. */
 .pc-dots {
-  grid-area: dots;
+  position: absolute;
+  /* clear of the plate's edge: the dots live on the print, and the plate now
+     rises into it — at 15px from the photo's floor they were buried under the
+     plate and disappeared from every card in the grid */
+  inset-block-end: calc(var(--pc-lift, 32px) + 12px);
+  inset-inline-start: 12px;
+  z-index: 2;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  gap: 5px;
-  padding: 2px 0 4px;
+  gap: 3px;
+  padding: 0;
+  /* the strip keeps clear of the plate's own inset on both ends, so a long
+     gallery never runs its dots into the card's corners */
+  max-width: calc(100% - 60px);
+  overflow: hidden;
 }
 
 .pc-dots__dot {
+  position: relative;
+  flex: 0 0 auto;
   width: 5px;
-  height: 5px;
+  height: 2px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--pc-ink) 22%, transparent);
+  border-radius: 1px;
+  background: rgb(0 0 0 / 34%);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 50%);
   cursor: pointer;
   transition:
     background 0.3s,
     transform 0.3s;
 
   &[aria-current='true'] {
-    background: var(--pc-ink);
-    transform: scale(1.3);
+    background: rgb(0 0 0 / 88%);
+    transform: scaleY(1.6);
   }
 
-  /* a 5px target is not a target — grow the hit area without moving the dot */
+  /* a 5×2 target is not a target — grow the hit area without moving the mark */
   &::after {
     content: '';
     position: absolute;
-    inset: -7px;
+    inset: -10px -2px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgb(255 255 255 / 90%);
+    outline-offset: 3px;
   }
 }
 
-.pc-dots__dot {
-  position: relative;
-}
+/* ---------- compact card ---------- */
 
-/* ---------- phone ---------- */
-
-@media (max-width: 767px) {
-  .s-product-card-vertical {
-    padding: 8px;
-    border-radius: calc(var(--pc-radius) * 0.82);
-  }
-
-  .s-product-card-vertical .s-product-card-image {
-    /* Same role, same fallback: on a phone the card is drawn at 82% of its
-       radius, and the image sits 7px inside it. Without the `var()` here the
-       merchant's media radius would silently stop applying below 768px —
-       which is exactly where most of the traffic is. */
-    border-radius: var(--radius-media, calc(var(--pc-radius) * 0.82 - 7px));
+/* ONE compact scale, reached two ways.
+ *
+ * The card's type has to follow the CARD's width, not the viewport's: Salla's
+ * grid is five columns at 768 (a 133px card — narrower than the 160px it is on
+ * a 375px phone), and a home-block rail on a 1440px desktop can lay a card out
+ * at 150px. A media query can only see the window, so it produced the desktop
+ * scale on a 150px card: a 15.5px name, a 20px price and a tab that ellipsed
+ * to «نفدت…».
+ *
+ * The compact card is not the full card shrunk: the action comes back into the
+ * label's floor (a 36px disc on a 130px print is a third of the picture), the
+ * maker's mark and the short line step out, and the score stays — trust is the
+ * one piece of meta a phone shopper still needs. */
+@mixin pc-compact-type {
+  /* The lift is one number and it has two readers in two different subtrees —
+     the plate (inside the label) and the gallery dots (inside the picture) —
+     so it is set on both of them. The card itself cannot be targeted here: it
+     IS the query container, and a container query styles its descendants.
+     On a 133px card a 32px lift is a quarter of the width. */
+  .s-product-card-vertical .s-product-card-image,
+  .s-product-card-vertical .s-product-card-content {
+    --pc-lift: 22px;
   }
 
   .s-product-card-vertical .s-product-card-content {
-    padding: 11px 3px 2px;
-    column-gap: 8px;
+    border-start-start-radius: 16px;
+    border-start-end-radius: 16px;
+    /* the same two-ended floor as the full card: the figure opens it, the
+       30px disc closes it — the composition is the card's, at every width */
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'meta   meta'
+      'main   main'
+      'desc   desc'
+      '.      .'
+      'price  cart';
+    grid-template-rows: minmax(16px, auto) auto auto minmax(auto, 1fr) auto;
+    padding: 9px var(--pc-pad, 10px) 10px;
   }
 
   .s-product-card-vertical .s-product-card-content-title {
     font-size: 13.5px;
+    line-height: 1.4;
   }
 
+  /* the short line is a caption: on a 130px card it keeps ONE line — enough to
+     say what the thing is, not enough to become a paragraph — and the maker's
+     mark steps out entirely, because a truncated brand name is noise */
   .s-product-card-vertical .s-product-card-content-subtitle {
     font-size: 11.5px;
+    line-height: 1.55;
     margin-top: 3px;
+    -webkit-line-clamp: 1;
   }
 
+  .pc-brand {
+    display: none;
+  }
+
+  /* 13, not 15: on a 133px card a 15px figure could not hold «٣٦٧٫٠٠ ر.س» on
+     one line beside the cart, so the money string broke between the amount and
+     its currency — a price that reads as two prices. */
   .s-product-card-vertical .s-product-card-price,
   .s-product-card-vertical .s-product-card-sale-price h4,
   .s-product-card-vertical .s-product-card-starting-price h4 {
-    font-size: 15px;
+    font-size: 14px;
+    letter-spacing: -0.01em;
   }
 
+  .s-product-card-vertical .s-product-card-price,
+  .s-product-card-vertical .s-product-card-sale-price,
+  .s-product-card-vertical .s-product-card-starting-price {
+    /* the alignment is already the label's (start) — only the air changes:
+       a 133px card cannot spend 10px of it above the figure */
+    margin-block-start: 8px;
+  }
+
+  .s-product-card-vertical .s-product-card-sale-price span {
+    font-size: 10.5px;
+  }
+
+  /* the tag and the heart share one 107px photo at 768 — both step DOWN so the
+     longest shipped label («نفدت الكمية») still fits instead of ellipsing.
+     The step is in the FALLBACK, not in the property: a merchant who set a size
+     keeps it at every width, and a store that never opened the panel gets the
+     compact scale. That is why the same `var()` is repeated here with a smaller
+     default instead of a plain value. */
+  .s-product-card-vertical .pc-badge {
+    padding: var(--pc-tag-pad-y, 4px) var(--pc-tag-pad-x, 7px);
+    font-size: var(--pc-tag-fs, 9px);
+    /* the compact seam: 7px over the painted edge (-8px of padding box, see the
+       `edge` rule), at the compact inset — the compact heart is 22px with a 6px
+       inset, so the tag stops 34px short */
+    --pc-tag-edge-y: -8px;
+    --pc-tag-edge-x: var(--pc-pad, 10px);
+  }
+
+  /* «نفدت الكمية» is the longest label the store ships, and on a 168px card it is
+     the one tag that can crowd the photograph. It gives up a pixel of padding
+     on each axis — 4/7 becomes 3/6 — and keeps its 9px type and its contrast
+     untouched: readability is the constraint, not the thing being trimmed. The
+     fallback carries the step, so a merchant who set their own padding keeps it
+     at every width (the same rule as the type above). */
+  .s-product-card-vertical .pc-badge--out {
+    padding: var(--pc-tag-pad-y, 3px) var(--pc-tag-pad-x, 6px);
+  }
+
+  .s-product-card-vertical .s-product-card-image > .s-button-wrap {
+    inset-block-start: 6px;
+    inset-inline-end: 6px;
+  }
+
+  .s-product-card-vertical .s-product-card-image .s-product-card-wishlist-btn {
+    /* 22, not 28: on a 112px photo a 28px disc is a quarter of the picture —
+       it read as the card's subject rather than as a control on its corner.
+       The 44px hit area is the button's own `::after`, so the target does not
+       shrink with the disc. */
+    width: 22px;
+    height: 22px;
+  }
+
+  .s-product-card-vertical .s-product-card-rating,
+  .pc-rating {
+    margin-bottom: 4px;
+    font-size: 10px;
+  }
+
+  /* the disc shrinks with the card and keeps the floor's end — it is the same
+     composition as the full card, not a second one */
+  [data-pc-cart='circle'] .s-product-card-vertical .s-product-card-content-footer > div {
+    width: 30px;
+    max-width: 30px;
+  }
+
+  /* 30, not 36: the disc is a CONTROL, and on a 133px card a 36px disc took
+     more of the width than the price did. It was also larger than the desktop
+     disc, which is backwards. */
   [data-pc-cart='circle'] .s-product-card-vertical salla-add-product-button .s-button-element {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
+
+    &::before {
+      width: 14px;
+      height: 14px;
+    }
   }
 
   [data-pc-cart='bar'] .s-product-card-vertical salla-add-product-button .s-button-element {
+    /* `100%` again: the compact CIRCLE rule above pins the disc to 30px and
+       comes later in the cascade, so a bar that only re-declared its height
+       kept the disc's width and rendered as a 30px pill */
+    width: 100%;
     height: 36px;
     padding-inline: 12px;
     font-size: 12px;
+  }
+
+  /* a bar is a FOOTER, so it takes a row of its own across the full label —
+     beside a price it would be a 30px sliver. The price keeps the row above,
+     still ending the reading column. */
+  [data-pc-cart='bar'] .s-product-card-vertical .s-product-card-content {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'meta'
+      'main'
+      'desc'
+      '.'
+      'price'
+      'cart';
+    grid-template-rows: minmax(16px, auto) auto auto minmax(auto, 1fr) auto auto;
+  }
+
+  /* and the wrapper spans it, instead of ending on the floor as the disc does */
+  [data-pc-cart='bar'] .s-product-card-vertical .s-product-card-content-footer > div {
+    justify-self: stretch;
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* 960, not 767: the compact scale covers the whole band where the card is under
+   ~190px wide, and at 768 Salla hands it 133px. */
+@media (max-width: 960px) {
+  .s-product-card-vertical {
+    /* NO tile inset here. This rule used to re-introduce the padding below
+       960, so every phone and tablet card wore a mat around its photo while
+       the desktop card was full-bleed — the same design, broken at the
+       breakpoint where most of the traffic lives. Only the corner scales, and
+       it scales ONCE: `--pc-corner` is what the print and the label read. */
+    --pc-corner: calc(var(--pc-radius) * 0.82);
+    border-radius: var(--pc-corner);
+  }
+
+  .s-product-card-vertical .s-product-card-image {
+    /* the print reaches the card's edge at every width, and it is the print
+       that paints the card's top corner now (the root no longer clips). The
+       media radius role still applies to surfaces that are NOT full-bleed
+       (see `product.scss`). */
+    border-start-start-radius: calc(var(--pc-corner) - 1px);
+    border-start-end-radius: calc(var(--pc-corner) - 1px);
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+}
+
+/* The card is its own container, so the compact scale can also answer to a
+   narrow TRACK on a wide window — the case a media query is blind to. */
+@container (max-width: 190px) {
+  @include pc-compact-type;
+}
+
+/* ---------- motion: the print answers the pointer, nothing else does ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .s-product-card-vertical,
+  .s-product-card-vertical .s-product-card-image img,
+  .s-product-card-vertical .s-product-card-image .s-product-card-wishlist-btn,
+  [data-pc-cart='circle'] .s-product-card-vertical salla-add-product-button .s-button-element {
+    transition-duration: 1ms;
+  }
+
+  @media (hover: hover) {
+    .s-product-card-vertical:hover .s-product-card-image img {
+      transform: none;
+    }
   }
 }

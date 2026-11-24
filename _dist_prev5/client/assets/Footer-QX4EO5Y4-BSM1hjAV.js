@@ -1,0 +1,1 @@
+export{rn as Footer}from"./shared-home-DLOM6_CA.js";

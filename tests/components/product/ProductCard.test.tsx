@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, waitFor, cleanup } from '@testing-library/react';
+import { render, waitFor, cleanup, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ProductCard, plainText, descriptionLine, shortLine } from '../../../app/components/product/ProductCard';
 import { ProductCardSettingsContext, readProductCardSettings } from '../../../app/lib/productCardSettings';
@@ -9,17 +9,19 @@ import type { Product } from '@salla.sa/twilight-theme-engine/types';
  * The card is the engine's own markup plus the content it does not render: the
  * short line (fed as the engine's `subtitle` prop, so it is in the
  * server-rendered HTML), the review count (an attribute the stylesheet prints
- * with `attr()`), the swipeable gallery and — for an unreviewed product — the
- * «لا تقييمات» row.
+ * with `attr()`), the maker's mark in the meta rail, the monogram for a
+ * product with no usable photograph, the swipeable gallery and — when the
+ * merchant asks for it — the «لا تقييمات» wording.
  *
- * The wishlist button is deliberately the engine's own, on the image corner —
- * the old wrapper hid it and portaled a copy into the footer, and that is what
- * these tests used to assert. If someone reintroduces the hide, the first test
- * here fails.
+ * The action rail is the one thing that replaces an engine control: the heart
+ * stays in the markup (server-rendered, pre-hydration) and `data-pc-actions`
+ * tells the stylesheet to hide it once the rail mounts. If someone drops the
+ * attribute, the first test here fails.
  *
  * The engine card is mocked with the *shape* that matters: an image anchor
- * (the gallery's host), a content column (the dots' and the rating row's host)
- * and the conditional rating row the real card renders.
+ * (the gallery's host), a plate (the badge's, the monogram's and the rail's
+ * host), a content column (the dots' and the empty rail's host) and the
+ * conditional rating row (the maker's mark's host) the real card renders.
  */
 
 /* `vi.hoisted` because `vi.mock` factories are lifted above the imports — a
@@ -126,6 +128,18 @@ describe('plainText / descriptionLine', () => {
     expect(plainText('<p>قطن &amp; كتان &quot;فاخر&quot;</p>')).toBe('قطن & كتان "فاخر"');
   });
 
+  it('strips markup that arrived escaped, instead of printing it as text', () => {
+    /* The store shipped a description escaped twice — `&lt;p class="…"&gt;` —
+       and the card printed `p class="ql-direction-rtl"> <span …` under the
+       product name, because tags were stripped BEFORE entities were decoded.
+       Decoding first leaves nothing for the tag strip to miss. */
+    expect(
+      plainText('&lt;p class="ql-direction-rtl"&gt;يوكس كيب سويس رول طري.&lt;/p&gt;')
+    ).toBe('يوكس كيب سويس رول طري.');
+    /* and a double escape, which needs a second pass to surface the tag */
+    expect(plainText('&amp;lt;b&amp;gt;عرض&amp;lt;/b&amp;gt;')).toBe('عرض');
+  });
+
   it('refuses a size table — a column of numbers is not a sentence', () => {
     expect(descriptionLine('<ul><li>المقاس:36</li><li>الطول:130</li><li>الكم:5.5</li></ul>')).toBe('');
   });
@@ -165,14 +179,25 @@ describe('shortLine', () => {
 });
 
 describe('ProductCard', () => {
-  it('leaves the engine wishlist button on the image corner', async () => {
-    const { getByLabelText } = renderCard();
-    /* the first paint schedules the host sync; letting it land inside `waitFor`
-       keeps React from warning about an update outside `act` */
+  it('keeps the engine heart in the markup and hands the corner to the rail', async () => {
+    const { getByLabelText, container } = renderCard();
+    /* the engine's button stays in the server-rendered HTML — it is what a
+       customer sees before hydration — and the rail takes over from it */
     await waitFor(() => expect(getByLabelText('engine wishlist')).toBeTruthy());
     const heart = getByLabelText('engine wishlist');
     expect(heart.closest('.s-product-card-image')).toBeTruthy();
-    expect(heart.style.display).not.toBe('none');
+    /* the card is marked so the stylesheet can hide the engine's copy; the
+       attribute, not an inline style, keeps the engine's own render intact */
+    await waitFor(() =>
+      expect(
+        container.querySelector('.s-product-card-vertical')?.getAttribute('data-pc-actions')
+      ).toBe('1')
+    );
+    /* and the rail itself is on the plate, beside the engine's hidden copy */
+    const rail = container.querySelector('.pc-actions');
+    expect(rail).toBeTruthy();
+    expect(rail?.closest('.s-product-card-image')).toBeTruthy();
+    expect(rail?.querySelectorAll('button').length).toBe(4);
   });
 
   it('feeds the description as the engine subtitle when the product has no short line', async () => {
@@ -214,8 +239,67 @@ describe('ProductCard', () => {
   });
 });
 
+describe('ProductCard — the meta rail', () => {
+  it('portals the maker’s mark INTO the engine’s own score row', async () => {
+    /* One rail, not two lines: the score is the engine's server-rendered row
+       (so the number is in the first paint) and the brand joins it rather than
+       stacking a second thin line above the name. */
+    const p = {
+      ...base,
+      brand: { name: 'دار عود' },
+      rating: { stars: 4.8, count: 120 },
+    } as unknown as Product;
+    const { container } = renderCard(p);
+    await waitFor(() => expect(container.querySelector('.s-product-card-rating .pc-brand')).toBeTruthy());
+    const brand = container.querySelector('.s-product-card-rating .pc-brand');
+    expect(brand?.textContent).toBe('دار عود');
+    /* exactly one: a second copy on the label would print the maker twice */
+    expect(container.querySelectorAll('.pc-brand').length).toBe(1);
+  });
+
+  it('gives the maker’s mark its own line when the product has no score', async () => {
+    const p = { ...base, brand: { name: 'دار عود' } } as unknown as Product;
+    const { container } = renderCard(p);
+    await waitFor(() => expect(container.querySelector('.pc-brand')).toBeTruthy());
+    expect(container.querySelector('.s-product-card-rating')).toBeNull();
+    /* the label is its host, and the stylesheet's `grid-area: meta` puts it on
+       the reserved first row — so the name does not move up into its place */
+    expect(
+      container.querySelector('.pc-brand')?.parentElement?.classList.contains('s-product-card-content')
+    ).toBe(true);
+  });
+
+  it('keeps the maker’s mark when the merchant turns the score off', async () => {
+    /* The brand is not part of the rating. Hiding the row must not take the
+       maker with it — the rail is still the label's first line. */
+    state.settings = { product_card_rating: false };
+    const p = {
+      ...base,
+      brand: { name: 'دار عود' },
+      rating: { stars: 4.8, count: 120 },
+    } as unknown as Product;
+    const { container } = renderCard(p);
+    await waitFor(() => expect(container.querySelector('.pc-brand')).toBeTruthy());
+    expect(container.querySelector('.s-product-card-rating .pc-brand')).toBeNull();
+  });
+
+  it('prints no rail at all for a product with neither brand nor score', async () => {
+    const { container } = renderCard();
+    await waitFor(() => expect(container.querySelector('[data-testid="engine-card"]')).toBeTruthy());
+    expect(container.querySelector('.pc-brand')).toBeNull();
+    expect(container.querySelector('.pc-rating')).toBeNull();
+    /* and nothing is inserted into the label to hold the row open: the ROW is
+       reserved by the grid track, not by an empty element on show */
+    expect(container.querySelector('.s-product-card-content')?.children.length).toBe(3);
+  });
+});
+
 describe('ProductCard — unreviewed products', () => {
-  it('fills the row the engine leaves out with «لا تقييمات»', async () => {
+  it('prints «لا تقييمات» only when the merchant asked for the wording', async () => {
+    /* OFF by default. The label no longer depends on the row — the rail simply
+       is not there — so a catalogue without reviews reads as calm instead of
+       forty cards announcing the same absence. */
+    state.settings = { product_card_rating_empty: true };
     const { container } = renderCard();
     await waitFor(() => expect(container.querySelector('.pc-rating')).toBeTruthy());
     expect(container.querySelector('.pc-rating')?.textContent).toContain('لا تقييمات');
@@ -223,18 +307,26 @@ describe('ProductCard — unreviewed products', () => {
     expect(container.querySelector('.s-product-card-rating')).toBeNull();
   });
 
-  it('leaves the row out when the merchant turned the empty state off', async () => {
-    state.settings = { product_card_rating_empty: false };
+  it('leaves the rail out entirely by default', async () => {
     const { container } = renderCard();
     await waitFor(() => expect(container.querySelector('[data-testid="engine-card"]')).toBeTruthy());
     expect(container.querySelector('.pc-rating')).toBeNull();
   });
 
   it('never prints the empty state on a product that does have stars', async () => {
+    state.settings = { product_card_rating_empty: true };
     const p = { ...base, rating: { stars: 4.6, count: 89 } } as unknown as Product;
     const { container } = renderCard(p);
     await waitFor(() => expect(container.querySelector('.s-product-card-rating')).toBeTruthy());
     expect(container.querySelector('.pc-rating')).toBeNull();
+  });
+
+  it('puts the maker’s mark inside the «لا تقييمات» row, not on a line above it', async () => {
+    state.settings = { product_card_rating_empty: true };
+    const p = { ...base, brand: { name: 'دار عود' } } as unknown as Product;
+    const { container } = renderCard(p);
+    await waitFor(() => expect(container.querySelector('.pc-rating .pc-brand')).toBeTruthy());
+    expect(container.querySelectorAll('.pc-brand').length).toBe(1);
   });
 
   it('takes the rating from the product detail when the list dropped it', async () => {
@@ -243,6 +335,58 @@ describe('ProductCard — unreviewed products', () => {
     await waitFor(() => expect(container.querySelector('.s-product-card-rating')).toBeTruthy());
     expect(container.querySelector('.s-product-card-rating')?.getAttribute('data-count')).toBe('12');
     expect(container.querySelector('.pc-rating')).toBeNull();
+  });
+});
+
+describe('ProductCard — the print’s own states', () => {
+  it('turns a missing photograph into a deliberate plate, not a blank well', async () => {
+    const { container } = renderCard();
+    await waitFor(() => expect(container.querySelector('.pc-monogram')).toBeTruthy());
+    const mono = container.querySelector('.pc-monogram');
+    expect(mono?.textContent).toBe('T');
+    /* decorative: the name beside it already says what the product is */
+    expect(mono?.getAttribute('aria-hidden')).toBe('true');
+    /* and it lives on the PLATE, so the well keeps the print's shape */
+    expect(mono?.closest('.s-product-card-image')).toBeTruthy();
+  });
+
+  it('answers a photograph that fails to load with the same plate', async () => {
+    /* `error` does not bubble, so the card listens in the capture phase — which
+       covers the engine's single photo AND every gallery slide mounted later,
+       without a listener per image. */
+    const p = { ...base, image: { url: 'dead.jpg' } } as unknown as Product;
+    const { container } = renderCard(p);
+    await waitFor(() => expect(container.querySelector('[data-testid="engine-card"]')).toBeTruthy());
+    expect(container.querySelector('.pc-monogram')).toBeNull();
+
+    const img = container.querySelector('.s-product-card-image img') as HTMLImageElement;
+    await act(async () => {
+      img.dispatchEvent(new Event('error'));
+    });
+    await waitFor(() => expect(container.querySelector('.pc-monogram')).toBeTruthy());
+  });
+
+  it('prints a tag for a discount the engine’s own promo slot left empty', async () => {
+    /* The grid used to show NO tag on a product discounted without a Salla
+       promotion, while the mega menu showed `-60%` for the same product. */
+    const p = {
+      ...base,
+      price: 200,
+      sale_price: 80,
+      is_on_sale: true,
+    } as unknown as Product;
+    const { container } = renderCard(p);
+    await waitFor(() => expect(container.querySelector('.pc-badge')).toBeTruthy());
+    const badge = container.querySelector('.pc-badge');
+    /* the figures are wrapped in bidi ISOLATES (U+2066 … U+2069): in an RTL
+       line a bare «-60%» re-orders to «60%-», so the sign has to be pinned to
+       the number it belongs to. Asserting the raw string keeps that deliberate,
+       not accidental. */
+    expect(badge?.textContent).toBe('\u2066-60%\u2069');
+    /* On the CARD ROOT, not inside the print: the tag is clamped over the
+       card's top edge, and the print clips its own overflow — a badge inside
+       it would be sawn in half. */
+    expect(badge?.parentElement?.classList.contains('s-product-card-vertical')).toBe(true);
   });
 });
 

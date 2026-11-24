@@ -1,0 +1,1 @@
+import{wr as e}from"./shared-home-DEIFcKkt.js";import{t}from"./chunk-HIGI3M7E-LeDMNpyg.js";import"./orders-BekTPC3M.js";import{c as n}from"./hydrate-C7W2Rjbe.js";var r=e();function i(){let e=n.useLoaderData();return(0,r.jsx)(t.Component,{...e})}export{i as component};

@@ -1,0 +1,1 @@
+import{yr as e}from"./shared-home-Baktue9j.js";import{c as t}from"./vendor-router-CSIjzRZS.js";var n=e(),r=()=>(0,n.jsx)(t,{});export{r as component};

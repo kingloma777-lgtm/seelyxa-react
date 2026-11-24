@@ -1,0 +1,1 @@
+import{P as e}from"./hydrate-BNTTX7pK.js";var t=e;export{t as component};

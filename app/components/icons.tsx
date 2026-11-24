@@ -301,3 +301,62 @@ export const CrownIcon = (props: SVGProps<SVGSVGElement>) => (
     <path d="M5 21H19" {...stroke} />
   </svg>
 );
+
+/* ---------- product-card actions ---------- */
+
+/** The heart the engine draws with `sicon-heart`, as a line icon so the four
+ *  card actions share one stroke weight. `filled` is the saved state. */
+export const HeartIcon = ({ filled = false, ...props }: SVGProps<SVGSVGElement> & { filled?: boolean }) => (
+  <svg {...base} {...props}>
+    <path
+      d="M12 20.5C12 20.5 3.5 15.6 3.5 9.9C3.5 7.2 5.6 5.1 8.2 5.1C9.9 5.1 11.2 6 12 7.3C12.8 6 14.1 5.1 15.8 5.1C18.4 5.1 20.5 7.2 20.5 9.9C20.5 15.6 12 20.5 12 20.5Z"
+      {...stroke}
+      fill={filled ? 'currentColor' : 'none'}
+    />
+  </svg>
+);
+
+/** Quick view — the product, looked at without opening the page. */
+export const QuickViewIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg {...base} {...props}>
+    <path
+      d="M2.5 12C2.5 12 5.9 5.5 12 5.5C18.1 5.5 21.5 12 21.5 12C21.5 12 18.1 18.5 12 18.5C5.9 18.5 2.5 12 2.5 12Z"
+      {...stroke}
+    />
+    <circle cx="12" cy="12" r="3" {...stroke} />
+  </svg>
+);
+
+/** Compare — two arrows pointing at each other: this one against that one.
+ *  A balance scale reads as a smudge at 16px on a card corner; the arrows
+ *  survive the size. */
+export const CompareIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg {...base} {...props}>
+    <path d="M4 7H17" {...stroke} />
+    <path d="M14 4.5L17 7L14 9.5" {...stroke} />
+    <path d="M20 17H7" {...stroke} />
+    <path d="M10 14.5L7 17L10 19.5" {...stroke} />
+  </svg>
+);
+
+/** Similar products — a grid of tiles: more of the same shelf. */
+export const SimilarIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg {...base} {...props}>
+    <rect x="3.5" y="3.5" width="7" height="7" rx="1.6" {...stroke} />
+    <rect x="13.5" y="3.5" width="7" height="7" rx="1.6" {...stroke} />
+    <rect x="3.5" y="13.5" width="7" height="7" rx="1.6" {...stroke} />
+    <rect x="13.5" y="13.5" width="7" height="7" rx="1.6" {...stroke} />
+  </svg>
+);
+
+/** Share — one node handing the product to two others. The same three-node
+ *  shape the platform's own share button draws, at the set's stroke weight. */
+export const ShareIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg {...base} {...props}>
+    <circle cx="17.5" cy="5.5" r="2.6" {...stroke} />
+    <circle cx="6.5" cy="12" r="2.6" {...stroke} />
+    <circle cx="17.5" cy="18.5" r="2.6" {...stroke} />
+    <path d="M8.9 10.7L15.1 6.8" {...stroke} />
+    <path d="M8.9 13.3L15.1 17.2" {...stroke} />
+  </svg>
+);

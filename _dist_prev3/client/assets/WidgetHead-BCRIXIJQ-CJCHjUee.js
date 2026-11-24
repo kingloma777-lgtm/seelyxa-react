@@ -1,0 +1,1 @@
+export{Vt as WidgetHead}from"./shared-home-Baktue9j.js";

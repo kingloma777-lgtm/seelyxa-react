@@ -1,0 +1,1 @@
+import{Gn as e,in as t,yr as n}from"./shared-home-DLOM6_CA.js";var r=n();function i({storeName:n=``}){let{t:i}=e(),a=new Date().getFullYear();return(0,r.jsxs)(r.Fragment,{children:[i(`blocks.footer.copyright`,`Copyright`),` | `,a,` `,(0,r.jsx)(t,{to:`/`,className:`hover:text-primary`,children:n}),` `]})}export{i as Copyright};

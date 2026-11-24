@@ -128,8 +128,18 @@
 
 /*
   Product-card image ratio — square / landscape / portrait.
-  `ThemeLayout` puts `product-card-img--<ratio>` on `.app-inner` from the
-  `product_card_img_ratio` theme setting.
+
+  The VALUE arrives as `--pc-ar-pad`, written inline on `.app-inner` by
+  `productCardVars()` from the `product_card_img_ratio` theme setting — one
+  source, the same one every other card property flows through. The classes
+  below stay as the stylesheet's own defaults (and as the layout hook the
+  absolute-positioning block keys off), so a card still has a ratio even where
+  the inline channel has not run.
+
+  A component that re-declares `--pc-ar-pad` on a nearer ancestor (the mega
+  menu's override, `mega_card_ratio`) re-points the ratio for its subtree only
+  — that is the whole inheritance contract, and it could not work while the
+  percentages were literals in these rules.
 
   Uses the padding-bottom % technique (like theme Matjar) rather than the
   `aspect-ratio` property: the image box height comes from `padding-bottom`, and
@@ -143,6 +153,7 @@
   overflow: hidden;
   height: 0;
   aspect-ratio: auto;
+  padding-bottom: var(--pc-ar-pad, 100%);
 
   > a {
     position: absolute;
@@ -169,14 +180,14 @@
   }
 }
 
-.product-card-img--square .s-product-card-vertical .s-product-card-image {
-  padding-bottom: 100%;
+.product-card-img--square {
+  --pc-ar-pad: 100%;
 }
-.product-card-img--landscape .s-product-card-vertical .s-product-card-image {
-  padding-bottom: 75%;
+.product-card-img--landscape {
+  --pc-ar-pad: 75%;
 }
-.product-card-img--portrait .s-product-card-vertical .s-product-card-image {
-  padding-bottom: 133.3333%;
+.product-card-img--portrait {
+  --pc-ar-pad: 133.3333%;
 }
 
 /* Product page — tighten the title's bottom margin (engine renders it as mb-6) */
@@ -409,8 +420,15 @@ salla-gifting {
     &-wishlist-added i {
       @apply text-red-500;
     }
+    /* The plate must not GROW. `sm:flex-1` used to let it eat whatever height
+       the card had left over, which silently overrode the merchant's
+       `product_card_img_ratio`: the padded square came out 213x216 on one card
+       and 213x240 on the next, so a row of cards showed three different crops
+       and three different photo sizes. The tile still stretches to the tallest
+       card in the row; the slack now lands on the content grid, which already
+       reserves it on the price row. */
     &-fit-height.s-product-card-vertical .s-product-card-image {
-      @apply flex-none sm:flex-1;
+      @apply flex-none;
     }
   }
 

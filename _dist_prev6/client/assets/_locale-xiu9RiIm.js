@@ -1,0 +1,1 @@
+import{wr as e}from"./shared-home-DEIFcKkt.js";import{c as t}from"./vendor-router-BuwJUGB2.js";var n=e(),r=()=>(0,n.jsx)(t,{});export{r as component};
